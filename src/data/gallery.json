@@ -1,0 +1,42 @@
+[
+  {
+    "src": "/images/gallery/weddings/wedding-haldi-01.webp",
+    "category": "weddings",
+    "alt": "Marigold haldi stage with yellow drapes",
+    "width": 1600,
+    "height": 1067,
+    "featured": true
+  },
+  {
+    "src": "/images/gallery/weddings/wedding-mandap-01.webp",
+    "category": "weddings",
+    "alt": "Floral mandap with rose and marigold arches",
+    "width": 1600,
+    "height": 1067,
+    "featured": true
+  },
+  {
+    "src": "/images/gallery/weddings/wedding-reception-01.webp",
+    "category": "weddings",
+    "alt": "Grand reception hall with crystal chandeliers and warm lighting",
+    "width": 1600,
+    "height": 1067,
+    "featured": false
+  },
+  {
+    "src": "/images/gallery/birthdays/birthday-decor-01.webp",
+    "category": "birthdays",
+    "alt": "Balloon arch and themed birthday stage setup",
+    "width": 1600,
+    "height": 1067,
+    "featured": true
+  },
+  {
+    "src": "/images/gallery/functions/function-corporate-01.webp",
+    "category": "functions",
+    "alt": "Elegant corporate event setup with floral centrepieces",
+    "width": 1600,
+    "height": 1067,
+    "featured": false
+  }
+]
