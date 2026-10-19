@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyAuthToken } from '@/lib/auth';
 import { AdminNav } from '@/components/admin/AdminNav';
-import { Footer } from '@/components/layout/Footer';
 
 export const metadata: Metadata = {
   title: 'Admin Console – Shadi Sutra',
@@ -25,12 +24,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-bg">
       <AdminNav />
-      <main className="flex-1 pt-16 md:pt-6 pb-20 md:pb-8 px-4 sm:px-6 lg:px-8 md:ml-20 lg:ml-64 transition-all min-h-[90dvh] bg-bg">
-        {children}
+      <main className="flex-1 pt-20 md:pt-8 pb-24 md:pb-12 px-4 sm:px-6 lg:px-10 md:ml-20 lg:ml-64 transition-all min-h-screen">
+        <div className="max-w-7xl mx-auto w-full">
+          {children}
+        </div>
       </main>
-      <Footer />
-    </>
+    </div>
   );
 }

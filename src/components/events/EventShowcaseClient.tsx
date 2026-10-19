@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { site } from "@/config/site";
 
 interface EventShowcaseClientProps {
@@ -57,11 +57,17 @@ export function EventShowcaseClient({ event }: EventShowcaseClientProps) {
     `${event.venue}`
   )}`;
 
-  // WhatsApp share link for guests
-  const shareText = `You are invited to ${event.name}! View the schedule & venue details here: ${
-    typeof window !== "undefined" ? window.location.href : ""
-  }`;
-  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+  // WhatsApp share link for guests (computed safely to prevent SSR hydration mismatch)
+  const [whatsappShareUrl, setWhatsappShareUrl] = useState<string>(
+    `https://wa.me/?text=${encodeURIComponent(`You are invited to ${event.name}! View the schedule & venue details.`)}`
+  );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const shareText = `You are invited to ${event.name}! View the schedule & venue details here: ${window.location.href}`;
+      setWhatsappShareUrl(`https://wa.me/?text=${encodeURIComponent(shareText)}`);
+    }
+  }, [event.name]);
 
   return (
     <div className="min-h-screen bg-bg text-ink pb-24 selection:bg-accent/20">

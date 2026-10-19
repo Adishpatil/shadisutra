@@ -1,209 +1,239 @@
 "use server";
 
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyAdminCaller } from "@/lib/auth/verify-admin";
 
-/**
- * Helper to verify caller is admin
- */
-async function verifyAdminCaller() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const idSchema = z.string().uuid();
+const eventTypeSchema = z.enum(["wedding", "birthday", "function"]);
+const eventStatusSchema = z.enum([
+  "planning",
+  "finalized",
+  "completed",
+  "cancelled",
+]);
+const functionDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((date) => {
+    const parsed = new Date(`${date}T00:00:00.000Z`);
+    return (
+      !Number.isNaN(parsed.getTime()) &&
+      parsed.toISOString().slice(0, 10) === date
+    );
+  });
+const functionTimeSchema = z.string().refine((time) => {
+  if (!time) return true;
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(time);
+  return Boolean(
+    match &&
+      Number(match[1]) <= 23 &&
+      Number(match[2]) <= 59 &&
+      Number(match[3] ?? 0) <= 59
+  );
+});
+const itemCategorySchema = z.enum([
+  "lighting",
+  "flowers",
+  "decor",
+  "instruments",
+  "other",
+]);
+const itemStatusSchema = z.enum(["not_started", "in_progress", "done"]);
 
-  if (!user) throw new Error("Unauthorized");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, access_enabled")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin" || !profile.access_enabled) {
-    throw new Error("Forbidden: Admin privileges required.");
-  }
-
-  return user;
+function text(formData: FormData, key: string): string {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
 }
 
-/**
- * Create a new Event
- */
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "The request could not be completed.";
+}
+
 export async function createEventAction(formData: FormData) {
   try {
     await verifyAdminCaller();
-
-    const name = formData.get("name")?.toString() || "";
-    const type = (formData.get("type")?.toString() || "wedding") as "wedding" | "birthday" | "function";
-    const date = formData.get("date")?.toString() || "";
-    const venue = formData.get("venue")?.toString() || "";
-    const customerId = formData.get("customerId")?.toString() || null;
-    const showPayments = formData.get("showPayments") === "true";
-    const budgetTotal = parseFloat(formData.get("budgetTotal")?.toString() || "0") || 0;
-
-    if (!name || !date || !venue) {
-      return { success: false, error: "Please fill in all required fields." };
+    const parsed = z
+      .object({
+        name: z.string().trim().min(1).max(200),
+        type: eventTypeSchema,
+        date: functionDateSchema,
+        venue: z.string().trim().min(1).max(500),
+        customerId: z.union([z.literal(""), idSchema]).transform((value) => value || null),
+        showPayments: z.boolean(),
+        budgetTotal: z.number().finite().min(0),
+      })
+      .safeParse({
+        name: text(formData, "name"),
+        type: text(formData, "type") || "wedding",
+        date: text(formData, "date"),
+        venue: text(formData, "venue"),
+        customerId: text(formData, "customerId"),
+        showPayments: formData.get("showPayments") === "true",
+        budgetTotal: Number(text(formData, "budgetTotal") || "0"),
+      });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid event details." };
     }
 
-    const adminSupabase = createAdminClient();
-
-    const { data: newEvent, error: eventErr } = await adminSupabase
+    const supabase = createAdminClient();
+    const { data: event, error: eventError } = await supabase
       .from("events")
       .insert({
-        name,
-        type,
-        date,
-        venue,
-        customer_id: customerId || null,
-        show_payments_to_customer: showPayments,
-        status: "planning",
+        name: parsed.data.name,
+        type: parsed.data.type,
+        date: parsed.data.date,
+        venue: parsed.data.venue,
+        customer_id: parsed.data.customerId,
+        show_payments_to_customer: parsed.data.showPayments,
       })
-      .select()
+      .select("id")
       .single();
+    if (eventError) throw eventError;
 
-    if (eventErr || !newEvent) {
-      return { success: false, error: eventErr?.message || "Failed to create event." };
-    }
-
-    // Initialize budget record
-    await adminSupabase.from("budgets").insert({
-      event_id: newEvent.id,
-      agreed_total: budgetTotal,
+    const { error: budgetError } = await supabase.from("budgets").insert({
+      event_id: event.id,
+      agreed_total: parsed.data.budgetTotal,
     });
+    if (budgetError) {
+      const { error: cleanupError } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", event.id);
+      if (cleanupError) {
+        throw new Error(`${budgetError.message}; event cleanup failed: ${cleanupError.message}`);
+      }
+      throw budgetError;
+    }
 
     revalidatePath("/admin/events");
     revalidatePath("/admin");
-
-    return { success: true, eventId: newEvent.id };
-  } catch (err: any) {
-    return { success: false, error: err.message || "Failed to create event." };
+    return { success: true, eventId: event.id };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
   }
 }
 
-/**
- * Update Event Status
- */
 export async function updateEventStatusAction(
   eventId: string,
   status: "planning" | "finalized" | "completed" | "cancelled"
 ) {
   try {
     await verifyAdminCaller();
-    const adminSupabase = createAdminClient();
-
-    const { error } = await adminSupabase
+    const parsed = z
+      .object({ eventId: idSchema, status: eventStatusSchema })
+      .safeParse({ eventId, status });
+    if (!parsed.success) {
+      return { success: false, error: "Invalid event status request." };
+    }
+    const { error } = await createAdminClient()
       .from("events")
-      .update({ status })
-      .eq("id", eventId);
-
-    if (error) return { success: false, error: error.message };
-
+      .update({ status: parsed.data.status })
+      .eq("id", parsed.data.eventId);
+    if (error) throw error;
     revalidatePath(`/admin/events/${eventId}`);
     revalidatePath("/admin/events");
     revalidatePath("/admin");
-
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
   }
 }
 
-/**
- * Add a Function (sub-event)
- */
 export async function addFunctionAction(eventId: string, formData: FormData) {
   try {
     await verifyAdminCaller();
-
-    const name = formData.get("name")?.toString() || "";
-    const date = formData.get("date")?.toString() || "";
-    const startTime = formData.get("startTime")?.toString() || null;
-    const notes = formData.get("notes")?.toString() || null;
-
-    if (!name || !date) {
-      return { success: false, error: "Function name and date are required." };
+    const parsed = z
+      .object({
+        eventId: idSchema,
+        name: z.string().trim().min(1).max(200),
+        date: functionDateSchema,
+        startTime: functionTimeSchema,
+        notes: z.string().max(5000),
+      })
+      .safeParse({
+        eventId,
+        name: text(formData, "name"),
+        date: text(formData, "date"),
+        startTime: text(formData, "startTime"),
+        notes: text(formData, "notes"),
+      });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid function details." };
     }
 
-    const adminSupabase = createAdminClient();
-
-    const { data, error } = await adminSupabase
+    const { data, error } = await createAdminClient()
       .from("event_functions")
       .insert({
-        event_id: eventId,
-        name,
-        date,
-        start_time: startTime,
-        notes,
+        event_id: parsed.data.eventId,
+        name: parsed.data.name,
+        date: parsed.data.date,
+        start_time: parsed.data.startTime || null,
+        notes: parsed.data.notes || null,
       })
-      .select()
+      .select("id")
       .single();
-
-    if (error) return { success: false, error: error.message };
-
+    if (error) throw error;
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true, functionId: data.id };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
   }
 }
 
-/**
- * Add an Item under a Function (Tracking View)
- */
-export async function addItemAction(functionId: string, eventId: string, formData: FormData) {
+export async function addItemAction(
+  functionId: string,
+  eventId: string,
+  formData: FormData
+) {
   try {
     await verifyAdminCaller();
-
-    const category = (formData.get("category")?.toString() || "decor") as
-      | "lighting"
-      | "flowers"
-      | "decor"
-      | "instruments"
-      | "other";
-    const title = formData.get("title")?.toString() || "";
-    const vendor = formData.get("vendor")?.toString() || null;
-    const cost = parseFloat(formData.get("cost")?.toString() || "0") || 0;
-    const notes = formData.get("notes")?.toString() || null;
-    const status = (formData.get("status")?.toString() || "not_started") as
-      | "not_started"
-      | "in_progress"
-      | "done";
-
-    if (!title) {
-      return { success: false, error: "Item title is required." };
+    const parsed = z
+      .object({
+        functionId: idSchema,
+        category: itemCategorySchema,
+        title: z.string().trim().min(1).max(200),
+        vendor: z.string().max(200),
+        cost: z.number().finite().min(0),
+        status: itemStatusSchema,
+        notes: z.string().max(5000),
+      })
+      .safeParse({
+        functionId,
+        category: text(formData, "category") || "decor",
+        title: text(formData, "title"),
+        vendor: text(formData, "vendor"),
+        cost: Number(text(formData, "cost") || "0"),
+        status: text(formData, "status") || "not_started",
+        notes: text(formData, "notes"),
+      });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid item details." };
     }
 
-    const adminSupabase = createAdminClient();
-
-    const { data, error } = await adminSupabase
+    const { data, error } = await createAdminClient()
       .from("event_items")
       .insert({
-        function_id: functionId,
-        category,
-        title,
-        vendor,
-        cost,
-        status,
-        notes,
+        function_id: parsed.data.functionId,
+        category: parsed.data.category,
+        title: parsed.data.title,
+        vendor: parsed.data.vendor || null,
+        cost: parsed.data.cost,
+        status: parsed.data.status,
+        notes: parsed.data.notes || null,
       })
-      .select()
+      .select("id")
       .single();
-
-    if (error) return { success: false, error: error.message };
-
+    if (error) throw error;
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true, itemId: data.id };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
   }
 }
 
-/**
- * Quick Item Status Toggle (Quick Action in Tracking View)
- */
 export async function updateItemStatusAction(
   itemId: string,
   eventId: string,
@@ -211,18 +241,188 @@ export async function updateItemStatusAction(
 ) {
   try {
     await verifyAdminCaller();
-    const adminSupabase = createAdminClient();
-
-    const { error } = await adminSupabase
+    const parsed = z
+      .object({ itemId: idSchema, status: itemStatusSchema })
+      .safeParse({ itemId, status: newStatus });
+    if (!parsed.success) return { success: false, error: "Invalid item status request." };
+    const { error } = await createAdminClient()
       .from("event_items")
-      .update({ status: newStatus })
-      .eq("id", itemId);
-
-    if (error) return { success: false, error: error.message };
-
+      .update({ status: parsed.data.status })
+      .eq("id", parsed.data.itemId);
+    if (error) throw error;
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
+  }
+}
+
+export async function updateItemAction(
+  itemId: string,
+  eventId: string,
+  formData: FormData
+) {
+  try {
+    await verifyAdminCaller();
+    const parsed = z
+      .object({
+        itemId: idSchema,
+        category: itemCategorySchema,
+        title: z.string().trim().min(1).max(200),
+        vendor: z.string().max(200),
+        cost: z.number().finite().min(0),
+        notes: z.string().max(5000),
+        status: itemStatusSchema,
+      })
+      .safeParse({
+        itemId,
+        category: text(formData, "category") || "decor",
+        title: text(formData, "title"),
+        vendor: text(formData, "vendor"),
+        cost: Number(text(formData, "cost") || "0"),
+        notes: text(formData, "notes"),
+        status: text(formData, "status") || "not_started",
+      });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid item details." };
+    }
+
+    const { error } = await createAdminClient()
+      .from("event_items")
+      .update({
+        category: parsed.data.category,
+        title: parsed.data.title,
+        vendor: parsed.data.vendor || null,
+        cost: parsed.data.cost,
+        notes: parsed.data.notes || null,
+        status: parsed.data.status,
+      })
+      .eq("id", parsed.data.itemId);
+    if (error) throw error;
+    revalidatePath(`/admin/events/${eventId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
+  }
+}
+
+export async function deleteItemAction(itemId: string, eventId: string) {
+  try {
+    await verifyAdminCaller();
+    const parsedId = idSchema.safeParse(itemId);
+    if (!parsedId.success) return { success: false, error: "Invalid item ID." };
+    const { error } = await createAdminClient()
+      .from("event_items")
+      .delete()
+      .eq("id", parsedId.data);
+    if (error) throw error;
+    revalidatePath(`/admin/events/${eventId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
+  }
+}
+
+export async function updateFunctionAction(
+  functionId: string,
+  eventId: string,
+  formData: FormData
+) {
+  try {
+    await verifyAdminCaller();
+    const parsed = z
+      .object({
+        functionId: idSchema,
+        name: z.string().trim().min(1).max(200),
+        date: functionDateSchema,
+        startTime: functionTimeSchema,
+        notes: z.string().max(5000),
+      })
+      .safeParse({
+        functionId,
+        name: text(formData, "name"),
+        date: text(formData, "date"),
+        startTime: text(formData, "startTime"),
+        notes: text(formData, "notes"),
+      });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid function details." };
+    }
+
+    const { error } = await createAdminClient()
+      .from("event_functions")
+      .update({
+        name: parsed.data.name,
+        date: parsed.data.date,
+        start_time: parsed.data.startTime || null,
+        notes: parsed.data.notes || null,
+      })
+      .eq("id", parsed.data.functionId);
+    if (error) throw error;
+    revalidatePath(`/admin/events/${eventId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
+  }
+}
+
+export async function deleteFunctionAction(functionId: string, eventId: string) {
+  try {
+    await verifyAdminCaller();
+    const parsedId = idSchema.safeParse(functionId);
+    if (!parsedId.success) return { success: false, error: "Invalid function ID." };
+    const { error } = await createAdminClient()
+      .from("event_functions")
+      .delete()
+      .eq("id", parsedId.data);
+    if (error) throw error;
+    revalidatePath(`/admin/events/${eventId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
+  }
+}
+
+export async function updateEventDetailsAction(
+  eventId: string,
+  formData: FormData
+) {
+  try {
+    await verifyAdminCaller();
+    const parsed = z
+      .object({
+        eventId: idSchema,
+        name: z.string().trim().min(1).max(200),
+        type: eventTypeSchema,
+        date: functionDateSchema,
+        venue: z.string().trim().min(1).max(500),
+      })
+      .safeParse({
+        eventId,
+        name: text(formData, "name"),
+        type: text(formData, "type") || "wedding",
+        date: text(formData, "date"),
+        venue: text(formData, "venue"),
+      });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid event details." };
+    }
+
+    const { error } = await createAdminClient()
+      .from("events")
+      .update({
+        name: parsed.data.name,
+        type: parsed.data.type,
+        date: parsed.data.date,
+        venue: parsed.data.venue,
+      })
+      .eq("id", parsed.data.eventId);
+    if (error) throw error;
+    revalidatePath(`/admin/events/${eventId}`);
+    revalidatePath("/admin/events");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
   }
 }

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { site, siteLinks } from "@/config/site";
 
 const footerLinks = [
@@ -22,7 +25,12 @@ const footerLinks = [
 ] as const;
 
 export function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/portal")) {
+    return null;
+  }
 
   return (
     <footer className="bg-ink text-white/80" role="contentinfo">

@@ -25,6 +25,7 @@
 *.pem
 /backups/
 *.sql
+!supabase/migrations/*.sql
 
 # debug
 npm-debug.log*

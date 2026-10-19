@@ -6,34 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { usernameToEmail, sanitizeUsername } from "@/lib/auth/synthetic-email";
 import { createCustomerSchema } from "@/lib/auth/schemas";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-/**
- * Helper to verify that the calling session is an active Administrator.
- */
-async function verifyAdminCaller() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized: Authentication required.");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, access_enabled")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin" || !profile.access_enabled) {
-    throw new Error("Forbidden: Administrator privileges required.");
-  }
-
-  return user;
-}
+import { cookies } from "next/headers";
+import { verifyAdminCaller } from "@/lib/auth/verify-admin";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export interface CreatedCustomerResult {
   success: boolean;
@@ -81,14 +60,18 @@ export async function createCustomerAccountAction(
       "Pass@" + crypto.randomBytes(6).toString("hex");
 
     const email = usernameToEmail(cleanUsername);
+
     const adminSupabase = createAdminClient();
 
     // 4. Check if username already exists in profiles
-    const { data: existingUser } = await adminSupabase
+    const { data: existingUser, error: existingUserError } = await adminSupabase
       .from("profiles")
       .select("id")
       .eq("username", cleanUsername)
       .maybeSingle();
+    if (existingUserError) {
+      return { success: false, error: existingUserError.message };
+    }
 
     if (existingUser) {
       return {
@@ -140,14 +123,24 @@ export async function createCustomerAccountAction(
 
     // 7. Link to event if eventId was supplied
     if (eventId) {
-      await adminSupabase
+      const { data: event, error: eventError } = await adminSupabase
         .from("events")
         .update({ customer_id: customerUserId })
-        .eq("id", eventId);
+        .eq("id", eventId)
+        .select("id")
+        .maybeSingle();
+      if (eventError || !event) {
+        await adminSupabase.from("profiles").delete().eq("id", customerUserId);
+        await adminSupabase.auth.admin.deleteUser(customerUserId);
+        return {
+          success: false,
+          error: eventError?.message || "The selected event could not be linked.",
+        };
+      }
     }
 
     // 8. Record audit log
-    await adminSupabase.from("audit_log").insert({
+    const { error: auditError } = await adminSupabase.from("audit_log").insert({
       actor_id: adminUser.id,
       action: "CREATE_CUSTOMER",
       table_name: "profiles",
@@ -158,6 +151,7 @@ export async function createCustomerAccountAction(
         linked_event_id: eventId || null,
       },
     });
+    if (auditError) return { success: false, error: auditError.message };
 
     revalidatePath("/admin/customers");
     revalidatePath("/admin");
@@ -170,10 +164,10 @@ export async function createCustomerAccountAction(
         fullName,
       },
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
-      error: err.message || "An unexpected error occurred.",
+      error: err instanceof Error ? err.message : "An unexpected error occurred.",
     };
   }
 }
@@ -186,33 +180,41 @@ export async function toggleCustomerAccessAction(
   enable: boolean
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const input = z
+      .object({ customerId: z.string().uuid(), enable: z.boolean() })
+      .safeParse({ customerId, enable });
+    if (!input.success) return { success: false, error: "Invalid customer access request." };
     const adminUser = await verifyAdminCaller();
     const adminSupabase = createAdminClient();
 
-    const { error } = await adminSupabase
+    const { data: customer, error } = await adminSupabase
       .from("profiles")
-      .update({ access_enabled: enable })
-      .eq("id", customerId);
+      .update({ access_enabled: input.data.enable })
+      .eq("id", input.data.customerId)
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       return { success: false, error: error.message };
     }
+    if (!customer) return { success: false, error: "Customer was not found." };
 
     // Record audit log
-    await adminSupabase.from("audit_log").insert({
+    const { error: auditError } = await adminSupabase.from("audit_log").insert({
       actor_id: adminUser.id,
-      action: enable ? "ENABLE_PORTAL_ACCESS" : "DISABLE_PORTAL_ACCESS",
+      action: input.data.enable ? "ENABLE_PORTAL_ACCESS" : "DISABLE_PORTAL_ACCESS",
       table_name: "profiles",
-      row_id: customerId,
-      payload: { access_enabled: enable },
+      row_id: input.data.customerId,
+      payload: { access_enabled: input.data.enable },
     });
+    if (auditError) return { success: false, error: auditError.message };
 
     revalidatePath("/admin/customers");
     revalidatePath("/admin");
 
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to update access." };
   }
 }
 
@@ -224,14 +226,24 @@ export async function resetCustomerPasswordAction(
   customPassword?: string
 ): Promise<{ success: boolean; newPassword?: string; error?: string }> {
   try {
+    const input = z
+      .object({
+        customerId: z.string().uuid(),
+        customPassword: z.string().min(8).max(200).optional(),
+      })
+      .safeParse({ customerId, customPassword });
+    if (!input.success) {
+      return { success: false, error: input.error.issues[0]?.message ?? "Invalid password reset request." };
+    }
+
+    const generatedPassword =
+      input.data.customPassword || "Pass@" + crypto.randomBytes(6).toString("hex");
+
     const adminUser = await verifyAdminCaller();
     const adminSupabase = createAdminClient();
 
-    const generatedPassword =
-      customPassword || "Pass@" + crypto.randomBytes(6).toString("hex");
-
     const { error: authError } = await adminSupabase.auth.admin.updateUserById(
-      customerId,
+      input.data.customerId,
       {
         password: generatedPassword,
       }
@@ -242,19 +254,21 @@ export async function resetCustomerPasswordAction(
     }
 
     // Force user to change password on their next login
-    await adminSupabase
+    const { error: profileError } = await adminSupabase
       .from("profiles")
       .update({ must_change_password: true })
-      .eq("id", customerId);
+      .eq("id", input.data.customerId);
+    if (profileError) return { success: false, error: profileError.message };
 
     // Record audit log
-    await adminSupabase.from("audit_log").insert({
+    const { error: auditError } = await adminSupabase.from("audit_log").insert({
       actor_id: adminUser.id,
       action: "RESET_CUSTOMER_PASSWORD",
       table_name: "profiles",
-      row_id: customerId,
+      row_id: input.data.customerId,
       payload: { must_change_password: true },
     });
+    if (auditError) return { success: false, error: auditError.message };
 
     revalidatePath("/admin/customers");
     revalidatePath("/admin");
@@ -263,8 +277,8 @@ export async function resetCustomerPasswordAction(
       success: true,
       newPassword: generatedPassword,
     };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to reset password." };
   }
 }
 
@@ -272,7 +286,13 @@ export async function resetCustomerPasswordAction(
  * General Sign Out action.
  */
 export async function signOutAction() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  const cookieStore = await cookies();
+  cookieStore.delete("auth_token");
+  try {
+    if (isSupabaseConfigured()) {
+      const supabase = await createClient();
+      await supabase.auth.signOut();
+    }
+  } catch {}
   redirect("/login");
 }

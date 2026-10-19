@@ -1,6 +1,7 @@
 "use server";
 
 import { enquirySchema } from "@/lib/validation";
+import { createClient } from "@/lib/supabase/server";
 
 // Simple in-memory rate limiting map for dev/server actions (IP or timestamp based)
 const submissionTimestamps = new Map<string, number>();
@@ -61,8 +62,33 @@ export async function submitEnquiryAction(
   }
   submissionTimestamps.set(phoneKey, now);
 
-  // In Phase 2, this will persist to Supabase `enquiries` table using supabase client.
-  // For now, it validates and returns success cleanly.
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.from("enquiries").insert({
+      name: validation.data.name,
+      phone: validation.data.phone,
+      event_type: validation.data.eventType,
+      event_date: validation.data.eventDate || null,
+      message: validation.data.message,
+    });
+    if (error) {
+      console.error("[contact] Failed to save enquiry:", error.message);
+      return {
+        success: false,
+        message: "Your enquiry could not be submitted. Please try again later.",
+      };
+    }
+  } catch (error: unknown) {
+    console.error(
+      "[contact] Failed to save enquiry:",
+      error instanceof Error ? error.message : "Unknown error."
+    );
+    return {
+      success: false,
+      message: "Your enquiry could not be submitted. Please try again later.",
+    };
+  }
+
   return {
     success: true,
     message: "Thank you! Your enquiry has been received. Our planning team will reach out to you shortly.",

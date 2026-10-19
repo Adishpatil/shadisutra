@@ -79,6 +79,7 @@ export async function loginAction(
   }
 
   const email = usernameToEmail(cleanUsername);
+
   const supabase = await createClient();
 
   // 3. Authenticate with Supabase Auth

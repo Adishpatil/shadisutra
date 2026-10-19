@@ -20,6 +20,11 @@ export function Navbar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
+  // Do not render marketing navbar in admin or portal consoles
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/portal")) {
+    return null;
+  }
+
   // Track scroll for navbar background
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

@@ -1,406 +1,449 @@
 import { createClient } from "@supabase/supabase-js";
-import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { Database } from "../src/lib/supabase/types";
 
-// Load .env.local manually if not populated
-function loadEnv() {
+function loadLocalEnv(): void {
   const envPath = path.resolve(process.cwd(), ".env.local");
-  if (fs.existsSync(envPath)) {
-    const lines = fs.readFileSync(envPath, "utf-8").split("\n");
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const [key, ...rest] = trimmed.split("=");
-      if (key && rest.length > 0 && !process.env[key.trim()]) {
-        process.env[key.trim()] = rest.join("=").trim().replace(/^["']|["']$/g, "");
-      }
+  if (!fs.existsSync(envPath)) return;
+
+  for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const separator = trimmed.indexOf("=");
+    if (separator < 1) continue;
+    const key = trimmed.slice(0, separator).trim();
+    const value = trimmed
+      .slice(separator + 1)
+      .trim()
+      .replace(/^(['"])(.*)\1$/, "$2");
+    if (!process.env[key]) process.env[key] = value;
+  }
+}
+
+function requireEnv(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`${name} must be set in the environment.`);
+  return value;
+}
+
+function assertNoError(error: { message: string } | null): void {
+  if (error) throw new Error(error.message);
+}
+
+function requireData<T>(data: T | null, message: string): T {
+  if (data === null) throw new Error(message);
+  return data;
+}
+
+async function runSeed(): Promise<void> {
+  loadLocalEnv();
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("The seed script cannot run when NODE_ENV=production.");
+  }
+
+  const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const passwords = {
+    admin: requireEnv("SEED_ADMIN_PASSWORD"),
+    customer1: requireEnv("SEED_CUSTOMER1_PASSWORD"),
+    customer2: requireEnv("SEED_CUSTOMER2_PASSWORD"),
+  };
+  for (const password of Object.values(passwords)) {
+    if (password.length < 12) {
+      throw new Error("Seed passwords must be at least 12 characters long.");
     }
   }
-}
 
-loadEnv();
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-function generateSecurePassword(): string {
-  return "Pass@" + crypto.randomBytes(6).toString("hex");
-}
-
-async function runSeed() {
-  console.log("----------------------------------------------------------------");
-  console.log("       Shadi Sutra: Local Database Seed Utility                 ");
-  console.log("----------------------------------------------------------------");
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.error(
-      "❌ Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be defined."
+  const hostname = new URL(supabaseUrl).hostname;
+  const isLocal =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1";
+  const isConfirmedDevelopment =
+    process.env.SUPABASE_SEED_TARGET === "development" &&
+    hostname.endsWith(".supabase.co");
+  if (!isLocal && !isConfirmedDevelopment) {
+    throw new Error(
+      "Refusing to seed a remote project. Set SUPABASE_SEED_TARGET=development only for a development Supabase project."
     );
-    console.error("Please configure your credentials in .env.local first.");
-    process.exit(1);
   }
 
-  // Safety Guard: Refuse to run against production unless forced
-  const isLocalOrDev =
-    supabaseUrl.includes("localhost") ||
-    supabaseUrl.includes("127.0.0.1") ||
-    supabaseUrl.includes(".supabase.co");
-
-  const hasForceFlag = process.argv.includes("--force");
-
-  if (!isLocalOrDev && !hasForceFlag) {
-    console.error(
-      "❌ Safety Abort: Target project is not recognized as local or development."
-    );
-    console.error("To override and force seed execution, pass the --force flag:");
-    console.error("   npm run seed -- --force");
-    process.exit(1);
-  }
-
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  const supabase = createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || generateSecurePassword();
-  const customer1Password = process.env.SEED_CUSTOMER1_PASSWORD || generateSecurePassword();
-  const customer2Password = process.env.SEED_CUSTOMER2_PASSWORD || generateSecurePassword();
+  const usersByEmail = new Map<string, { id: string }>();
+  for (let page = 1; ; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 100,
+    });
+    if (error) throw new Error(`Could not list seed users: ${error.message}`);
+    for (const user of data.users) {
+      if (user.email) usersByEmail.set(user.email, { id: user.id });
+    }
+    if (data.users.length < 100) break;
+  }
 
-  console.log("🌱 Starting seed operations...\n");
-
-  // Helper: Create or get auth user
-  async function createOrGetUser(email: string, pass: string, metadata: { full_name: string; username: string; role: string }) {
-    // Check if user exists
-    const { data: existingList } = await supabase.auth.admin.listUsers();
-    const existing = existingList?.users.find((u) => u.email === email);
+  async function createOrUpdateUser(
+    email: string,
+    password: string,
+    metadata: { full_name: string; username: string; role: "admin" | "customer" },
+    accessEnabled: boolean,
+    mustChangePassword: boolean
+  ): Promise<string> {
+    const existing = usersByEmail.get(email);
+    let userId: string;
 
     if (existing) {
-      console.log(`ℹ️  User ${email} already exists. Updating profile...`);
-      await supabase.from("profiles").upsert({
-        id: existing.id,
-        role: metadata.role as any,
-        username: metadata.username,
-        full_name: metadata.full_name,
-        access_enabled: true,
-        must_change_password: false,
+      const { data, error } = await supabase.auth.admin.updateUserById(
+        existing.id,
+        { password, user_metadata: metadata }
+      );
+      if (error) throw new Error(`Could not update seed user: ${error.message}`);
+      if (!data.user) throw new Error("Could not update seed user: no user returned.");
+      userId = data.user.id;
+    } else {
+      const { data, error } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: metadata,
       });
-      return existing.id;
+      if (error || !data.user) {
+        throw new Error(`Could not create seed user: ${error?.message ?? "No user returned."}`);
+      }
+      userId = data.user.id;
+      usersByEmail.set(email, { id: userId });
     }
 
-    const { data, error } = await supabase.auth.admin.createUser({
-      email,
-      password: pass,
-      email_confirm: true,
-      user_metadata: metadata,
-    });
-
-    if (error || !data.user) {
-      throw new Error(`Failed to create auth user ${email}: ${error?.message}`);
-    }
-
-    // Insert or update profile
-    await supabase.from("profiles").upsert({
-      id: data.user.id,
-      role: metadata.role as any,
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: userId,
+      role: metadata.role,
       username: metadata.username,
       full_name: metadata.full_name,
-      access_enabled: true,
-      must_change_password: false,
+      access_enabled: accessEnabled,
+      must_change_password: mustChangePassword,
     });
-
-    return data.user.id;
+    assertNoError(profileError);
+    return userId;
   }
 
-  // 1. Create Admin
-  const adminId = await createOrGetUser("admin@shadisutra.app", adminPassword, {
-    full_name: "Master Administrator",
-    username: "admin",
-    role: "admin",
-  });
-  console.log("✅ Admin account provisioned.");
+  const adminId = await createOrUpdateUser(
+    "admin@shadisutra.app",
+    passwords.admin,
+    { full_name: "Master Administrator", username: "admin", role: "admin" },
+    true,
+    false
+  );
+  const customer1Id = await createOrUpdateUser(
+    "sharma_wedding@shadisutra.app",
+    passwords.customer1,
+    {
+      full_name: "Priyanshu & Ananya Sharma",
+      username: "sharma_wedding",
+      role: "customer",
+    },
+    true,
+    false
+  );
+  const customer2Id = await createOrUpdateUser(
+    "mehta_birthday@shadisutra.app",
+    passwords.customer2,
+    {
+      full_name: "Rajesh & Priya Mehta",
+      username: "mehta_birthday",
+      role: "customer",
+    },
+    false,
+    true
+  );
 
-  // 2. Create Demo Customer 1 (Wedding)
-  const cust1Id = await createOrGetUser("sharma_wedding@shadisutra.app", customer1Password, {
-    full_name: "Priyanshu & Ananya Sharma",
-    username: "sharma_wedding",
-    role: "customer",
-  });
-  console.log("✅ Demo Customer 1 (Sharma Wedding) provisioned.");
+  async function getOrCreateEvent(input: {
+    customerId: string;
+    name: string;
+    type: "wedding" | "birthday";
+    date: string;
+    venue: string;
+    status: "planning" | "finalized";
+    showPayments: boolean;
+  }): Promise<string> {
+    const { data: existing, error: lookupError } = await supabase
+      .from("events")
+      .select("id")
+      .eq("customer_id", input.customerId)
+      .maybeSingle();
+    assertNoError(lookupError);
 
-  // 3. Create Demo Customer 2 (Birthday)
-  const cust2Id = await createOrGetUser("mehta_birthday@shadisutra.app", customer2Password, {
-    full_name: "Rajesh & Priya Mehta",
-    username: "mehta_birthday",
-    role: "customer",
-  });
-  console.log("✅ Demo Customer 2 (Mehta Birthday) provisioned.");
-
-  // 4. Create Event 1 (Wedding)
-  const { data: event1, error: ev1Err } = await supabase
-    .from("events")
-    .upsert({
-      name: "Sharma Royal Wedding & Celebrations",
-      customer_id: cust1Id,
-      type: "wedding",
-      date: "2026-11-20",
-      venue: "The Oberoi Rajvilas, Jaipur",
-      status: "finalized",
-      show_payments_to_customer: true,
-    })
-    .select()
-    .single();
-
-  if (ev1Err) throw new Error(`Event 1 creation error: ${ev1Err.message}`);
-  console.log("✅ Event 1 (Wedding) created.");
-
-  // Event 1 Functions
-  const { data: fHaldi } = await supabase
-    .from("event_functions")
-    .insert({
-      event_id: event1.id,
-      name: "Vibrant Haldi & Phoolon Ki Holi",
-      date: "2026-11-19",
-      start_time: "10:30:00",
-      notes: "Yellow marigold dress code, poolside terrace",
-    })
-    .select()
-    .single();
-
-  const { data: fSangeet } = await supabase
-    .from("event_functions")
-    .insert({
-      event_id: event1.id,
-      name: "Grand Sangeet & Musical Extravaganza",
-      date: "2026-11-19",
-      start_time: "19:30:00",
-      notes: "Ballroom stage, DJ sound, couple entry sequence",
-    })
-    .select()
-    .single();
-
-  const { data: fWedding } = await supabase
-    .from("event_functions")
-    .insert({
-      event_id: event1.id,
-      name: "Varmala & Sacred Phere",
-      date: "2026-11-20",
-      start_time: "18:00:00",
-      notes: "Palace courtyard mandap with lotus pond",
-    })
-    .select()
-    .single();
-
-  // Event 1 Items (Admin Tracking)
-  if (fHaldi) {
-    await supabase.from("event_items").insert([
-      {
-        function_id: fHaldi.id,
-        category: "flowers",
-        title: "Marigold floral fountain and yellow drapes",
-        vendor: "Jaipur Flora Co.",
-        status: "done",
-        cost: 65000,
-      },
-      {
-        function_id: fHaldi.id,
-        category: "instruments",
-        title: "Live Punjabi Dhol & Tasha troupe",
-        vendor: "Sur Sangeet Ensemble",
-        status: "done",
-        cost: 25000,
-      },
-    ]);
+    const values = {
+      customer_id: input.customerId,
+      name: input.name,
+      type: input.type,
+      date: input.date,
+      venue: input.venue,
+      status: input.status,
+      show_payments_to_customer: input.showPayments,
+    };
+    if (existing) {
+      const { data, error } = await supabase
+        .from("events")
+        .update(values)
+        .eq("id", existing.id)
+        .select("id")
+        .single();
+      assertNoError(error);
+      return requireData(data, "Could not update the seed event.").id;
+    }
+    const { data, error } = await supabase
+      .from("events")
+      .insert(values)
+      .select("id")
+      .single();
+    assertNoError(error);
+    return requireData(data, "Could not create the seed event.").id;
   }
 
-  if (fSangeet) {
-    await supabase.from("event_items").insert([
-      {
-        function_id: fSangeet.id,
-        category: "lighting",
-        title: "Moving heads, warm stage washes & kinetic cold pyros",
-        vendor: "Lumina FX",
-        status: "in_progress",
-        cost: 95000,
-      },
-      {
-        function_id: fSangeet.id,
-        category: "decor",
-        title: "LED acrylic stage flooring & customized neon backdrop",
-        vendor: "Artisan Stages",
-        status: "in_progress",
-        cost: 140000,
-      },
-    ]);
-  }
-
-  if (fWedding) {
-    await supabase.from("event_items").insert([
-      {
-        function_id: fWedding.id,
-        category: "decor",
-        title: "Royal 4-pillar Carved Mandap with Rose Chandeliers",
-        vendor: "Royal Rajputana Sets",
-        status: "done",
-        cost: 280000,
-      },
-    ]);
-  }
-
-  // Event 1 Budget & Payments
-  await supabase.from("budgets").upsert({
-    event_id: event1.id,
-    agreed_total: 1250000,
+  const weddingId = await getOrCreateEvent({
+    customerId: customer1Id,
+    name: "Sharma Royal Wedding Celebrations",
+    type: "wedding",
+    date: "2026-11-20",
+    venue: "The Oberoi Rajvilas, Jaipur",
+    status: "finalized",
+    showPayments: true,
+  });
+  const birthdayId = await getOrCreateEvent({
+    customerId: customer2Id,
+    name: "Aarav's First Birthday Celebration",
+    type: "birthday",
+    date: "2026-12-12",
+    venue: "Palm Grove Banquet, Mumbai",
+    status: "planning",
+    showPayments: false,
   });
 
-  await supabase.from("payments").insert([
-    {
-      event_id: event1.id,
-      amount: 450000,
-      paid_on: "2026-08-15",
-      mode: "RTGS Bank Transfer",
-      note: "Initial booking deposit & venue blocking",
-    },
-    {
-      event_id: event1.id,
-      amount: 400000,
-      paid_on: "2026-10-01",
-      mode: "NEFT Bank Transfer",
-      note: "Milestone 2: Design sign-off and material procurement",
-    },
-  ]);
-
-  // Event 1 Finalized Designs
-  await supabase.from("designs").insert([
-    {
-      event_id: event1.id,
-      title: "Mandap Architectural 3D Rendering (Final)",
-      file_path: "demo/sharma-mandap-v2.pdf",
-      version: 2,
-      is_finalized: true,
-    },
-    {
-      event_id: event1.id,
-      title: "Sangeet Stage Lighting Scheme (Draft v1)",
-      file_path: "demo/sharma-stage-draft.webp",
-      version: 1,
-      is_finalized: false, // Not visible to customer
-    },
-  ]);
-
-  // Event 1 Guests
-  await supabase.from("guests").insert([
-    {
-      event_id: event1.id,
-      name: "Ramesh & Sunita Sharma",
-      party_size: 4,
-      phone: "9876543201",
-      rsvp: "yes",
-      table_no: "VIP Table 1",
-      notes: "Immediate family, suite 201",
-    },
-    {
-      event_id: event1.id,
-      name: "Col. Vikram Rathore",
-      party_size: 2,
-      phone: "9876543202",
-      rsvp: "yes",
-      table_no: "VIP Table 2",
-      notes: "Arriving on 19th morning",
-    },
-    {
-      event_id: event1.id,
-      name: "Meenakshi Verma",
-      party_size: 1,
-      phone: "9876543203",
-      rsvp: "pending",
-      table_no: "Table 4",
-      notes: "Awaiting travel schedule",
-    },
-  ]);
-
-  console.log("✅ Event 1 complete data seeded.");
-
-  // 5. Create Event 2 (Birthday)
-  const { data: event2, error: ev2Err } = await supabase
-    .from("events")
-    .upsert({
-      name: "Aarav's 1st Royal Safari Birthday Jubilee",
-      customer_id: cust2Id,
-      type: "birthday",
-      date: "2026-12-12",
-      venue: "Palm Grove Banquet, Mumbai",
-      status: "planning",
-      show_payments_to_customer: false,
-    })
-    .select()
-    .single();
-
-  if (ev2Err) throw new Error(`Event 2 creation error: ${ev2Err.message}`);
-
-  const { data: fBirthday } = await supabase
-    .from("event_functions")
-    .insert({
-      event_id: event2.id,
-      name: "Safari Party & Magic Games",
-      date: "2026-12-12",
-      start_time: "16:30:00",
-      notes: "Jungle theme cake cutting & puppet show",
-    })
-    .select()
-    .single();
-
-  if (fBirthday) {
-    await supabase.from("event_items").insert([
-      {
-        function_id: fBirthday.id,
-        category: "decor",
-        title: "3D animal cutouts, foliage arches & custom balloon garland",
-        vendor: "Wonderland Parties",
-        status: "in_progress",
-        cost: 55000,
-      },
-    ]);
+  async function clearEventRows(eventId: string): Promise<void> {
+    for (const table of ["timeline_entries", "designs", "guests", "payments", "budgets", "event_functions"] as const) {
+      const { error } = await supabase.from(table).delete().eq("event_id", eventId);
+      assertNoError(error);
+    }
   }
 
-  await supabase.from("budgets").upsert({
-    event_id: event2.id,
-    agreed_total: 180000,
+  async function seedEvent(
+    eventId: string,
+    functions: Array<{
+      name: string;
+      date: string;
+      start_time: string;
+      notes: string;
+      items: Array<{
+        category: "lighting" | "flowers" | "decor" | "instruments" | "other";
+        title: string;
+        vendor: string;
+        status: "not_started" | "in_progress" | "done";
+        cost: number;
+      }>;
+    }>,
+    agreedTotal: number,
+    payments: Array<{
+      amount: number;
+      paid_on: string;
+      mode: string;
+      note: string;
+    }>,
+    guests: Array<{
+      name: string;
+      party_size: number;
+      phone: string;
+      rsvp: "pending" | "yes" | "no";
+      table_no: string;
+      notes: string;
+    }>
+  ): Promise<void> {
+    await clearEventRows(eventId);
+    const { data: insertedFunctions, error: functionsError } = await supabase
+      .from("event_functions")
+      .insert(
+        functions.map(({ name, date, start_time, notes }) => ({
+          event_id: eventId,
+          name,
+          date,
+          start_time,
+          notes,
+        }))
+      )
+      .select("id,name");
+    assertNoError(functionsError);
+    const functionRows = requireData(
+      insertedFunctions,
+      "Could not create the seed event functions."
+    );
+
+    const functionIdByName = new Map(
+      functionRows.map((eventFunction) => [eventFunction.name, eventFunction.id])
+    );
+    const items = functions.flatMap((eventFunction) =>
+      {
+        const functionId = functionIdByName.get(eventFunction.name);
+        if (!functionId) {
+          throw new Error(`Missing seeded function ID for ${eventFunction.name}.`);
+        }
+        return eventFunction.items.map((item) => ({
+          ...item,
+          function_id: functionId,
+        }));
+      }
+    );
+    if (items.length) {
+      const { error } = await supabase.from("event_items").insert(items);
+      assertNoError(error);
+    }
+
+    const timelineEntries = functions.flatMap((eventFunction) => {
+      const functionId = functionIdByName.get(eventFunction.name);
+      if (!functionId) {
+        throw new Error(`Missing seeded function ID for ${eventFunction.name}.`);
+      }
+      return [
+        {
+          event_id: eventId,
+          function_id: functionId,
+          starts_at: new Date(
+            `${eventFunction.date}T${eventFunction.start_time}+05:30`
+          ).toISOString(),
+          title: eventFunction.name,
+          notes: eventFunction.notes,
+        },
+      ];
+    });
+    const { error: timelineError } = await supabase
+      .from("timeline_entries")
+      .insert(timelineEntries);
+    assertNoError(timelineError);
+
+    const { error: budgetError } = await supabase.from("budgets").upsert({
+      event_id: eventId,
+      agreed_total: agreedTotal,
+    });
+    assertNoError(budgetError);
+    if (payments.length) {
+      const { error } = await supabase
+        .from("payments")
+        .insert(payments.map((payment) => ({ ...payment, event_id: eventId })));
+      assertNoError(error);
+    }
+    if (guests.length) {
+      const { error } = await supabase
+        .from("guests")
+        .insert(guests.map((guest) => ({ ...guest, event_id: eventId })));
+      assertNoError(error);
+    }
+  }
+
+  await seedEvent(
+    weddingId,
+    [
+      {
+        name: "Haldi",
+        date: "2026-11-19",
+        start_time: "10:30:00",
+        notes: "Poolside ceremony",
+        items: [
+          { category: "flowers", title: "Marigold arrangements", vendor: "Jaipur Flora Co.", status: "done", cost: 65000 },
+          { category: "instruments", title: "Punjabi dhol troupe", vendor: "Sur Sangeet Ensemble", status: "done", cost: 25000 },
+        ],
+      },
+      {
+        name: "Sangeet",
+        date: "2026-11-19",
+        start_time: "19:30:00",
+        notes: "Ballroom stage and sound check",
+        items: [
+          { category: "lighting", title: "Moving-head stage lighting", vendor: "Lumina FX", status: "in_progress", cost: 95000 },
+        ],
+      },
+      {
+        name: "Wedding Ceremony",
+        date: "2026-11-20",
+        start_time: "18:00:00",
+        notes: "Palace courtyard",
+        items: [
+          { category: "decor", title: "Four-pillar wedding mandap", vendor: "Royal Rajputana Sets", status: "done", cost: 280000 },
+        ],
+      },
+    ],
+    1250000,
+    [
+      { amount: 450000, paid_on: "2026-08-15", mode: "RTGS", note: "Initial booking deposit" },
+      { amount: 400000, paid_on: "2026-10-01", mode: "NEFT", note: "Design sign-off milestone" },
+    ],
+    [
+      { name: "Ramesh & Sunita Sharma", party_size: 4, phone: "9876543201", rsvp: "yes", table_no: "VIP 1", notes: "Immediate family" },
+      { name: "Meenakshi Verma", party_size: 1, phone: "9876543203", rsvp: "pending", table_no: "Table 4", notes: "Awaiting travel details" },
+    ]
+  );
+  await seedEvent(
+    birthdayId,
+    [
+      {
+        name: "Safari Party",
+        date: "2026-12-12",
+        start_time: "16:30:00",
+        notes: "Jungle theme and cake cutting",
+        items: [
+          { category: "decor", title: "Animal cutouts and balloon garland", vendor: "Wonderland Parties", status: "in_progress", cost: 55000 },
+        ],
+      },
+    ],
+    180000,
+    [{ amount: 60000, paid_on: "2026-10-10", mode: "UPI", note: "Booking deposit" }],
+    [
+      { name: "Vikram & Pooja Shah", party_size: 3, phone: "9822334455", rsvp: "yes", table_no: "Kids Area", notes: "Attending with two children" },
+    ]
+  );
+
+  const enquiry = {
+    name: "Demo Enquiry",
+    phone: "9000000000",
+    event_type: "wedding",
+    event_date: "2027-02-14",
+    message: "Local seed enquiry for testing the admin enquiries list.",
+  };
+  const { data: existingEnquiry, error: enquiryLookupError } = await supabase
+    .from("enquiries")
+    .select("id")
+    .eq("name", enquiry.name)
+    .eq("phone", enquiry.phone)
+    .maybeSingle();
+  assertNoError(enquiryLookupError);
+  const { error: enquiryError } = existingEnquiry
+    ? await supabase
+        .from("enquiries")
+        .update(enquiry)
+        .eq("id", existingEnquiry.id)
+    : await supabase.from("enquiries").insert(enquiry);
+  assertNoError(enquiryError);
+
+  const { error: clearAuditError } = await supabase
+    .from("audit_log")
+    .delete()
+    .eq("action", "SEED_DEMO_DATA")
+    .eq("row_id", weddingId);
+  assertNoError(clearAuditError);
+  const { error: auditError } = await supabase.from("audit_log").insert({
+    actor_id: adminId,
+    action: "SEED_DEMO_DATA",
+    table_name: "events",
+    row_id: weddingId,
+    payload: { event_id: weddingId },
   });
-
-  await supabase.from("payments").insert([
-    {
-      event_id: event2.id,
-      amount: 60000,
-      paid_on: "2026-10-10",
-      mode: "UPI",
-      note: "Booking token amount",
-    },
-  ]);
-
-  console.log("✅ Event 2 complete data seeded.");
-
-  console.log("\n================================================================");
-  console.log("       🎉 SEED DATA CREATED SUCCESSFULLY                        ");
-  console.log("================================================================");
-  console.log("Save these credentials securely (they are not logged elsewhere):\n");
-  console.log("🔑 [ADMIN]");
-  console.log(`   Username: admin`);
-  console.log(`   Email:    admin@shadisutra.app`);
-  console.log(`   Password: ${adminPassword}\n`);
-
-  console.log("🔑 [CUSTOMER 1 - Wedding]");
-  console.log(`   Username: sharma_wedding`);
-  console.log(`   Email:    sharma_wedding@shadisutra.app`);
-  console.log(`   Password: ${customer1Password}\n`);
-
-  console.log("🔑 [CUSTOMER 2 - Birthday]");
-  console.log(`   Username: mehta_birthday`);
-  console.log(`   Email:    mehta_birthday@shadisutra.app`);
-  console.log(`   Password: ${customer2Password}`);
-  console.log("================================================================\n");
+  assertNoError(auditError);
+  console.info("Seed data is ready. Passwords were not printed.");
 }
 
-runSeed().catch((err) => {
-  console.error("❌ Seed failed with error:", err);
-  process.exit(1);
+runSeed().catch((error: unknown) => {
+  console.error("Seed failed:", error instanceof Error ? error.message : "Unknown error.");
+  process.exitCode = 1;
 });

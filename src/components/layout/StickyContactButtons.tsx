@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { site, siteLinks } from "@/config/site";
 
 /**
@@ -7,9 +8,11 @@ import { site, siteLinks } from "@/config/site";
  * Only rendered when the phone/whatsapp values are configured (not "TODO").
  */
 export function StickyContactButtons() {
+  const pathname = usePathname();
   const hasPhone = site.phone && site.phone !== "TODO";
   const hasWhatsApp = site.whatsapp && site.whatsapp !== "TODO";
 
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/portal")) return null;
   if (!hasPhone && !hasWhatsApp) return null;
 
   return (

@@ -1,4 +1,5 @@
 import { getAdminEnquiries } from "@/lib/admin/data";
+import { formatDateTime } from "@/lib/format";
 
 export default async function AdminEnquiriesPage() {
   const enquiries = await getAdminEnquiries();
@@ -63,7 +64,7 @@ export default async function AdminEnquiriesPage() {
 
             <div className="flex items-center justify-between text-xs text-ink-muted font-mono">
               <span>Phone: {enq.phone}</span>
-              <span>Received: {new Date(enq.created_at).toLocaleString()}</span>
+              <span>Received: {formatDateTime(enq.created_at)}</span>
             </div>
           </div>
         ))}

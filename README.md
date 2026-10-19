@@ -42,6 +42,7 @@ A Next.js full-stack application with Supabase backend, featuring a public marke
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   JWT_SECRET=generate-a-random-secret-for-this-environment
    ```
 
 3. **Run the dev server:**
@@ -110,11 +111,18 @@ All SQL migrations reside in `/supabase/migrations`:
 
 1. `001_initial_schema.sql` — Tables, UUIDs, foreign keys, triggers (`handle_updated_at`), audit triggers, and security definer functions (`is_admin()`, `customer_can_access_event()`).
 2. `002_rls_and_storage.sql` — Row Level Security enabled and FORCED on all 11 tables (default deny), admin policies, customer event-scoped policies, and storage policies (`gallery`, `event-files`).
+3. `003_phase2_security.sql` — Requires MFA for admin RLS access, restricts customer financial reads to a summary, and removes direct customer access to private storage objects (design URLs are short-lived).
+4. `004_grants.sql` — Explicit least-privilege table/function grants for `anon`, `authenticated`, and `service_role`.
 
 ### Applying Migrations to Supabase:
 1. In your **Supabase Dashboard**, open **SQL Editor**.
 2. Run `001_initial_schema.sql`.
 3. Run `002_rls_and_storage.sql`.
+4. Run `003_phase2_security.sql`.
+5. Run `004_grants.sql`.
+
+If migrations `001`–`003` have already been applied, apply only the new
+`004_grants.sql` migration; do not edit or rerun applied migrations.
 
 ---
 
@@ -128,14 +136,17 @@ Admin accounts are created directly in Supabase:
 
 ---
 
-## Running the Seed Script
+## Running the Local Development Seed
 
 ```bash
-# Set seed passwords in .env.local first (or they will be randomly generated)
+# Copy .env.example to .env.local and set all three seed passwords first.
 npm run seed
 ```
 
-The seed script creates demo data for local testing only. It refuses to run against non-local/dev projects unless forced.
+The seed script requires `SEED_ADMIN_PASSWORD`, `SEED_CUSTOMER1_PASSWORD`, and
+`SEED_CUSTOMER2_PASSWORD` from the environment. It refuses to run against remote
+projects unless `SUPABASE_SEED_TARGET=development` is explicitly set, and it
+never prints passwords. Do not run it against production or commit `.env.local`.
 
 ---
 
@@ -195,6 +206,7 @@ supabase/
 | `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client + Server | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server only** | Service role key (never import in client code) |
+| `JWT_SECRET` | **Server only** | Random secret used to sign the existing session cookie |
 
 ---
 

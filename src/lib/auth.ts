@@ -1,3 +1,4 @@
+import "server-only";
 import type { JwtPayload } from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
 
@@ -5,10 +6,6 @@ import jwt from 'jsonwebtoken';
  * Secret key for JWT signing. Must be defined in a .env file as JWT_SECRET.
  */
 const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  console.warn('⚠️ JWT_SECRET is not defined – authentication will fail.');
-}
 
 /**
  * Payload stored inside the JWT. Includes minimal fields required for role‑based access.

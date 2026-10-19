@@ -444,7 +444,14 @@ export interface Database {
       };
     };
     Views: {
-      [_ in never]: never;
+      customer_event_financial_summary: {
+        Row: {
+          event_id: string;
+          agreed_total: number | null;
+          total_paid: number;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       is_admin: {

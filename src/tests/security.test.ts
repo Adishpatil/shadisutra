@@ -49,4 +49,32 @@ describe("Security Code Rules", () => {
       `SUPABASE_SERVICE_ROLE_KEY found in unprotected or client modules: ${violatingFiles.join(", ")}`
     ).toHaveLength(0);
   });
+
+  it("prevents client modules from importing the service-role client", () => {
+    const srcDir = path.resolve(process.cwd(), "src");
+    const clientFiles = getAllSourceFiles(srcDir).filter((file) => {
+      const content = fs.readFileSync(file, "utf-8");
+      return /^\s*["']use client["'];/.test(content);
+    });
+    const violatingFiles = clientFiles.filter((file) =>
+      /from\s+["'][^"']*supabase\/admin["']/.test(
+        fs.readFileSync(file, "utf-8")
+      )
+    );
+
+    expect(
+      violatingFiles,
+      `Client modules import the service-role client: ${violatingFiles.join(", ")}`
+    ).toHaveLength(0);
+  });
+
+  it("requires a configured server-side JWT secret", () => {
+    const authSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/lib/auth.ts"),
+      "utf-8"
+    );
+
+    expect(authSource).toContain("process.env.JWT_SECRET");
+    expect(authSource).not.toMatch(/shadi-sutra-local-dev-jwt-secret/);
+  });
 });

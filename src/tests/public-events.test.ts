@@ -1,18 +1,49 @@
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { createClientMock } = vi.hoisted(() => ({
+  createClientMock: vi.fn(),
+}));
+
+vi.mock("../lib/supabase/server", () => ({
+  createClient: createClientMock,
+}));
+
 import { getPublicEventShowcase } from "../lib/events/public-data";
 
-describe("Public Event QR Showcase Data", () => {
-  it("allows guests to fetch finalized events with ceremonies itinerary", async () => {
-    const event = await getPublicEventShowcase("e1-sharma-wedding");
-    expect(event).not.toBeNull();
-    expect(event?.name).toBe("Sharma Royal Wedding Celebrations");
-    expect(event?.status).toBe("finalized");
-    expect(event?.functions.length).toBeGreaterThan(0);
-    expect(event?.functions[0].name).toBe("Vibrant Haldi & Phoolon Ki Holi");
+describe("Public event showcase data", () => {
+  beforeEach(() => createClientMock.mockReset());
+
+  it("does not disclose events denied by row-level security", async () => {
+    const eventQuery = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    };
+    eventQuery.select.mockReturnValue(eventQuery);
+    eventQuery.eq.mockReturnValue(eventQuery);
+    createClientMock.mockResolvedValue({
+      from: vi.fn(() => eventQuery),
+    });
+
+    await expect(getPublicEventShowcase("some-event-id")).resolves.toBeNull();
   });
 
-  it("does not allow unfinalized or non-existent events to be viewed", async () => {
-    const nonExistent = await getPublicEventShowcase("non-existent-id");
-    expect(nonExistent).toBeNull();
+  it("surfaces database errors instead of returning demonstration data", async () => {
+    const eventQuery = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: "Database unavailable." } }),
+    };
+    eventQuery.select.mockReturnValue(eventQuery);
+    eventQuery.eq.mockReturnValue(eventQuery);
+    createClientMock.mockResolvedValue({
+      from: vi.fn(() => eventQuery),
+    });
+
+    await expect(getPublicEventShowcase("some-event-id")).rejects.toThrow(
+      "Database unavailable."
+    );
   });
 });
