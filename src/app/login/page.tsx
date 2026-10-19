@@ -42,12 +42,12 @@ export default function LoginPage() {
             {site.name}
           </Link>
           <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold text-ink">
-            {state?.requiresMfa ? "Two-Factor Authentication" : "Client & Admin Login"}
+            {state?.requiresMfa ? "Two-Factor Authentication" : "Admin Login"}
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-ink-muted leading-relaxed">
             {state?.requiresMfa
               ? "Enter the 6-digit verification code from your authenticator app to access the admin console."
-              : "Please enter your assigned credentials to access your event dashboard."}
+              : "Please enter your administrator credentials to access the management portal."}
           </p>
         </div>
 

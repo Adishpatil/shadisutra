@@ -1,5 +1,5 @@
 import { getAdminCustomers, getAdminEvents } from "@/lib/admin/data";
-import { CustomerViewClient } from "./CustomerViewClient";
+import { CustomerViewClient } from "@/components/admin/CustomerViewClient";
 
 export default async function AdminCustomersPage() {
   const [customers, events] = await Promise.all([

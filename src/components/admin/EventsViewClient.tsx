@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AdminEventSummary } from "@/lib/admin/data";
 import { CreateEventModal } from "@/components/admin/CreateEventModal";
+import { QRCodeModal } from "@/components/admin/QRCodeModal";
 import { updateEventStatusAction } from "@/lib/admin/event-actions";
 
 interface EventsViewClientProps {
@@ -20,6 +21,7 @@ export function EventsViewClient({
   const [events, setEvents] = useState(initialEvents);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedQrEvent, setSelectedQrEvent] = useState<AdminEventSummary | null>(null);
 
   const filteredEvents =
     filterStatus === "all"
@@ -79,9 +81,7 @@ export function EventsViewClient({
         ))}
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* 1. Desktop & Tablet Table (Hidden below 768px)                */}
-      {/* ------------------------------------------------------------- */}
+      {/* 1. Desktop & Tablet Table (Hidden below 768px) */}
       <div className="hidden md:block overflow-x-auto bg-surface border border-border rounded-radius-lg shadow-[var(--shadow-sm)]">
         <table className="w-full text-left border-collapse text-sm">
           <thead>
@@ -122,7 +122,7 @@ export function EventsViewClient({
                   <select
                     value={ev.status}
                     onChange={(e) =>
-                      handleStatusChange(ev.id, e.target.value as any)
+                      handleStatusChange(ev.id, e.target.value as "planning" | "finalized" | "completed" | "cancelled")
                     }
                     className="text-xs font-semibold px-2 py-1 rounded-radius-md border border-border bg-bg text-ink focus:ring-1 focus:ring-accent"
                   >
@@ -132,12 +132,20 @@ export function EventsViewClient({
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
-                <td className="py-4 px-4 text-right">
+                <td className="py-4 px-4 text-right space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQrEvent(ev)}
+                    className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold border border-border text-ink hover:text-accent hover:border-accent rounded-radius-md transition-colors min-h-[36px]"
+                    title="View QR Code"
+                  >
+                    📱 QR
+                  </button>
                   <Link
                     href={`/admin/events/${ev.id}`}
                     className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent-light rounded-radius-md transition-colors min-h-[36px]"
                   >
-                    View Details →
+                    Manage →
                   </Link>
                 </td>
               </tr>
@@ -146,9 +154,7 @@ export function EventsViewClient({
         </table>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* 2. Mobile Stacked Cards (Visible only below 768px)            */}
-      {/* ------------------------------------------------------------- */}
+      {/* 2. Mobile Stacked Cards (Visible only below 768px) */}
       <div className="md:hidden space-y-4">
         {filteredEvents.map((ev) => {
           const statusColors = {
@@ -188,11 +194,11 @@ export function EventsViewClient({
                 <p>👤 <strong>Client:</strong> {ev.customer_name || "Unassigned"}</p>
               </div>
 
-              <div className="pt-3 border-t border-border flex items-center justify-between">
+              <div className="pt-3 border-t border-border flex items-center justify-between gap-2">
                 <select
                   value={ev.status}
                   onChange={(e) =>
-                    handleStatusChange(ev.id, e.target.value as any)
+                    handleStatusChange(ev.id, e.target.value as "planning" | "finalized" | "completed" | "cancelled")
                   }
                   className="text-xs font-semibold px-2 py-1.5 rounded-radius-md border border-border bg-bg text-ink"
                 >
@@ -202,12 +208,21 @@ export function EventsViewClient({
                   <option value="cancelled">Cancelled</option>
                 </select>
 
-                <Link
-                  href={`/admin/events/${ev.id}`}
-                  className="inline-flex items-center justify-center px-4 py-2 bg-accent text-accent-ink font-semibold text-xs rounded-radius-md min-h-[44px]"
-                >
-                  Manage →
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQrEvent(ev)}
+                    className="inline-flex items-center justify-center px-3 py-2 border border-border text-ink hover:text-accent rounded-radius-md text-xs font-semibold min-h-[44px]"
+                  >
+                    📱 QR
+                  </button>
+                  <Link
+                    href={`/admin/events/${ev.id}`}
+                    className="inline-flex items-center justify-center px-4 py-2 bg-accent text-accent-ink font-semibold text-xs rounded-radius-md min-h-[44px]"
+                  >
+                    Manage →
+                  </Link>
+                </div>
               </div>
             </div>
           );
@@ -222,6 +237,16 @@ export function EventsViewClient({
             setModalOpen(false);
             router.push(`/admin/events/${newEventId}`);
           }}
+        />
+      )}
+
+      {selectedQrEvent && (
+        <QRCodeModal
+          isOpen={true}
+          onClose={() => setSelectedQrEvent(null)}
+          eventId={selectedQrEvent.id}
+          eventName={selectedQrEvent.name}
+          eventStatus={selectedQrEvent.status}
         />
       )}
     </div>

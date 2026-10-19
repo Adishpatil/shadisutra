@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { usernameToEmail, sanitizeUsername } from "@/lib/auth/synthetic-email";
 import { loginSchema } from "@/lib/auth/schemas";
 import { redirect } from "next/navigation";
+import { cookies } from 'next/headers';
+import { signAuthToken } from '@/lib/auth';
 
 // Rate limiting map: tracks failed attempts per username (max 5 per 5 minutes)
 interface AttemptRecord {
@@ -138,7 +140,11 @@ export async function loginAction(
     redirect("/change-password");
   }
 
-  // 8. Role-based redirect
+  // 8. Role-based redirect with JWT cookie
+  // Create signed JWT for session
+  const token = signAuthToken({ userId: authData.user.id, role: profile.role });
+  const cookieStore = await cookies();
+  cookieStore.set('auth_token', token, { httpOnly: true, path: '/', maxAge: 7 * 24 * 60 * 60 });
   if (profile.role === "admin") {
     redirect("/admin");
   } else {

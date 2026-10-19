@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { PaymentRecord } from "./budget-calculations";
 
 export interface AdminEventSummary {
   id: string;
@@ -439,6 +440,36 @@ export async function getAdminCustomers(): Promise<AdminCustomerSummary[]> {
 }
 
 /**
+ * Fetch a single customer by ID (used for client portal).
+ */
+export async function getCustomerById(id: string): Promise<AdminCustomerSummary | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*, events(id, name)')
+      .eq('id', id)
+      .single();
+    if (error || !data) {
+      return fallbackCustomers.find((c) => c.id === id) || null;
+    }
+    return {
+      id: data.id,
+      username: data.username,
+      full_name: data.full_name,
+      role: data.role,
+      access_enabled: data.access_enabled,
+      must_change_password: data.must_change_password,
+      created_at: data.created_at,
+      linked_event_id: data.events?.[0]?.id || null,
+      linked_event_name: data.events?.[0]?.name || null,
+    };
+  } catch {
+    return fallbackCustomers.find((c) => c.id === id) || null;
+  }
+}
+
+/**
  * Fetch contact form enquiries for Admin
  */
 export async function getAdminEnquiries(): Promise<AdminEnquiry[]> {
@@ -458,3 +489,102 @@ export async function getAdminEnquiries(): Promise<AdminEnquiry[]> {
     return fallbackEnquiries;
   }
 }
+
+export interface AuditLogItem {
+  id: string;
+  action: string;
+  table_name: string;
+  at: string;
+  payload: Record<string, unknown> | null;
+}
+
+const fallbackPayments: Record<string, PaymentRecord[]> = {
+  "e1-sharma-wedding": [
+    {
+      id: "pay-1",
+      amount: 450000,
+      paid_on: "2026-08-15",
+      mode: "RTGS Bank Transfer",
+      note: "Initial booking deposit & venue blocking",
+    },
+    {
+      id: "pay-2",
+      amount: 400000,
+      paid_on: "2026-10-01",
+      mode: "NEFT Bank Transfer",
+      note: "Milestone 2: 3D Design sign-off & material procurement",
+    },
+  ],
+  "e2-mehta-birthday": [
+    {
+      id: "pay-3",
+      amount: 60000,
+      paid_on: "2026-10-10",
+      mode: "UPI",
+      note: "Booking token payment",
+    },
+  ],
+};
+
+const fallbackAuditLogs: Record<string, AuditLogItem[]> = {
+  "e1-sharma-wedding": [
+    {
+      id: "log-1",
+      action: "INSERT_PAYMENT",
+      table_name: "payments",
+      at: "2026-10-01T14:22:00Z",
+      payload: { amount: 400000, mode: "NEFT Bank Transfer" },
+    },
+    {
+      id: "log-2",
+      action: "ENABLE_PORTAL_ACCESS",
+      table_name: "profiles",
+      at: "2026-09-15T09:10:00Z",
+      payload: { access_enabled: true },
+    },
+    {
+      id: "log-3",
+      action: "INSERT_PAYMENT",
+      table_name: "payments",
+      at: "2026-08-15T11:00:00Z",
+      payload: { amount: 450000, mode: "RTGS Bank Transfer" },
+    },
+  ],
+};
+
+/**
+ * Fetch budget, payments, and audit logs for an event
+ */
+export async function getEventBudgetAndPayments(eventId: string): Promise<{
+  agreedTotal: number;
+  payments: PaymentRecord[];
+  auditLogs: AuditLogItem[];
+}> {
+  try {
+    const supabase = await createClient();
+
+    const [budgetRes, paymentsRes, auditRes] = await Promise.all([
+      supabase.from("budgets").select("agreed_total").eq("event_id", eventId).maybeSingle(),
+      supabase.from("payments").select("*").eq("event_id", eventId).order("paid_on", { ascending: false }),
+      supabase.from("audit_log").select("*").order("at", { ascending: false }).limit(20),
+    ]);
+
+    const agreedTotal = budgetRes.data?.agreed_total ?? (fallbackEvents.find((e) => e.id === eventId)?.budget_total || 0);
+    const payments = paymentsRes.data && paymentsRes.data.length > 0 ? (paymentsRes.data as PaymentRecord[]) : (fallbackPayments[eventId] || []);
+    const auditLogs = auditRes.data && auditRes.data.length > 0 ? (auditRes.data as AuditLogItem[]) : (fallbackAuditLogs[eventId] || []);
+
+    return {
+      agreedTotal,
+      payments,
+      auditLogs,
+    };
+  } catch {
+    const fallbackEv = fallbackEvents.find((e) => e.id === eventId);
+    return {
+      agreedTotal: fallbackEv?.budget_total || 0,
+      payments: fallbackPayments[eventId] || [],
+      auditLogs: fallbackAuditLogs[eventId] || [],
+    };
+  }
+}
+

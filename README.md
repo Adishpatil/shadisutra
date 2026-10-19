@@ -149,7 +149,19 @@ Runs `pg_dump` against your Supabase database. Run weekly as a minimum.
 
 ---
 
-## Project Structure
+## QR Code Event Showcase
+
+When an event is marked as **Finalized** by the admin:
+- The Admin can click the **📱 QR** button from either the Event List or the Event Details header.
+- A high-resolution **QR Code** is generated for guests and family members.
+- Admins can copy the link or download the print-ready SVG QR code to put on physical wedding cards or digital invitations.
+- Guests scanning the QR code land on `/events/[id]` (e.g. `/events/e1-sharma-wedding`), a mobile-optimized webpage showing:
+  - Event title, hosts, dates, and live countdown.
+  - Ceremony-by-ceremony timeline (times, attire, locations).
+  - Venue directions with 1-tap Google Maps integration.
+  - WhatsApp share button and emergency coordinator call button.
+  - Interactive RSVP & blessings form for guests.
+- **Security & Privacy:** Unfinalized events are blocked from guest viewing. Customers no longer require separate login credentials, leaving only the secure Admin Login portal behind.
 
 ```
 src/

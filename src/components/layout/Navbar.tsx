@@ -27,10 +27,11 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close menu on route change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
   // Focus trap inside mobile menu
   const handleKeyDown = useCallback(
@@ -128,7 +129,7 @@ export function Navbar() {
             href="/login"
             className="ml-4 inline-flex items-center px-5 py-2 text-sm font-semibold border-2 border-accent text-accent rounded-radius-full transition-colors hover:bg-accent hover:text-accent-ink focus-visible:bg-accent focus-visible:text-accent-ink"
           >
-            Client Login
+            Admin Login
           </Link>
         </div>
 
@@ -245,7 +246,7 @@ export function Navbar() {
                 href="/login"
                 className="flex items-center justify-center w-full px-5 py-3 text-base font-semibold border-2 border-accent text-accent rounded-radius-full transition-colors hover:bg-accent hover:text-accent-ink"
               >
-                Client Login
+                Admin Login
               </Link>
             </div>
           </div>

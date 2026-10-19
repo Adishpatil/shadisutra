@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAdminEventById } from "@/lib/admin/data";
+import { getAdminEventById, getEventBudgetAndPayments } from "@/lib/admin/data";
 import { EventDetailClient } from "@/components/admin/EventDetailClient";
 
 export default async function AdminEventDetailPage({
@@ -8,7 +8,11 @@ export default async function AdminEventDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { event, functions, itemsByFunction } = await getAdminEventById(id);
+
+  const [{ event, functions, itemsByFunction }, budgetData] = await Promise.all([
+    getAdminEventById(id),
+    getEventBudgetAndPayments(id),
+  ]);
 
   if (!event) {
     notFound();
@@ -20,6 +24,9 @@ export default async function AdminEventDetailPage({
         event={event}
         initialFunctions={functions}
         initialItemsByFunction={itemsByFunction}
+        initialBudgetTotal={budgetData.agreedTotal}
+        initialPayments={budgetData.payments}
+        auditLogs={budgetData.auditLogs}
       />
     </div>
   );

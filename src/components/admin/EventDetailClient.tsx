@@ -15,10 +15,18 @@ import {
   updateItemStatusAction,
 } from "@/lib/admin/event-actions";
 
+import { BudgetPaymentsTab } from "@/components/admin/BudgetPaymentsTab";
+import { QRCodeModal } from "@/components/admin/QRCodeModal";
+import type { PaymentRecord } from "@/lib/admin/budget-calculations";
+import type { AuditLogItem } from "@/lib/admin/data";
+
 interface EventDetailClientProps {
   event: AdminEventSummary;
   initialFunctions: AdminFunction[];
   initialItemsByFunction: Record<string, AdminItem[]>;
+  initialBudgetTotal?: number;
+  initialPayments?: PaymentRecord[];
+  auditLogs?: AuditLogItem[];
 }
 
 type TabType = "functions" | "items" | "budget" | "designs" | "timeline" | "guests";
@@ -27,10 +35,13 @@ export function EventDetailClient({
   event,
   initialFunctions,
   initialItemsByFunction,
+  initialBudgetTotal = 0,
+  initialPayments = [],
+  auditLogs = [],
 }: EventDetailClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("items"); // Default to tracking view
-  const [functions, setFunctions] = useState(initialFunctions);
+  const [functions] = useState(initialFunctions);
   const [itemsByFunction, setItemsByFunction] = useState(initialItemsByFunction);
   const [selectedFunctionId, setSelectedFunctionId] = useState<string>("all");
   const [status, setStatus] = useState(event.status);
@@ -38,12 +49,15 @@ export function EventDetailClient({
   // Modals state
   const [showAddFunction, setShowAddFunction] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [addItemTargetFunctionId, setAddItemTargetFunctionId] = useState<string>(
     functions[0]?.id || ""
   );
 
   // Status Change
-  const handleStatusChange = async (newStatus: any) => {
+  const handleStatusChange = async (
+    newStatus: "planning" | "finalized" | "completed" | "cancelled"
+  ) => {
     setStatus(newStatus);
     await updateEventStatusAction(event.id, newStatus);
   };
@@ -148,7 +162,17 @@ export function EventDetailClient({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowQrModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-radius-md border border-accent/40 bg-accent/10 text-accent text-xs font-semibold hover:bg-accent hover:text-accent-ink transition-colors min-h-[44px]"
+              title="Generate QR code for guests"
+            >
+              <span>📱</span>
+              <span>Event QR</span>
+            </button>
+
             <div>
               <label htmlFor="event-detail-status" className="sr-only">
                 Event Status
@@ -156,7 +180,7 @@ export function EventDetailClient({
               <select
                 id="event-detail-status"
                 value={status}
-                onChange={(e) => handleStatusChange(e.target.value)}
+                onChange={(e) => handleStatusChange(e.target.value as AdminEventSummary['status'])}
                 className="text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-radius-md border border-border bg-bg text-ink focus:ring-1 focus:ring-accent min-h-[44px]"
               >
                 <option value="planning">Status: Planning</option>
@@ -366,17 +390,13 @@ export function EventDetailClient({
       {/* OTHER TABS: Placeholders ready for Phase 5, 6, 7              */}
       {/* ------------------------------------------------------------- */}
       {activeTab === "budget" && (
-        <div className="p-8 bg-surface rounded-radius-lg border border-border text-center space-y-3">
-          <h3 className="font-heading text-lg font-bold text-ink">
-            Budget &amp; Payments Hub
-          </h3>
-          <p className="text-sm text-ink-muted max-w-md mx-auto">
-            Agreed total: ₹{(event.budget_total || 0).toLocaleString()} • Received: ₹{(event.total_paid || 0).toLocaleString()}
-          </p>
-          <span className="inline-block text-xs text-accent font-semibold uppercase tracking-wider bg-accent-light px-3 py-1 rounded-radius-full">
-            Full calculations &amp; receipt quick-add active in Phase 5
-          </span>
-        </div>
+        <BudgetPaymentsTab
+          eventId={event.id}
+          initialAgreedTotal={initialBudgetTotal || event.budget_total || 0}
+          initialPayments={initialPayments}
+          items={Object.values(itemsByFunction).flat()}
+          auditLogs={auditLogs}
+        />
       )}
 
       {activeTab === "designs" && (
@@ -648,6 +668,15 @@ export function EventDetailClient({
           </div>
         </div>
       )}
+
+      {/* QR Code Modal for Guest Showcase */}
+      <QRCodeModal
+        isOpen={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        eventId={event.id}
+        eventName={event.name}
+        eventStatus={status}
+      />
     </div>
   );
 }
