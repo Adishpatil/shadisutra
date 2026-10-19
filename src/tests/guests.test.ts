@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  MAX_GUEST_IMPORT_ROWS,
   sanitizeSpreadsheetCell,
   parseGuestCSV,
   exportGuestsToExcel,
@@ -56,6 +57,22 @@ Another Guest,3,,no,,`;
 
     expect(errors.length).toBe(1);
     expect(errors[0].row).toBe(3); // Line with party size 99
+  });
+
+  it("rejects CSV imports that exceed the 2,000-row limit", () => {
+    const rows = Array.from(
+      { length: MAX_GUEST_IMPORT_ROWS + 1 },
+      (_, index) => `Guest ${index + 1},1,,,`
+    );
+    const { validRows, errors } = parseGuestCSV(
+      `Name,Party Size,Phone,RSVP,Table No,Notes\n${rows.join("\n")}`
+    );
+
+    expect(validRows).toHaveLength(0);
+    expect(errors).toContainEqual({
+      row: MAX_GUEST_IMPORT_ROWS + 2,
+      message: "Import files may contain no more than 2,000 guest rows.",
+    });
   });
 
   it("exports guests to an Excel buffer and generates a template", async () => {

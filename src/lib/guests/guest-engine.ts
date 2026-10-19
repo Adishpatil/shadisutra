@@ -12,6 +12,8 @@ export interface GuestRow {
   notes?: string | null;
 }
 
+export const MAX_GUEST_IMPORT_ROWS = 2000;
+
 /**
  * Zod validation schema for an individual guest row per build brief:
  * - name: required, 1-100 characters
@@ -19,12 +21,12 @@ export interface GuestRow {
  * - rsvp: pending | yes | no
  */
 export const guestRowSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
+  name: z.string().trim().min(1, "Name is required").max(100),
   party_size: z.coerce.number().int().min(1, "Party size must be at least 1").max(50, "Party size cannot exceed 50"),
-  phone: z.string().optional().nullable(),
+  phone: z.string().trim().max(40).optional().nullable(),
   rsvp: z.enum(["pending", "yes", "no"]).default("pending"),
-  table_no: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
+  table_no: z.string().trim().max(80).optional().nullable(),
+  notes: z.string().trim().max(2000).optional().nullable(),
 });
 
 /**
@@ -48,39 +50,63 @@ export function parseGuestCSV(fileContent: string): {
   validRows: GuestRow[];
   errors: { row: number; message: string }[];
 } {
-  const result = Papa.parse(fileContent, {
+  const result = Papa.parse<Record<string, unknown>>(fileContent, {
     header: true,
     skipEmptyLines: true,
   });
 
   const validRows: GuestRow[] = [];
-  const errors: { row: number; message: string }[] = [];
+  const errors: { row: number; message: string }[] = result.errors.map((error) => ({
+    row: error.row === undefined ? 1 : error.row + 1,
+    message: error.message,
+  }));
+  const rows = result.data;
 
-  result.data.forEach((rawRow: any, index: number) => {
-    // Map various possible header variations (case insensitive)
-    const name = rawRow.Name || rawRow.name || rawRow["Guest Name"] || "";
-    const party_size = rawRow["Party Size"] || rawRow.party_size || rawRow.Guests || rawRow.guests || 1;
-    const phone = rawRow.Phone || rawRow.phone || rawRow.Mobile || null;
-    const rsvpRaw = String(rawRow.RSVP || rawRow.rsvp || "pending").toLowerCase();
-    const rsvp = rsvpRaw === "yes" || rsvpRaw === "attending" ? "yes" : rsvpRaw === "no" || rsvpRaw === "declined" ? "no" : "pending";
-    const table_no = rawRow["Table No"] || rawRow.table_no || rawRow.Table || null;
-    const notes = rawRow.Notes || rawRow.notes || null;
+  if (rows.length > MAX_GUEST_IMPORT_ROWS) {
+    errors.push({
+      row: MAX_GUEST_IMPORT_ROWS + 2,
+      message: "Import files may contain no more than 2,000 guest rows.",
+    });
+    return { validRows, errors };
+  }
 
+  rows.slice(0, MAX_GUEST_IMPORT_ROWS).forEach((rawRow, index) => {
+    const normalized = new Map(
+      Object.entries(rawRow).map(([key, value]) => [key.trim().toLowerCase(), value])
+    );
+    const get = (...keys: string[]) => {
+      for (const key of keys) {
+        const value = normalized.get(key.toLowerCase());
+        if (value !== undefined && value !== null && String(value).trim() !== "") {
+          return String(value).trim();
+        }
+      }
+      return null;
+    };
+    const rsvpValue = (get("rsvp", "rsvp status") ?? "pending").toLowerCase();
+    const rsvp =
+      rsvpValue === "yes" || rsvpValue === "attending"
+        ? "yes"
+        : rsvpValue === "no" || rsvpValue === "declined"
+          ? "no"
+          : rsvpValue === "pending"
+            ? "pending"
+            : rsvpValue;
     const parsed = guestRowSchema.safeParse({
-      name: String(name).trim(),
-      party_size: Number(party_size),
-      phone: phone ? String(phone).trim() : null,
+      name: get("name", "guest name") ?? "",
+      party_size: get("party size", "party_size", "guests") ?? "",
+      phone: get("phone", "phone / whatsapp", "mobile"),
       rsvp,
-      table_no: table_no ? String(table_no).trim() : null,
-      notes: notes ? String(notes).trim() : null,
+      table_no: get("table no", "table_no", "table / seating", "table"),
+      notes: get("notes", "special notes"),
     });
 
     if (parsed.success) {
-      validRows.push(parsed.data as GuestRow);
+      validRows.push(parsed.data);
     } else {
       errors.push({
-        row: index + 2, // header is row 1
-        message: parsed.error.issues.map((i) => i.message).join(", "),
+        row: index + 2,
+        message: parsed.error.issues.map((issue) => issue.message).join(", "),
       });
     }
   });
@@ -107,18 +133,27 @@ export async function parseGuestExcel(buffer: ArrayBuffer): Promise<{
   }
 
   // Row 1 is header
+  let dataRowCount = 0;
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return; // skip header
 
-    const name = String(row.getCell(1).value || "").trim();
-    const party_size = Number(row.getCell(2).value) || 1;
-    const phone = row.getCell(3).value ? String(row.getCell(3).value).trim() : null;
-    const rsvpRaw = String(row.getCell(4).value || "pending").toLowerCase().trim();
-    const rsvp = rsvpRaw === "yes" ? "yes" : rsvpRaw === "no" ? "no" : "pending";
-    const table_no = row.getCell(5).value ? String(row.getCell(5).value).trim() : null;
-    const notes = row.getCell(6).value ? String(row.getCell(6).value).trim() : null;
+    const values = [1, 2, 3, 4, 5, 6].map((column) =>
+      row.getCell(column).text.trim()
+    );
+    if (values.every((value) => value.length === 0)) return;
+    dataRowCount += 1;
+    if (dataRowCount > MAX_GUEST_IMPORT_ROWS) return;
 
-    if (!name) return; // ignore completely empty lines
+    const name = row.getCell(1).text.trim();
+    const party_size = row.getCell(2).text.trim();
+    const phone = row.getCell(3).text.trim() || null;
+    const rsvpRaw = row.getCell(4).text.toLowerCase().trim();
+    const rsvp =
+      rsvpRaw === "yes" || rsvpRaw === "no" || rsvpRaw === "pending"
+        ? rsvpRaw
+        : rsvpRaw || "pending";
+    const table_no = row.getCell(5).text.trim() || null;
+    const notes = row.getCell(6).text.trim() || null;
 
     const parsed = guestRowSchema.safeParse({
       name,
@@ -130,7 +165,7 @@ export async function parseGuestExcel(buffer: ArrayBuffer): Promise<{
     });
 
     if (parsed.success) {
-      validRows.push(parsed.data as GuestRow);
+      validRows.push(parsed.data);
     } else {
       errors.push({
         row: rowNumber,
@@ -138,6 +173,13 @@ export async function parseGuestExcel(buffer: ArrayBuffer): Promise<{
       });
     }
   });
+  if (dataRowCount > MAX_GUEST_IMPORT_ROWS) {
+    errors.push({
+      row: MAX_GUEST_IMPORT_ROWS + 2,
+      message: "Import files may contain no more than 2,000 guest rows.",
+    });
+    validRows.length = 0;
+  }
 
   return { validRows, errors };
 }
@@ -149,6 +191,7 @@ export async function exportGuestsToExcel(guests: GuestRow[], eventName: string)
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Shadi Sutra Event Management";
   workbook.created = new Date();
+  workbook.subject = eventName;
 
   const worksheet = workbook.addWorksheet("Guest List");
 

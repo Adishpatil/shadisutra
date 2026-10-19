@@ -16,9 +16,28 @@ export interface CalculatedEventBudget {
   totalPaid: number;
   remainingDue: number;
   percentagePaid: number;
+  isOverpaid: boolean;
   totalItemCosts: number;
   estimatedMargin: number;
   categoryBreakdown: Record<string, number>;
+}
+
+export function parseMoneyToPaise(value: string): number | null {
+  const normalized = value.trim();
+  const match = /^(0|[1-9]\d{0,9})(?:\.(\d{1,2}))?$/.exec(normalized);
+  if (!match) return null;
+  const rupees = Number(match[1]);
+  const paise = Number((match[2] ?? "").padEnd(2, "0") || "0");
+  const total = rupees * 100 + paise;
+  return Number.isSafeInteger(total) ? total : null;
+}
+
+function toPaise(value: number): number {
+  return Number.isFinite(value) ? Math.round(value * 100) : 0;
+}
+
+function fromPaise(value: number): number {
+  return value / 100;
 }
 
 /**
@@ -31,17 +50,16 @@ export function calculateEventBudget(
   items: ItemCostSummary[],
   payments: PaymentRecord[]
 ): CalculatedEventBudget {
-  const safeAgreed = Math.max(0, agreedTotal || 0);
-
-  // 1. Calculate total paid from all payment records
-  const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-
-  // 2. Calculate remaining balance due
-  const remainingDue = Math.max(0, safeAgreed - totalPaid);
-
-  // 3. Calculate percentage paid (clamped between 0 and 100+)
+  const agreedPaise = Math.max(0, toPaise(agreedTotal));
+  const totalPaidPaise = payments.reduce(
+    (sum, payment) => sum + toPaise(Number(payment.amount)),
+    0
+  );
+  const remainingPaise = Math.max(0, agreedPaise - totalPaidPaise);
   const percentagePaid =
-    safeAgreed > 0 ? Math.round((totalPaid / safeAgreed) * 100) : 0;
+    agreedPaise > 0
+      ? Math.round((totalPaidPaise * 100) / agreedPaise)
+      : 0;
 
   // 4. Calculate vendor item costs breakdown
   const categoryBreakdown: Record<string, number> = {
@@ -52,25 +70,28 @@ export function calculateEventBudget(
     other: 0,
   };
 
-  let totalItemCosts = 0;
+  let totalItemCostsPaise = 0;
 
   for (const it of items) {
-    const cost = Number(it.cost) || 0;
-    totalItemCosts += cost;
+    const costPaise = toPaise(Number(it.cost));
+    totalItemCostsPaise += costPaise;
     const cat = it.category || "other";
-    categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + cost;
+    categoryBreakdown[cat] =
+      fromPaise(toPaise(categoryBreakdown[cat]) + costPaise);
   }
 
-  // 5. Estimated Margin (Agreed client total - total vendor item costs)
-  const estimatedMargin = safeAgreed - totalItemCosts;
+  const totalItemCosts = fromPaise(totalItemCostsPaise);
+  const safeAgreed = fromPaise(agreedPaise);
+  const totalPaid = fromPaise(totalPaidPaise);
 
   return {
     agreedTotal: safeAgreed,
     totalPaid,
-    remainingDue,
+    remainingDue: fromPaise(remainingPaise),
     percentagePaid,
+    isOverpaid: totalPaidPaise > agreedPaise,
     totalItemCosts,
-    estimatedMargin,
+    estimatedMargin: fromPaise(agreedPaise - totalItemCostsPaise),
     categoryBreakdown,
   };
 }

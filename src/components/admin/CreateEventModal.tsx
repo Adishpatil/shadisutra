@@ -87,7 +87,7 @@ export function CreateEventModal({
               name="name"
               required
               placeholder="e.g. Verma Wedding Celebrations"
-              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
             />
           </div>
 
@@ -104,7 +104,7 @@ export function CreateEventModal({
                 id="event-type"
                 name="type"
                 defaultValue="wedding"
-                className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
               >
                 <option value="wedding">Wedding</option>
                 <option value="birthday">Birthday</option>
@@ -124,7 +124,7 @@ export function CreateEventModal({
                 id="event-date"
                 name="date"
                 required
-                className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
               />
             </div>
           </div>
@@ -143,8 +143,42 @@ export function CreateEventModal({
               name="venue"
               required
               placeholder="e.g. Taj Jai Mahal Palace, Jaipur"
-              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="event-client-name"
+                className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+              >
+                Client Name
+              </label>
+              <input
+                type="text"
+                id="event-client-name"
+                name="client_name"
+                autoComplete="name"
+                className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="event-client-phone"
+                className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+              >
+                Client Phone
+              </label>
+              <input
+                type="tel"
+                id="event-client-phone"
+                name="client_phone"
+                autoComplete="tel"
+                inputMode="tel"
+                className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
+              />
+            </div>
           </div>
 
           {/* Budget */}
@@ -159,12 +193,15 @@ export function CreateEventModal({
               type="number"
               id="event-budget"
               name="budgetTotal"
-              placeholder="e.g. 1000000"
-              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              min="0"
+              max="9999999999.99"
+              step="0.01"
+              placeholder="e.g. 1000000.00"
+              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-base focus:outline-none focus:ring-2 focus:ring-accent min-h-[44px]"
             />
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-border">
+          <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 border-t border-border bg-surface px-6 py-3 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}

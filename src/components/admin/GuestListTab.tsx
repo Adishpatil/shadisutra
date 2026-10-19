@@ -7,9 +7,15 @@ import {
   parseGuestExcel,
   exportGuestsToExcel,
   generateGuestTemplateExcel,
+  guestRowSchema,
   type GuestRow,
 } from "@/lib/guests/guest-engine";
-import { addGuestAction, importGuestsAction, deleteGuestAction } from "@/lib/guests/actions";
+import {
+  addGuestAction,
+  updateGuestAction,
+  importGuestsAction,
+  deleteGuestAction,
+} from "@/lib/guests/actions";
 
 interface GuestListTabProps {
   eventId: string;
@@ -24,6 +30,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingGuest, setEditingGuest] = useState<GuestRecord | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
 
   // Import flow state
@@ -31,6 +38,53 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
   const [importErrors, setImportErrors] = useState<{ row: number; message: string }[]>([]);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const closeGuestModal = () => {
+    setShowAddModal(false);
+    setEditingGuest(null);
+  };
+
+  const saveGuest = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const parsedGuest = guestRowSchema.safeParse({
+      name: formData.get("name"),
+      party_size: formData.get("party_size"),
+      phone: formData.get("phone") || null,
+      rsvp: formData.get("rsvp") || "pending",
+      table_no: formData.get("table_no") || null,
+      notes: formData.get("notes") || null,
+    });
+    if (!parsedGuest.success) {
+      alert(parsedGuest.error.issues[0]?.message ?? "Invalid guest details.");
+      return;
+    }
+
+    if (editingGuest) {
+      const result = await updateGuestAction(eventId, editingGuest.id, formData);
+      if (!result.success) {
+        alert(result.error ?? "Could not update guest.");
+        return;
+      }
+      setGuests((current) =>
+        current.map((guest) =>
+          guest.id === editingGuest.id
+            ? { ...guest, ...parsedGuest.data }
+            : guest
+        )
+      );
+    } else {
+      const result = await addGuestAction(eventId, formData);
+      if (!result.success) {
+        alert(result.error);
+        return;
+      }
+      setGuests((current) => [
+        { ...parsedGuest.data, ...result.guest },
+        ...current,
+      ]);
+    }
+    closeGuestModal();
+  };
 
   // Stats calculation
   const totalGuestsCount = guests.reduce((sum, g) => sum + (Number(g.party_size) || 1), 0);
@@ -60,7 +114,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
   const handleExport = async () => {
     try {
       const buffer = await exportGuestsToExcel(guests, eventName);
-      const blob = new Blob([buffer as any], {
+      const blob = new Blob([new Uint8Array(buffer).buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const url = URL.createObjectURL(blob);
@@ -72,7 +126,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
-      alert("Failed to export Excel file");
+      alert(err instanceof Error ? err.message : "Failed to export Excel file");
     }
   };
 
@@ -80,7 +134,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
   const handleDownloadTemplate = async () => {
     try {
       const buffer = await generateGuestTemplateExcel();
-      const blob = new Blob([buffer as any], {
+      const blob = new Blob([new Uint8Array(buffer).buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const url = URL.createObjectURL(blob);
@@ -91,8 +145,8 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch {
-      alert("Failed to download template");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to download template");
     }
   };
 
@@ -103,16 +157,17 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
 
     if (file.size > 2 * 1024 * 1024) {
       alert("File size exceeds 2 MB limit");
+      e.target.value = "";
       return;
     }
 
     try {
-      if (file.name.endsWith(".csv")) {
+      if (file.name.toLowerCase().endsWith(".csv")) {
         const text = await file.text();
         const { validRows, errors } = parseGuestCSV(text);
         setImportPreview(validRows);
         setImportErrors(errors);
-      } else if (file.name.endsWith(".xlsx")) {
+      } else if (file.name.toLowerCase().endsWith(".xlsx")) {
         const buffer = await file.arrayBuffer();
         const { validRows, errors } = await parseGuestExcel(buffer);
         setImportPreview(validRows);
@@ -120,8 +175,8 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
       } else {
         alert("Please upload a .csv or .xlsx file");
       }
-    } catch {
-      alert("Error parsing file format");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Error parsing file format");
     }
   };
 
@@ -132,16 +187,11 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
 
     const res = await importGuestsAction(eventId, importPreview);
     if (res.success) {
-      // Local optimistic update
-      const newGuests: GuestRecord[] = importPreview.map((r, i) => ({
-        ...r,
-        id: `imported-${Date.now()}-${i}`,
-        event_id: eventId,
-      }));
-      setGuests((prev) => [...prev, ...newGuests]);
+      setGuests((prev) => [...prev, ...res.guests]);
       setShowImportModal(false);
       setImportPreview([]);
       setImportErrors([]);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } else {
       alert(res.error || "Import failed");
     }
@@ -151,8 +201,12 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
   // Delete Guest
   const handleDeleteGuest = async (guestId: string) => {
     if (!confirm("Are you sure you want to remove this guest?")) return;
+    const result = await deleteGuestAction(eventId, guestId);
+    if (!result.success) {
+      alert(result.error ?? "Could not delete guest.");
+      return;
+    }
     setGuests((prev) => prev.filter((g) => g.id !== guestId));
-    await deleteGuestAction(eventId, guestId);
   };
 
   return (
@@ -204,12 +258,12 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, phone, or table..."
-            className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[40px]"
+            className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
           />
           <select
             value={rsvpFilter}
             onChange={(e) => setRsvpFilter(e.target.value)}
-            className="text-xs font-medium px-3 py-2 rounded-radius-md border border-border bg-bg text-ink min-h-[40px]"
+            className="text-base font-medium px-3 py-2 rounded-radius-md border border-border bg-bg text-ink min-h-[44px]"
           >
             <option value="all">All RSVP</option>
             <option value="yes">Attending</option>
@@ -222,7 +276,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-radius-md border border-border text-ink bg-bg hover:bg-surface transition-colors min-h-[40px]"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-radius-md border border-border text-ink bg-bg hover:bg-surface transition-colors min-h-[44px]"
           >
             <span>📊</span>
             <span>Export Excel</span>
@@ -231,7 +285,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
           <button
             type="button"
             onClick={() => setShowImportModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-radius-md border border-accent/40 bg-accent/10 text-accent hover:bg-accent hover:text-accent-ink transition-colors min-h-[40px]"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-radius-md border border-accent/40 bg-accent/10 text-accent hover:bg-accent hover:text-accent-ink transition-colors min-h-[44px]"
           >
             <span>📥</span>
             <span>Import (.xlsx/.csv)</span>
@@ -240,7 +294,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[40px]"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[44px]"
           >
             <span>+ Quick Add</span>
           </button>
@@ -303,8 +357,18 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                     <td className="py-3.5 px-4 text-right">
                       <button
                         type="button"
-                        onClick={() => handleDeleteGuest(g.id!)}
-                        className="text-danger hover:underline font-semibold"
+                        onClick={() => {
+                          setEditingGuest(g);
+                          setShowAddModal(true);
+                        }}
+                        className="mr-3 min-h-[44px] px-2 text-accent hover:underline font-semibold"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteGuest(g.id)}
+                        className="min-h-[44px] px-2 text-danger hover:underline font-semibold"
                       >
                         Remove
                       </button>
@@ -359,8 +423,18 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                 <div className="pt-2 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => handleDeleteGuest(g.id!)}
-                    className="text-xs text-danger hover:underline font-semibold min-h-[36px]"
+                    onClick={() => {
+                      setEditingGuest(g);
+                      setShowAddModal(true);
+                    }}
+                    className="mr-2 min-h-[44px] px-3 text-xs text-accent hover:underline font-semibold"
+                  >
+                    Edit Guest
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteGuest(g.id)}
+                    className="px-3 text-xs text-danger hover:underline font-semibold min-h-[44px]"
                   >
                     Remove Guest
                   </button>
@@ -377,48 +451,27 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
-          onClick={() => setShowAddModal(false)}
+          onClick={closeGuestModal}
         >
           <div
-            className="w-full max-w-md bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4"
+            className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="font-heading font-bold text-base text-ink">
-                Add Guest / Party
+                {editingGuest ? "Edit Guest / Party" : "Add Guest / Party"}
               </h3>
               <button
                 type="button"
-                onClick={() => setShowAddModal(false)}
-                className="text-ink-muted hover:text-ink w-8 h-8 flex items-center justify-center"
+                onClick={closeGuestModal}
+                className="text-ink-muted hover:text-ink min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
             <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const res = await addGuestAction(eventId, formData);
-                if (res.success) {
-                  // Optimistic addition
-                  const newG: GuestRecord = {
-                    id: `local-${Date.now()}`,
-                    event_id: eventId,
-                    name: String(formData.get("name")),
-                    party_size: Number(formData.get("party_size")) || 1,
-                    phone: String(formData.get("phone") || "") || null,
-                    rsvp: (formData.get("rsvp") as any) || "pending",
-                    table_no: String(formData.get("table_no") || "") || null,
-                    notes: String(formData.get("notes") || "") || null,
-                  };
-                  setGuests((prev) => [newG, ...prev]);
-                  setShowAddModal(false);
-                } else {
-                  alert(res.error || "Failed to add guest");
-                }
-              }}
+              onSubmit={saveGuest}
               className="space-y-3"
             >
               <div>
@@ -428,8 +481,9 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                 <input
                   name="name"
                   required
+                  defaultValue={editingGuest?.name ?? ""}
                   placeholder="e.g. Vikram & Sunita Malhotra"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
                 />
               </div>
 
@@ -443,9 +497,9 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                     type="number"
                     min="1"
                     max="50"
-                    defaultValue="1"
+                    defaultValue={editingGuest?.party_size ?? 1}
                     required
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
                   />
                 </div>
 
@@ -455,8 +509,8 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                   </label>
                   <select
                     name="rsvp"
-                    defaultValue="pending"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                    defaultValue={editingGuest?.rsvp ?? "pending"}
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
                   >
                     <option value="pending">Pending</option>
                     <option value="yes">Attending (Yes)</option>
@@ -472,8 +526,11 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                   </label>
                   <input
                     name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    defaultValue={editingGuest?.phone ?? ""}
                     placeholder="98XXXXXXXX"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
                   />
                 </div>
 
@@ -483,8 +540,9 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                   </label>
                   <input
                     name="table_no"
+                    defaultValue={editingGuest?.table_no ?? ""}
                     placeholder="e.g. Table 4"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
                   />
                 </div>
               </div>
@@ -495,24 +553,25 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                 </label>
                 <input
                   name="notes"
+                  defaultValue={editingGuest?.notes ?? ""}
                   placeholder="e.g. Jain meal, Bride's side"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 border-t border-border bg-surface px-6 py-3 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink min-h-[44px]"
+                  onClick={closeGuestModal}
+                  className="px-4 py-2 text-sm font-medium text-ink-muted hover:text-ink min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-xs font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
                 >
-                  Save Guest
+                  {editingGuest ? "Save Changes" : "Save Guest"}
                 </button>
               </div>
             </form>
@@ -529,7 +588,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
           onClick={() => setShowImportModal(false)}
         >
           <div
-            className="w-full max-w-2xl bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
@@ -576,7 +635,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                 type="file"
                 accept=".xlsx,.csv"
                 onChange={handleFileChange}
-                className="block w-full text-xs text-ink file:mr-4 file:py-2.5 file:px-4 file:rounded-radius-md file:border-0 file:text-xs file:font-semibold file:bg-accent file:text-accent-ink hover:file:bg-accent-hover"
+                className="block w-full min-h-[44px] text-base text-ink file:mr-4 file:min-h-[44px] file:py-2.5 file:px-4 file:rounded-radius-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-ink hover:file:bg-accent-hover"
               />
             </div>
 
@@ -630,7 +689,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
               </div>
             )}
 
-            <div className="pt-3 border-t border-border flex justify-end gap-2">
+            <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 border-t border-border bg-surface px-6 py-3 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}

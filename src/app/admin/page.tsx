@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAdminEvents, getAdminEnquiries } from "@/lib/admin/data";
+import { formatINRDecimal } from "@/lib/format";
 
 export default async function AdminDashboardPage() {
   const [events, enquiries] = await Promise.all([
@@ -7,11 +8,32 @@ export default async function AdminDashboardPage() {
     getAdminEnquiries(),
   ]);
 
-  const upcomingEvents = events.filter((e) => e.status !== "completed" && e.status !== "cancelled");
+  const today = new Date().toISOString().slice(0, 10);
+  const upcomingEvents = events.filter(
+    (event) =>
+      event.date >= today &&
+      event.status !== "completed" &&
+      event.status !== "cancelled"
+  );
   const pendingItemsCount = events.reduce((acc, curr) => acc + (curr.pending_items || 0), 0);
-  const totalAgreed = events.reduce((acc, curr) => acc + (curr.budget_total || 0), 0);
-  const totalPaid = events.reduce((acc, curr) => acc + (curr.total_paid || 0), 0);
-  const totalDue = Math.max(0, totalAgreed - totalPaid);
+  const totalAgreedPaise = events.reduce(
+    (sum, event) => sum + Math.round((event.budget_total ?? 0) * 100),
+    0
+  );
+  const totalPaidPaise = events.reduce(
+    (sum, event) => sum + Math.round((event.total_paid ?? 0) * 100),
+    0
+  );
+  const totalDuePaise = events.reduce(
+    (sum, event) =>
+      sum +
+      Math.max(
+        0,
+        Math.round((event.budget_total ?? 0) * 100) -
+          Math.round((event.total_paid ?? 0) * 100)
+      ),
+    0
+  );
 
   return (
     <div className="space-y-8">
@@ -84,13 +106,13 @@ export default async function AdminDashboardPage() {
           </span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-3xl font-heading font-bold text-ink">
-              ₹{(totalDue / 1000).toFixed(0)}k
+              {formatINRDecimal(totalDuePaise / 100)}
             </span>
             <span className="text-xs font-medium text-accent bg-accent-light px-2 py-0.5 rounded-radius-full">
-              ₹{(totalPaid / 1000).toFixed(0)}k Paid
+              {formatINRDecimal(totalPaidPaise / 100)} Paid
             </span>
           </div>
-          <p className="mt-2 text-xs text-ink-muted">Agreed Total: ₹{(totalAgreed / 1000).toFixed(0)}k</p>
+          <p className="mt-2 text-xs text-ink-muted">Agreed Total: {formatINRDecimal(totalAgreedPaise / 100)}</p>
         </div>
 
         {/* Metric 4 */}

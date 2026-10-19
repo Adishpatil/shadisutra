@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 import { consumeRateLimit, rateLimitKey } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
+import { getDesignFileKind } from "../admin/design-storage";
 
 export const eventShareTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
 
@@ -20,6 +21,7 @@ export interface PublicSharedEvent {
     title: string;
   }>;
   designs: Array<{
+    id: string;
     title: string;
     version: number;
     url: string;
@@ -70,7 +72,7 @@ export async function getPublicSharedEvent(
         .order("starts_at", { ascending: true }),
       supabase
         .from("designs")
-        .select("title,file_path,version,event_id")
+        .select("id,title,file_path,version,event_id")
         .eq("event_id", shareLink.event_id)
         .eq("is_finalized", true)
         .order("created_at", { ascending: false }),
@@ -85,18 +87,17 @@ export async function getPublicSharedEvent(
   }
   if (!eventResult.data) return null;
 
-  const designs = await Promise.all(
-    designsResult.data.map(async (design) => {
-      if (!design.file_path.startsWith(`${shareLink.event_id}/`)) {
+  const designs = designsResult.data.map((design) => {
+      if (!getDesignFileKind(design.file_path, shareLink.event_id, design.id)) {
         throw new Error("Invalid finalized design path.");
       }
-      const { data, error } = await supabase.storage
-        .from("event-files")
-        .createSignedUrl(design.file_path, 180);
-      if (error) throw new Error("Could not sign finalized design URL.");
-      return { title: design.title, version: design.version, url: data.signedUrl };
-    })
-  );
+      return {
+        id: design.id,
+        title: design.title,
+        version: design.version,
+        url: `/api/e/${tokenResult.data}/designs/${design.id}`,
+      };
+    });
 
   return {
     name: eventResult.data.name,

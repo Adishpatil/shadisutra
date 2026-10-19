@@ -26,10 +26,14 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
     eventId: string,
     newStatus: "planning" | "finalized" | "completed" | "cancelled"
   ) => {
+    const result = await updateEventStatusAction(eventId, newStatus);
+    if (!result.success) {
+      alert(`Could not update event status: ${result.error}`);
+      return;
+    }
     setEvents((prev) =>
       prev.map((e) => (e.id === eventId ? { ...e, status: newStatus } : e))
     );
-    await updateEventStatusAction(eventId, newStatus);
   };
 
   return (

@@ -4,16 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   calculateEventBudget,
+  parseMoneyToPaise,
   type PaymentRecord,
   type ItemCostSummary,
 } from "@/lib/admin/budget-calculations";
 import type { AuditLogItem } from "@/lib/admin/data";
 import {
   addPaymentAction,
+  updatePaymentAction,
   updateAgreedTotalAction,
   deletePaymentAction,
 } from "@/lib/admin/payment-actions";
-import { formatINR, formatDateTime } from "@/lib/format";
+import { formatINRDecimal, formatDateTime } from "@/lib/format";
 
 interface BudgetPaymentsTabProps {
   eventId: string;
@@ -32,11 +34,12 @@ export function BudgetPaymentsTab({
 }: BudgetPaymentsTabProps) {
   const router = useRouter();
   const [agreedTotal, setAgreedTotal] = useState(initialAgreedTotal);
-  const [payments, setPayments] = useState(initialPayments);
+  const payments = initialPayments;
 
   // Modals state
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [showEditAgreedModal, setShowEditAgreedModal] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
   const [editAgreedInput, setEditAgreedInput] = useState(String(agreedTotal));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +54,9 @@ export function BudgetPaymentsTab({
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const res = await addPaymentAction(eventId, formData);
+    const res = editingPayment
+      ? await updatePaymentAction(editingPayment.id, eventId, formData)
+      : await addPaymentAction(eventId, formData);
 
     setLoading(false);
 
@@ -59,6 +64,7 @@ export function BudgetPaymentsTab({
       setError(res.error || "Failed to record payment.");
     } else {
       setShowAddPaymentModal(false);
+      setEditingPayment(null);
       router.refresh();
     }
   };
@@ -66,23 +72,44 @@ export function BudgetPaymentsTab({
   // Handle Edit Agreed Budget
   const handleEditAgreedSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const val = parseFloat(editAgreedInput) || 0;
-    setAgreedTotal(val);
+    setLoading(true);
+    setError(null);
+    const result = await updateAgreedTotalAction(eventId, editAgreedInput);
+    setLoading(false);
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
+    setAgreedTotal((parseMoneyToPaise(editAgreedInput) ?? 0) / 100);
     setShowEditAgreedModal(false);
-    await updateAgreedTotalAction(eventId, val);
     router.refresh();
   };
 
   // Handle Delete Payment
   const handleDeletePayment = async (paymentId: string) => {
     if (!confirm("Are you sure you want to delete this payment record?")) return;
-    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
-    await deletePaymentAction(paymentId, eventId);
+    setError(null);
+    const result = await deletePaymentAction(paymentId, eventId);
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
     router.refresh();
+  };
+
+  const showPaymentForm = (payment: PaymentRecord | null) => {
+    setError(null);
+    setEditingPayment(payment);
+    setShowAddPaymentModal(true);
   };
 
   return (
     <div className="space-y-8">
+      {error && !showAddPaymentModal && !showEditAgreedModal && (
+        <p role="alert" className="rounded-radius-md border border-danger/30 bg-danger-light p-3 text-sm text-danger">
+          {error}
+        </p>
+      )}
       {/* ------------------------------------------------------------- */}
       {/* 1. Calculated KPI Summary Cards                               */}
       {/* Paid, remaining, % are calculated and NEVER typed             */}
@@ -97,17 +124,18 @@ export function BudgetPaymentsTab({
             <button
               type="button"
               onClick={() => {
-                setEditAgreedInput(String(agreedTotal));
+                setEditAgreedInput(agreedTotal.toFixed(2));
+                setError(null);
                 setShowEditAgreedModal(true);
               }}
-              className="text-xs text-accent font-semibold hover:underline"
+              className="min-h-[44px] px-2 text-sm text-accent font-semibold hover:underline"
             >
               Edit
             </button>
           </div>
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-heading font-bold text-ink">
-              {formatINR(budget.agreedTotal)}
+              {formatINRDecimal(budget.agreedTotal)}
             </span>
             <span className="text-xs text-ink-muted block mt-1">
               Contracted client price
@@ -127,7 +155,7 @@ export function BudgetPaymentsTab({
           </div>
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-heading font-bold text-success">
-              {formatINR(budget.totalPaid)}
+              {formatINRDecimal(budget.totalPaid)}
             </span>
             <span className="text-xs text-ink-muted block mt-1">
               Across {payments.length} transactions
@@ -153,7 +181,7 @@ export function BudgetPaymentsTab({
           </div>
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-heading font-bold text-ink">
-              {formatINR(budget.remainingDue)}
+              {formatINRDecimal(budget.remainingDue)}
             </span>
             <span className="text-xs text-ink-muted block mt-1">
               {budget.remainingDue === 0 ? "Zero outstanding balance" : "Awaiting final settlement"}
@@ -204,7 +232,7 @@ export function BudgetPaymentsTab({
               Vendor Category Costs (From Tracking Items)
             </h3>
             <span className="text-xs font-bold font-mono text-ink">
-              Total Expenses: {formatINR(budget.totalItemCosts)}
+              Total Expenses:               {formatINRDecimal(budget.totalItemCosts)}
             </span>
           </div>
 
@@ -215,7 +243,7 @@ export function BudgetPaymentsTab({
                   {cat}
                 </span>
                 <span className="text-sm font-bold font-mono text-ink mt-1 block">
-                  {formatINR(cost)}
+                  {formatINRDecimal(cost)}
                 </span>
               </div>
             ))}
@@ -230,7 +258,7 @@ export function BudgetPaymentsTab({
                 budget.estimatedMargin >= 0 ? "text-success" : "text-danger"
               }`}
             >
-              {formatINR(budget.estimatedMargin)}
+              {formatINRDecimal(budget.estimatedMargin)}
             </span>
           </div>
         </div>
@@ -251,8 +279,8 @@ export function BudgetPaymentsTab({
 
           <button
             type="button"
-            onClick={() => setShowAddPaymentModal(true)}
-            className="w-full inline-flex items-center justify-center px-4 py-3 bg-accent text-accent-ink rounded-radius-md font-semibold text-sm hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] min-h-[44px]"
+            onClick={() => showPaymentForm(null)}
+            className="w-full inline-flex items-center justify-center px-4 py-3 bg-accent text-accent-ink rounded-radius-md font-semibold text-base hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] min-h-[48px]"
           >
             + Quick Add Payment
           </button>
@@ -269,8 +297,8 @@ export function BudgetPaymentsTab({
           </h3>
           <button
             type="button"
-            onClick={() => setShowAddPaymentModal(true)}
-            className="text-xs font-semibold text-accent hover:underline"
+            onClick={() => showPaymentForm(null)}
+            className="min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
           >
             + Add Payment
           </button>
@@ -295,7 +323,7 @@ export function BudgetPaymentsTab({
                     {p.paid_on}
                   </td>
                   <td className="py-3.5 px-4 font-bold font-mono text-sm text-success">
-                    {formatINR(p.amount)}
+                    {formatINRDecimal(p.amount)}
                   </td>
                   <td className="py-3.5 px-4">
                     <span className="text-xs px-2 py-0.5 rounded-radius-sm bg-bg border border-border text-ink font-medium">
@@ -308,8 +336,15 @@ export function BudgetPaymentsTab({
                   <td className="py-3.5 px-4 text-right">
                     <button
                       type="button"
+                      onClick={() => showPaymentForm(p)}
+                      className="mr-3 min-h-[44px] text-sm font-semibold text-accent hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleDeletePayment(p.id)}
-                      className="text-xs text-danger hover:underline font-semibold"
+                      className="min-h-[44px] text-sm text-danger hover:underline font-semibold"
                     >
                       Delete
                     </button>
@@ -329,7 +364,7 @@ export function BudgetPaymentsTab({
             >
               <div className="flex items-center justify-between">
                 <span className="text-base font-bold font-mono text-success">
-                  {formatINR(p.amount)}
+                  {formatINRDecimal(p.amount)}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-radius-sm bg-bg border border-border text-ink font-medium">
                   {p.mode}
@@ -344,8 +379,15 @@ export function BudgetPaymentsTab({
                 </span>
                 <button
                   type="button"
+                  onClick={() => showPaymentForm(p)}
+                  className="min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleDeletePayment(p.id)}
-                  className="text-danger font-semibold min-h-[36px] flex items-center hover:underline"
+                  className="text-danger font-semibold min-h-[44px] px-2 flex items-center hover:underline"
                 >
                   Delete
                 </button>
@@ -394,6 +436,7 @@ export function BudgetPaymentsTab({
                   </span>
                 )}
               </div>
+
               <span className="text-ink-muted font-mono shrink-0">
                 {formatDateTime(log.at)}
               </span>
@@ -408,6 +451,12 @@ export function BudgetPaymentsTab({
         </div>
       </div>
 
+      {budget.isOverpaid && (
+        <p role="status" className="rounded-radius-md border border-warning/40 bg-warning-light p-3 text-sm font-semibold text-warning">
+          Payments exceed the agreed total. This is a warning only; no payment was blocked.
+        </p>
+      )}
+
       {/* ------------------------------------------------------------- */}
       {/* MODAL: Quick Add Payment                                      */}
       {/* ------------------------------------------------------------- */}
@@ -419,16 +468,19 @@ export function BudgetPaymentsTab({
           onClick={() => setShowAddPaymentModal(false)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="max-h-[90dvh] w-full max-w-md overflow-y-auto bg-surface rounded-radius-lg border border-border shadow-2xl p-5 sm:p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-lg font-heading font-bold text-ink">
-                Record Client Payment
+                {editingPayment ? "Edit Client Payment" : "Record Client Payment"}
               </h3>
               <button
                 type="button"
-                onClick={() => setShowAddPaymentModal(false)}
+                onClick={() => {
+                  setShowAddPaymentModal(false);
+                  setEditingPayment(null);
+                }}
                 className="text-ink-muted hover:text-ink min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 ✕
@@ -450,10 +502,12 @@ export function BudgetPaymentsTab({
                   type="number"
                   name="amount"
                   required
-                  min="1"
-                  step="1"
-                  placeholder="e.g. 250000"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-sm font-mono focus:ring-1 focus:ring-accent"
+                  min="0.01"
+                  max="9999999999.99"
+                  step="0.01"
+                  defaultValue={editingPayment?.amount.toFixed(2) ?? ""}
+                  placeholder="e.g. 250000.00"
+                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base font-mono focus:ring-1 focus:ring-accent"
                 />
               </div>
 
@@ -466,8 +520,8 @@ export function BudgetPaymentsTab({
                     type="date"
                     name="paidOn"
                     required
-                    defaultValue={new Date().toISOString().split("T")[0]}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-sm focus:ring-1 focus:ring-accent"
+                    className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent"
+                    defaultValue={editingPayment?.paid_on ?? new Date().toISOString().split("T")[0]}
                   />
                 </div>
 
@@ -477,14 +531,14 @@ export function BudgetPaymentsTab({
                   </label>
                   <select
                     name="mode"
-                    defaultValue="RTGS Bank Transfer"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-sm focus:ring-1 focus:ring-accent"
+                    defaultValue={editingPayment?.mode ?? "bank"}
+                    className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent"
                   >
-                    <option value="RTGS Bank Transfer">RTGS Transfer</option>
-                    <option value="NEFT Bank Transfer">NEFT Transfer</option>
-                    <option value="UPI">UPI / QR</option>
-                    <option value="Cheque">Bank Cheque</option>
-                    <option value="Cash">Cash Receipt</option>
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="bank">Bank transfer</option>
+                    <option value="cheque">Cheque</option>
+                    <option value="card">Card</option>
                   </select>
                 </div>
               </div>
@@ -496,25 +550,29 @@ export function BudgetPaymentsTab({
                 <input
                   type="text"
                   name="note"
+                  defaultValue={editingPayment?.note ?? ""}
                   placeholder="e.g. Milestone 2: Mandap structure advance"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-sm focus:ring-1 focus:ring-accent"
+                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-border">
+              <div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-surface pt-3">
                 <button
                   type="button"
-                  onClick={() => setShowAddPaymentModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink min-h-[44px]"
+                  onClick={() => {
+                    setShowAddPaymentModal(false);
+                    setEditingPayment(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-ink-muted hover:text-ink min-h-[48px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-xs font-semibold hover:bg-accent-hover min-h-[44px] disabled:opacity-50"
+                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-base font-semibold hover:bg-accent-hover min-h-[48px] disabled:opacity-50"
                 >
-                  {loading ? "Recording..." : "Save Payment"}
+                  {loading ? "Saving..." : editingPayment ? "Save Changes" : "Save Payment"}
                 </button>
               </div>
             </form>
@@ -533,7 +591,7 @@ export function BudgetPaymentsTab({
           onClick={() => setShowEditAgreedModal(false)}
         >
           <div
-            className="w-full max-w-sm bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="max-h-[90dvh] w-full max-w-sm overflow-y-auto bg-surface rounded-radius-lg border border-border shadow-2xl p-5 sm:p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-heading font-bold text-ink">
@@ -542,6 +600,7 @@ export function BudgetPaymentsTab({
             <p className="text-xs text-ink-muted">
               Update the agreed overall total price for this event.
             </p>
+            {error && <p role="alert" className="text-sm text-danger">{error}</p>}
             <form onSubmit={handleEditAgreedSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase text-ink mb-1">
@@ -550,26 +609,28 @@ export function BudgetPaymentsTab({
                 <input
                   type="number"
                   min="0"
-                  step="1"
+                  step="0.01"
+                  max="9999999999.99"
                   required
                   value={editAgreedInput}
                   onChange={(e) => setEditAgreedInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-sm font-mono focus:ring-1 focus:ring-accent"
+                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base font-mono focus:ring-1 focus:ring-accent"
                 />
               </div>
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-surface pt-3">
                 <button
                   type="button"
                   onClick={() => setShowEditAgreedModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-ink-muted min-h-[44px]"
+                  className="px-4 py-2 text-sm font-medium text-ink-muted min-h-[48px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-xs font-semibold min-h-[44px]"
+                  disabled={loading}
+                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-base font-semibold min-h-[48px] disabled:opacity-50"
                 >
-                  Update Total
+                  {loading ? "Saving..." : "Update Total"}
                 </button>
               </div>
             </form>

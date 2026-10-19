@@ -3,8 +3,9 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdminCaller } from "@/lib/auth/verify-admin";
+import { createClient } from "@/lib/supabase/server";
+import { parseMoneyToPaise } from "@/lib/admin/budget-calculations";
 
 const idSchema = z.string().uuid();
 const eventTypeSchema = z.enum(["wedding", "birthday", "function"]);
@@ -61,20 +62,24 @@ export async function createEventAction(formData: FormData) {
         type: eventTypeSchema,
         date: functionDateSchema,
         venue: z.string().trim().min(1).max(500),
-        budgetTotal: z.number().finite().min(0),
+        clientName: z.string().trim().max(200),
+        clientPhone: z.string().trim().max(40),
+        budgetTotalPaise: z.number().int().nonnegative().max(999_999_999_999),
       })
       .safeParse({
         name: text(formData, "name"),
         type: text(formData, "type") || "wedding",
         date: text(formData, "date"),
         venue: text(formData, "venue"),
-        budgetTotal: Number(text(formData, "budgetTotal") || "0"),
+        clientName: text(formData, "client_name"),
+        clientPhone: text(formData, "client_phone"),
+        budgetTotalPaise: parseMoneyToPaise(text(formData, "budgetTotal") || "0"),
       });
     if (!parsed.success) {
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid event details." };
     }
 
-    const supabase = createAdminClient();
+    const supabase = await createClient();
     const { data: event, error: eventError } = await supabase
       .from("events")
       .insert({
@@ -82,6 +87,8 @@ export async function createEventAction(formData: FormData) {
         type: parsed.data.type,
         date: parsed.data.date,
         venue: parsed.data.venue,
+        client_name: parsed.data.clientName || null,
+        client_phone: parsed.data.clientPhone || null,
       })
       .select("id")
       .single();
@@ -89,7 +96,7 @@ export async function createEventAction(formData: FormData) {
 
     const { error: budgetError } = await supabase.from("budgets").insert({
       event_id: event.id,
-      agreed_total: parsed.data.budgetTotal,
+      agreed_total: parsed.data.budgetTotalPaise / 100,
     });
     if (budgetError) {
       const { error: cleanupError } = await supabase
@@ -122,11 +129,15 @@ export async function updateEventStatusAction(
     if (!parsed.success) {
       return { success: false, error: "Invalid event status request." };
     }
-    const { error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from("events")
       .update({ status: parsed.data.status })
-      .eq("id", parsed.data.eventId);
+      .eq("id", parsed.data.eventId)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Event not found." };
     revalidatePath(`/admin/events/${eventId}`);
     revalidatePath("/admin/events");
     revalidatePath("/admin");
@@ -158,7 +169,8 @@ export async function addFunctionAction(eventId: string, formData: FormData) {
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid function details." };
     }
 
-    const { data, error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from("event_functions")
       .insert({
         event_id: parsed.data.eventId,
@@ -170,6 +182,7 @@ export async function addFunctionAction(eventId: string, formData: FormData) {
       .select("id")
       .single();
     if (error) throw error;
+    if (!data) throw new Error("Could not create event function.");
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true, functionId: data.id };
   } catch (error: unknown) {
@@ -187,19 +200,21 @@ export async function addItemAction(
     const parsed = z
       .object({
         functionId: idSchema,
+        eventId: idSchema,
         category: itemCategorySchema,
         title: z.string().trim().min(1).max(200),
         vendor: z.string().max(200),
-        cost: z.number().finite().min(0),
+        costPaise: z.number().int().nonnegative().max(999_999_999_999),
         status: itemStatusSchema,
         notes: z.string().max(5000),
       })
       .safeParse({
         functionId,
+        eventId,
         category: text(formData, "category") || "decor",
         title: text(formData, "title"),
         vendor: text(formData, "vendor"),
-        cost: Number(text(formData, "cost") || "0"),
+        costPaise: parseMoneyToPaise(text(formData, "cost") || "0"),
         status: text(formData, "status") || "not_started",
         notes: text(formData, "notes"),
       });
@@ -207,20 +222,30 @@ export async function addItemAction(
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid item details." };
     }
 
-    const { data, error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data: eventFunction, error: functionError } = await supabase
+      .from("event_functions")
+      .select("id")
+      .eq("id", parsed.data.functionId)
+      .eq("event_id", parsed.data.eventId)
+      .maybeSingle();
+    if (functionError) throw functionError;
+    if (!eventFunction) return { success: false, error: "Function not found for this event." };
+    const { data, error } = await supabase
       .from("event_items")
       .insert({
         function_id: parsed.data.functionId,
         category: parsed.data.category,
         title: parsed.data.title,
         vendor: parsed.data.vendor || null,
-        cost: parsed.data.cost,
+        cost: parsed.data.costPaise / 100,
         status: parsed.data.status,
         notes: parsed.data.notes || null,
       })
       .select("id")
       .single();
     if (error) throw error;
+    if (!data) throw new Error("Could not create event item.");
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true, itemId: data.id };
   } catch (error: unknown) {
@@ -236,14 +261,26 @@ export async function updateItemStatusAction(
   try {
     await verifyAdminCaller();
     const parsed = z
-      .object({ itemId: idSchema, status: itemStatusSchema })
-      .safeParse({ itemId, status: newStatus });
+      .object({ itemId: idSchema, eventId: idSchema, status: itemStatusSchema })
+      .safeParse({ itemId, eventId, status: newStatus });
     if (!parsed.success) return { success: false, error: "Invalid item status request." };
-    const { error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data: functions, error: functionsError } = await supabase
+      .from("event_functions")
+      .select("id")
+      .eq("event_id", parsed.data.eventId);
+    if (functionsError) throw functionsError;
+    const functionIds = (functions ?? []).map((eventFunction) => eventFunction.id);
+    if (!functionIds.length) return { success: false, error: "Item not found for this event." };
+    const { data, error } = await supabase
       .from("event_items")
       .update({ status: parsed.data.status })
-      .eq("id", parsed.data.itemId);
+      .eq("id", parsed.data.itemId)
+      .in("function_id", functionIds)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Item not found for this event." };
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true };
   } catch (error: unknown) {
@@ -261,19 +298,21 @@ export async function updateItemAction(
     const parsed = z
       .object({
         itemId: idSchema,
+        eventId: idSchema,
         category: itemCategorySchema,
         title: z.string().trim().min(1).max(200),
         vendor: z.string().max(200),
-        cost: z.number().finite().min(0),
+        costPaise: z.number().int().nonnegative().max(999_999_999_999),
         notes: z.string().max(5000),
         status: itemStatusSchema,
       })
       .safeParse({
         itemId,
+        eventId,
         category: text(formData, "category") || "decor",
         title: text(formData, "title"),
         vendor: text(formData, "vendor"),
-        cost: Number(text(formData, "cost") || "0"),
+        costPaise: parseMoneyToPaise(text(formData, "cost") || "0"),
         notes: text(formData, "notes"),
         status: text(formData, "status") || "not_started",
       });
@@ -281,18 +320,30 @@ export async function updateItemAction(
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid item details." };
     }
 
-    const { error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data: functions, error: functionsError } = await supabase
+      .from("event_functions")
+      .select("id")
+      .eq("event_id", parsed.data.eventId);
+    if (functionsError) throw functionsError;
+    const functionIds = (functions ?? []).map((eventFunction) => eventFunction.id);
+    if (!functionIds.length) return { success: false, error: "Item not found for this event." };
+    const { data, error } = await supabase
       .from("event_items")
       .update({
         category: parsed.data.category,
         title: parsed.data.title,
         vendor: parsed.data.vendor || null,
-        cost: parsed.data.cost,
+        cost: parsed.data.costPaise / 100,
         notes: parsed.data.notes || null,
         status: parsed.data.status,
       })
-      .eq("id", parsed.data.itemId);
+      .eq("id", parsed.data.itemId)
+      .in("function_id", functionIds)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Item not found for this event." };
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true };
   } catch (error: unknown) {
@@ -303,13 +354,25 @@ export async function updateItemAction(
 export async function deleteItemAction(itemId: string, eventId: string) {
   try {
     await verifyAdminCaller();
-    const parsedId = idSchema.safeParse(itemId);
-    if (!parsedId.success) return { success: false, error: "Invalid item ID." };
-    const { error } = await createAdminClient()
+    const parsed = z.object({ itemId: idSchema, eventId: idSchema }).safeParse({ itemId, eventId });
+    if (!parsed.success) return { success: false, error: "Invalid item deletion request." };
+    const supabase = await createClient();
+    const { data: functions, error: functionsError } = await supabase
+      .from("event_functions")
+      .select("id")
+      .eq("event_id", parsed.data.eventId);
+    if (functionsError) throw functionsError;
+    const functionIds = (functions ?? []).map((eventFunction) => eventFunction.id);
+    if (!functionIds.length) return { success: false, error: "Item not found for this event." };
+    const { data, error } = await supabase
       .from("event_items")
       .delete()
-      .eq("id", parsedId.data);
+      .eq("id", parsed.data.itemId)
+      .in("function_id", functionIds)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Item not found for this event." };
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true };
   } catch (error: unknown) {
@@ -327,6 +390,7 @@ export async function updateFunctionAction(
     const parsed = z
       .object({
         functionId: idSchema,
+        eventId: idSchema,
         name: z.string().trim().min(1).max(200),
         date: functionDateSchema,
         startTime: functionTimeSchema,
@@ -334,6 +398,7 @@ export async function updateFunctionAction(
       })
       .safeParse({
         functionId,
+        eventId,
         name: text(formData, "name"),
         date: text(formData, "date"),
         startTime: text(formData, "startTime"),
@@ -343,7 +408,8 @@ export async function updateFunctionAction(
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid function details." };
     }
 
-    const { error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from("event_functions")
       .update({
         name: parsed.data.name,
@@ -351,8 +417,12 @@ export async function updateFunctionAction(
         start_time: parsed.data.startTime || null,
         notes: parsed.data.notes || null,
       })
-      .eq("id", parsed.data.functionId);
+      .eq("id", parsed.data.functionId)
+      .eq("event_id", parsed.data.eventId)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Function not found for this event." };
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true };
   } catch (error: unknown) {
@@ -363,13 +433,18 @@ export async function updateFunctionAction(
 export async function deleteFunctionAction(functionId: string, eventId: string) {
   try {
     await verifyAdminCaller();
-    const parsedId = idSchema.safeParse(functionId);
-    if (!parsedId.success) return { success: false, error: "Invalid function ID." };
-    const { error } = await createAdminClient()
+    const parsed = z.object({ functionId: idSchema, eventId: idSchema }).safeParse({ functionId, eventId });
+    if (!parsed.success) return { success: false, error: "Invalid function deletion request." };
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from("event_functions")
       .delete()
-      .eq("id", parsedId.data);
+      .eq("id", parsed.data.functionId)
+      .eq("event_id", parsed.data.eventId)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Function not found for this event." };
     revalidatePath(`/admin/events/${eventId}`);
     return { success: true };
   } catch (error: unknown) {
@@ -390,6 +465,8 @@ export async function updateEventDetailsAction(
         type: eventTypeSchema,
         date: functionDateSchema,
         venue: z.string().trim().min(1).max(500),
+        clientName: z.string().trim().max(200),
+        clientPhone: z.string().trim().max(40),
       })
       .safeParse({
         eventId,
@@ -397,22 +474,53 @@ export async function updateEventDetailsAction(
         type: text(formData, "type") || "wedding",
         date: text(formData, "date"),
         venue: text(formData, "venue"),
+        clientName: text(formData, "client_name"),
+        clientPhone: text(formData, "client_phone"),
       });
     if (!parsed.success) {
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid event details." };
     }
 
-    const { error } = await createAdminClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from("events")
       .update({
         name: parsed.data.name,
         type: parsed.data.type,
         date: parsed.data.date,
         venue: parsed.data.venue,
+        client_name: parsed.data.clientName || null,
+        client_phone: parsed.data.clientPhone || null,
       })
-      .eq("id", parsed.data.eventId);
+      .eq("id", parsed.data.eventId)
+      .select("id")
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return { success: false, error: "Event not found." };
     revalidatePath(`/admin/events/${eventId}`);
+    revalidatePath("/admin/events");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: errorMessage(error) };
+  }
+
+}
+
+export async function deleteEventAction(eventId: string) {
+  try {
+    await verifyAdminCaller();
+    const parsed = idSchema.safeParse(eventId);
+    if (!parsed.success) return { success: false, error: "Invalid event ID." };
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", parsed.data)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return { success: false, error: "Event not found." };
     revalidatePath("/admin/events");
     revalidatePath("/admin");
     return { success: true };

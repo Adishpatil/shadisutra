@@ -12,6 +12,7 @@ export default function LoginPage() {
     null
   );
 
+  const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaPending, setMfaPending] = useState(false);
@@ -133,6 +134,8 @@ export default function LoginPage() {
                 id="username"
                 name="username"
                 required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 autoCapitalize="none"
                 autoCorrect="off"
                 autoComplete="username"

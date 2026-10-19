@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { FormEvent } from "react";
 import type { EventDesignRecord } from "@/lib/admin/designs-timeline-data";
+import {
+  deleteDesignAction,
+  setDesignFinalizedAction,
+  uploadDesignAction,
+} from "@/lib/admin/design-actions";
+import { formatDateTime } from "@/lib/format";
 
 interface DesignsTabProps {
   eventId: string;
@@ -9,243 +17,266 @@ interface DesignsTabProps {
 }
 
 export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
-  const [designs, setDesigns] = useState<EventDesignRecord[]>(initialDesigns);
+  const router = useRouter();
+  const designs = initialDesigns;
   const [filterFinalized, setFilterFinalized] = useState<"all" | "finalized" | "draft">("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const filtered = designs.filter((design) =>
+    filterFinalized === "all" ||
+    (filterFinalized === "finalized" ? design.is_finalized : !design.is_finalized)
+  );
 
-  const filtered = designs.filter((d) => {
-    if (filterFinalized === "finalized") return d.is_finalized;
-    if (filterFinalized === "draft") return !d.is_finalized;
-    return true;
-  });
+  async function handleUpload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUploading(true);
+    setError(null);
+    const result = await uploadDesignAction(new FormData(event.currentTarget));
+    setUploading(false);
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
+    setShowAddModal(false);
+    router.refresh();
+  }
 
-  const handleToggleFinalized = (designId: string) => {
-    setDesigns((prev) =>
-      prev.map((d) => (d.id === designId ? { ...d, is_finalized: !d.is_finalized } : d))
+  async function handleFinalize(design: EventDesignRecord) {
+    if (!design.is_finalized && !confirm(
+      "Finalizing makes this file reachable to anyone with the event's public share link. Continue?"
+    )) {
+      return;
+    }
+    setBusyId(design.id);
+    setError(null);
+    const result = await setDesignFinalizedAction(
+      design.id,
+      eventId,
+      !design.is_finalized
     );
-  };
+    setBusyId(null);
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function handleDelete(design: EventDesignRecord) {
+    if (!confirm(`Delete "${design.title}" and its stored file?`)) return;
+    setBusyId(design.id);
+    setError(null);
+    const result = await deleteDesignAction(design.id, eventId);
+    setBusyId(null);
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
+    router.refresh();
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-surface p-4 rounded-radius-lg border border-border">
+      <div className="flex flex-col gap-4 rounded-radius-lg border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+          <span className="text-xs font-bold uppercase tracking-wider text-accent">
             Aesthetics &amp; 3D Renderings
           </span>
-          <h3 className="font-heading font-bold text-base text-ink mt-0.5">
+          <h3 className="mt-0.5 font-heading text-base font-bold text-ink">
             Event Designs &amp; Lookbooks
           </h3>
-          <p className="text-xs text-ink-muted">
-            Designs marked as <strong>Finalized</strong> are available to the customer portal.
+          <p className="text-sm text-ink-muted">
+            Private drafts stay admin-only. Finalized files are available to anyone with the event share link.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="sr-only" htmlFor="design-filter">Filter designs</label>
           <select
+            id="design-filter"
             value={filterFinalized}
-            onChange={(e) => {
-              const value = e.target.value;
+            onChange={(event) => {
+              const value = event.target.value;
               if (value === "all" || value === "finalized" || value === "draft") {
                 setFilterFinalized(value);
               }
             }}
-            className="text-xs font-medium px-3 py-2 rounded-radius-md border border-border bg-bg text-ink min-h-[40px]"
+            className="min-h-[44px] rounded-radius-md border border-border bg-bg px-3 text-base text-ink"
           >
             <option value="all">All Designs ({designs.length})</option>
             <option value="finalized">Finalized Only</option>
             <option value="draft">Drafts Only</option>
           </select>
-
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[40px]"
+            onClick={() => router.refresh()}
+            className="min-h-[44px] rounded-radius-md border border-border px-4 text-base font-semibold text-ink"
           >
-            <span>+ Add Design</span>
+            Refresh previews
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setShowAddModal(true);
+            }}
+            className="min-h-[44px] rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink hover:bg-accent-hover"
+          >
+            + Add Design
           </button>
         </div>
       </div>
 
-      {/* Grid of Designs */}
+      {error && (
+        <p role="alert" className="rounded-radius-md border border-danger/30 bg-danger-light p-3 text-sm text-danger">
+          {error}
+        </p>
+      )}
+
       {filtered.length === 0 ? (
-        <div className="p-12 text-center bg-surface border border-dashed border-border rounded-radius-lg text-ink-muted text-xs">
-          No designs found. Tap &quot;+ Add Design&quot; to register a rendering, lookbook, or floorplan.
+        <div className="rounded-radius-lg border border-dashed border-border bg-surface p-8 text-center text-base text-ink-muted">
+          No designs found. Add a private draft to get started.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((d) => (
-            <div
-              key={d.id}
-              className="bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] overflow-hidden flex flex-col justify-between group"
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((design) => (
+            <article
+              key={design.id}
+              className="flex flex-col overflow-hidden rounded-radius-lg border border-border bg-surface shadow-[var(--shadow-sm)]"
             >
-              {/* Image preview frame */}
-              <div className="relative aspect-video bg-neutral-100 overflow-hidden border-b border-border">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={d.signed_url ?? d.file_path}
-                  alt={d.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-2 right-2">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-radius-sm text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
-                      d.is_finalized
-                        ? "bg-success text-white border-success"
-                        : "bg-surface/90 text-ink-muted border-border"
-                    }`}
+              <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-border bg-neutral-100">
+                {design.file_kind === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={design.preview_url} alt={design.title} className="h-full w-full object-cover" />
+                ) : (
+                  <a
+                    href={design.preview_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-h-[44px] px-4 text-base font-semibold text-accent"
                   >
-                    {d.is_finalized ? "Finalized" : "Draft (v" + d.version + ")"}
-                  </span>
-                </div>
+                    Open PDF preview
+                  </a>
+                )}
+                <span className={`absolute right-2 top-2 rounded-radius-sm border px-2 py-1 text-xs font-bold ${
+                  design.is_finalized
+                    ? "border-success bg-success text-white"
+                    : "border-border bg-surface text-ink-muted"
+                }`}>
+                  {design.is_finalized ? "Finalized" : `Draft · v${design.version}`}
+                </span>
               </div>
 
-              {/* Details and controls */}
-              <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+              <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-ink line-clamp-2">
-                    {d.title}
-                  </h4>
-                  <p className="text-[11px] text-ink-muted mt-1 font-mono">
-                    Version: v{d.version} • {new Date(d.created_at).toLocaleDateString()}
+                  <h4 className="break-words font-heading text-base font-bold text-ink">{design.title}</h4>
+                  <p className="mt-1 text-sm text-ink-muted">
+                    Version {design.version} · {formatDateTime(design.created_at)}
                   </p>
                 </div>
-
-                <div className="pt-3 border-t border-border flex items-center justify-between">
+                <div className="mt-auto flex flex-col gap-2 border-t border-border pt-3">
                   <button
                     type="button"
-                    onClick={() => handleToggleFinalized(d.id)}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-radius-md border transition-colors min-h-[36px] ${
-                      d.is_finalized
+                    disabled={busyId === design.id}
+                    onClick={() => void handleFinalize(design)}
+                    className={`min-h-[44px] rounded-radius-md border px-3 text-base font-semibold disabled:opacity-50 ${
+                      design.is_finalized
                         ? "border-warning/40 text-warning hover:bg-warning-light"
                         : "border-success/40 text-success hover:bg-success-light"
                     }`}
                   >
-                    {d.is_finalized ? "Unmark Finalized" : "Mark Finalized ✓"}
+                    {busyId === design.id
+                      ? "Saving…"
+                      : design.is_finalized
+                        ? "Unmark Finalized"
+                        : "Finalize design"}
                   </button>
-
                   <a
-                    href={d.signed_url ?? d.file_path}
+                    href={design.preview_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs font-semibold text-accent hover:underline"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-radius-md border border-border px-3 text-base font-semibold text-accent"
                   >
-                    Enlarge ↗
+                    {design.file_kind === "pdf" ? "Open PDF preview" : "Open preview"}
                   </a>
+                  <button
+                    type="button"
+                    disabled={busyId === design.id}
+                    onClick={() => void handleDelete(design)}
+                    className="min-h-[44px] rounded-radius-md px-3 text-base font-semibold text-danger disabled:opacity-50"
+                  >
+                    Delete design and file
+                  </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* MODAL: Add Design Entry */}
       {showAddModal && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
-          onClick={() => setShowAddModal(false)}
+          aria-labelledby="add-design-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4"
+          onClick={() => !uploading && setShowAddModal(false)}
         >
           <div
-            className="w-full max-w-md bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4"
-            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-radius-lg border border-border bg-surface p-5 shadow-xl sm:p-6"
+            onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="font-heading font-bold text-base text-ink">
-                Register New Design / Render
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="text-ink-muted hover:text-ink w-8 h-8 flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const newD: EventDesignRecord = {
-                  id: `des-local-${Date.now()}`,
-                  event_id: eventId,
-                  title: String(formData.get("title")),
-                  file_path: String(formData.get("file_path")) || "/images/gallery/weddings/wedding-haldi-01.webp",
-                  signed_url: null,
-                  version: Number(formData.get("version")) || 1,
-                  is_finalized: formData.get("is_finalized") === "on",
-                  created_at: new Date().toISOString(),
-                };
-                setDesigns((prev) => [newD, ...prev]);
-                setShowAddModal(false);
-              }}
-              className="space-y-3"
-            >
+            <h3 id="add-design-title" className="font-heading text-lg font-bold text-ink">
+              Upload a design draft
+            </h3>
+            <p className="mt-1 text-sm text-ink-muted">
+              PNG, JPG, WebP, or PDF. Maximum 10 MB. New uploads remain private drafts.
+            </p>
+            <form onSubmit={(event) => void handleUpload(event)} className="mt-5 space-y-4">
+              <input type="hidden" name="eventId" value={eventId} />
               <div>
-                <label className="block text-xs font-semibold text-ink mb-1">
-                  Design Title *
+                <label htmlFor="design-title" className="mb-1 block text-sm font-semibold text-ink">
+                  Design title
                 </label>
                 <input
+                  id="design-title"
                   name="title"
                   required
-                  placeholder="e.g. Sangeet Stage Backdrop 3D Mockup"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                  maxLength={120}
+                  autoComplete="off"
+                  className="min-h-[48px] w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-ink mb-1">
-                  Image URL / Asset Path
+                <label htmlFor="design-file" className="mb-1 block text-sm font-semibold text-ink">
+                  File
                 </label>
                 <input
-                  name="file_path"
-                  defaultValue="/images/gallery/weddings/wedding-haldi-01.webp"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
+                  id="design-file"
+                  name="file"
+                  type="file"
+                  required
+                  accept=".png,.jpg,.jpeg,.webp,.pdf,image/png,image/jpeg,image/webp,application/pdf"
+                  className="min-h-[48px] w-full rounded-radius-md border border-border bg-bg px-3 py-2 text-base text-ink file:mr-3 file:min-h-[40px]"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3 items-center">
-                <div>
-                  <label className="block text-xs font-semibold text-ink mb-1">
-                    Version Number
-                  </label>
-                  <input
-                    name="version"
-                    type="number"
-                    min="1"
-                    defaultValue="1"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-xs focus:ring-1 focus:ring-accent min-h-[44px]"
-                  />
-                </div>
-
-                <div className="pt-4 flex items-center gap-2">
-                  <input
-                    id="is_finalized"
-                    name="is_finalized"
-                    type="checkbox"
-                    className="w-4 h-4 text-accent rounded border-border"
-                  />
-                  <label htmlFor="is_finalized" className="text-xs font-medium text-ink">
-                    Mark Finalized
-                  </label>
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
+              {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+              <div className="sticky bottom-0 flex gap-3 border-t border-border bg-surface pt-4">
                 <button
                   type="button"
+                  disabled={uploading}
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink min-h-[44px]"
+                  className="min-h-[48px] flex-1 rounded-radius-md border border-border px-4 text-base font-semibold text-ink"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-xs font-semibold hover:bg-accent-hover min-h-[44px]"
+                  disabled={uploading}
+                  className="min-h-[48px] flex-1 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink disabled:opacity-50"
                 >
-                  Save Design
+                  {uploading ? "Uploading…" : "Upload draft"}
                 </button>
               </div>
             </form>

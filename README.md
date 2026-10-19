@@ -113,6 +113,9 @@ All SQL migrations reside in `/supabase/migrations`:
 3. `003_phase2_security.sql` — Requires MFA for admin RLS access, restricts customer financial reads to a summary, and removes direct customer access to private storage objects (design URLs are short-lived).
 4. `004_grants.sql` — Explicit least-privilege table/function grants for `anon`, `authenticated`, and `service_role`.
 5. `006_phase3_event_sharing.sql` — Admin-managed expiring event links, database-backed request rate limits, and removal of the customer financial summary view.
+6. `007_phase4a_admin_data.sql` — Admin-only event/function/timeline/guest RLS and admin-managed client contact fields on events.
+7. `008_phase4b_finance_designs.sql` — AAL2-only admin RLS for financial/design records and private storage, with append-only financial audit logging.
+8. `009_fix_rate_limit_timestamp.sql` — Fixes the rate-limit timestamp variable so PostgreSQL does not resolve it as `CURRENT_TIME`.
 
 ### Applying Migrations to Supabase:
 1. In your **Supabase Dashboard**, open **SQL Editor**.
@@ -121,9 +124,13 @@ All SQL migrations reside in `/supabase/migrations`:
 4. Run `003_phase2_security.sql`.
 5. Run `004_grants.sql`.
 6. Run `006_phase3_event_sharing.sql`.
+7. Run `007_phase4a_admin_data.sql`.
+8. Run `008_phase4b_finance_designs.sql`.
+9. Run `009_fix_rate_limit_timestamp.sql` if the original rate-limit migration is already applied.
 
 Apply only migrations that have not already been applied. Do not edit applied
-migrations; Phase 3 database changes are in `006_phase3_event_sharing.sql`.
+migrations; add later changes as new numbered migrations.
+Migration 008 does not depend on the Phase 4A changes in migration 007.
 
 ---
 
@@ -170,6 +177,17 @@ The public page shows only the event name, date, venue, functions, timeline, and
 finalized design files through short-lived signed URLs. It never shows budgets,
 payments, production items, phone numbers, or guest lists. Invalid, expired, and
 revoked links use the same generic response.
+
+Event client names and phone numbers are stored for admin use only. Admin event
+actions use the signed-in Supabase session and require aal2; service-role
+credentials are not used for event, function, item, timeline, or guest writes.
+Guest lists support row-validated CSV/XLSX imports (2 MB / 2,000-row limits),
+Excel export with formula-injection protection, and a downloadable template.
+Apply `supabase/tests/phase4a_admin_only_rls.sql` in the development SQL Editor
+to verify anonymous and non-admin users cannot read or write admin event data.
+Apply `supabase/tests/phase4b_money_storage_rls.sql` after migration 008 to
+verify financial/design table RLS, audit immutability, private object storage,
+and exclusion of draft designs from public share results.
 
 ```
 src/

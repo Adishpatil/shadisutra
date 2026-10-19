@@ -7,6 +7,8 @@ export interface AdminEventSummary {
   type: "wedding" | "birthday" | "function";
   date: string;
   venue: string;
+  client_name: string | null;
+  client_phone: string | null;
   status: "planning" | "finalized" | "completed" | "cancelled";
   total_functions?: number;
   total_items?: number;
@@ -89,8 +91,8 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
   throwOnError(itemsError);
 
   const functionCounts = new Map<string, number>();
-  const budgetsByEvent = new Map<string, number>();
-  const paidByEvent = new Map<string, number>();
+  const budgetsByEventPaise = new Map<string, number>();
+  const paidByEventPaise = new Map<string, number>();
   const itemsByFunction = new Map<string, number>();
   const pendingItemsByFunction = new Map<string, number>();
 
@@ -101,12 +103,16 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
     );
   }
   for (const budget of budgetsResult.data ?? []) {
-    budgetsByEvent.set(budget.event_id, Number(budget.agreed_total));
+    budgetsByEventPaise.set(
+      budget.event_id,
+      Math.round(Number(budget.agreed_total) * 100)
+    );
   }
   for (const payment of paymentsResult.data ?? []) {
-    paidByEvent.set(
+    paidByEventPaise.set(
       payment.event_id,
-      (paidByEvent.get(payment.event_id) ?? 0) + Number(payment.amount)
+      (paidByEventPaise.get(payment.event_id) ?? 0) +
+        Math.round(Number(payment.amount) * 100)
     );
   }
   for (const item of items ?? []) {
@@ -146,12 +152,14 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
       type: event.type,
       date: event.date,
       venue: event.venue,
+      client_name: event.client_name,
+      client_phone: event.client_phone,
       status: event.status,
       total_functions: functionCounts.get(event.id) ?? 0,
       total_items: itemTotals?.total ?? 0,
       pending_items: itemTotals?.pending ?? 0,
-      budget_total: budgetsByEvent.get(event.id) ?? 0,
-      total_paid: paidByEvent.get(event.id) ?? 0,
+      budget_total: (budgetsByEventPaise.get(event.id) ?? 0) / 100,
+      total_paid: (paidByEventPaise.get(event.id) ?? 0) / 100,
     };
   });
 }
@@ -221,6 +229,8 @@ export async function getAdminEventById(id: string): Promise<{
       type: event.type,
       date: event.date,
       venue: event.venue,
+      client_name: event.client_name,
+      client_phone: event.client_phone,
       status: event.status,
     },
     functions,

@@ -50,6 +50,8 @@ export interface Database {
           type: "wedding" | "birthday" | "function";
           date: string;
           venue: string;
+          client_name: string | null;
+          client_phone: string | null;
           status: "planning" | "finalized" | "completed" | "cancelled";
           show_payments_to_customer: boolean;
           created_at: string;
@@ -62,6 +64,8 @@ export interface Database {
           type: "wedding" | "birthday" | "function";
           date: string;
           venue: string;
+          client_name?: string | null;
+          client_phone?: string | null;
           status?: "planning" | "finalized" | "completed" | "cancelled";
           show_payments_to_customer?: boolean;
           created_at?: string;
@@ -74,6 +78,8 @@ export interface Database {
           type?: "wedding" | "birthday" | "function";
           date?: string;
           venue?: string;
+          client_name?: string | null;
+          client_phone?: string | null;
           status?: "planning" | "finalized" | "completed" | "cancelled";
           show_payments_to_customer?: boolean;
           created_at?: string;
