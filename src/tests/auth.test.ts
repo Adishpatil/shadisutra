@@ -4,11 +4,7 @@ import {
   emailToUsername,
   sanitizeUsername,
 } from "../lib/auth/synthetic-email";
-import {
-  loginSchema,
-  changePasswordSchema,
-  createCustomerSchema,
-} from "../lib/auth/schemas";
+import { loginSchema } from "../lib/auth/schemas";
 
 describe("Synthetic Email Mapping", () => {
   it("converts usernames to synthetic emails properly", () => {
@@ -46,51 +42,5 @@ describe("Auth Validation Schemas", () => {
       password: "",
     });
     expect(invalid.success).toBe(false);
-  });
-
-  it("validates change password requirements", () => {
-    // Valid password
-    const valid = changePasswordSchema.safeParse({
-      newPassword: "SafePassword2026",
-      confirmPassword: "SafePassword2026",
-    });
-    expect(valid.success).toBe(true);
-
-    // Mismatched passwords
-    const mismatch = changePasswordSchema.safeParse({
-      newPassword: "SafePassword2026",
-      confirmPassword: "DifferentPassword2026",
-    });
-    expect(mismatch.success).toBe(false);
-
-    // Missing number
-    const noNumber = changePasswordSchema.safeParse({
-      newPassword: "SafePasswordOnly",
-      confirmPassword: "SafePasswordOnly",
-    });
-    expect(noNumber.success).toBe(false);
-
-    // Too short
-    const tooShort = changePasswordSchema.safeParse({
-      newPassword: "P1a",
-      confirmPassword: "P1a",
-    });
-    expect(tooShort.success).toBe(false);
-  });
-
-  it("validates customer creation schema", () => {
-    const valid = createCustomerSchema.safeParse({
-      fullName: "Ananya Sharma",
-      username: "ananya_wedding",
-      password: "CustomPassword123",
-      eventId: "123e4567-e89b-12d3-a456-426614174000",
-    });
-    expect(valid.success).toBe(true);
-
-    const invalidUsername = createCustomerSchema.safeParse({
-      fullName: "Ananya Sharma",
-      username: "Ananya Wedding With Spaces",
-    });
-    expect(invalidUsername.success).toBe(false);
   });
 });

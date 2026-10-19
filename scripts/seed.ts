@@ -47,8 +47,6 @@ async function runSeed(): Promise<void> {
   const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   const passwords = {
     admin: requireEnv("SEED_ADMIN_PASSWORD"),
-    customer1: requireEnv("SEED_CUSTOMER1_PASSWORD"),
-    customer2: requireEnv("SEED_CUSTOMER2_PASSWORD"),
   };
   for (const password of Object.values(passwords)) {
     if (password.length < 12) {
@@ -90,7 +88,7 @@ async function runSeed(): Promise<void> {
   async function createOrUpdateUser(
     email: string,
     password: string,
-    metadata: { full_name: string; username: string; role: "admin" | "customer" },
+    metadata: { full_name: string; username: string; role: "admin" },
     accessEnabled: boolean,
     mustChangePassword: boolean
   ): Promise<string> {
@@ -138,53 +136,26 @@ async function runSeed(): Promise<void> {
     true,
     false
   );
-  const customer1Id = await createOrUpdateUser(
-    "sharma_wedding@shadisutra.app",
-    passwords.customer1,
-    {
-      full_name: "Priyanshu & Ananya Sharma",
-      username: "sharma_wedding",
-      role: "customer",
-    },
-    true,
-    false
-  );
-  const customer2Id = await createOrUpdateUser(
-    "mehta_birthday@shadisutra.app",
-    passwords.customer2,
-    {
-      full_name: "Rajesh & Priya Mehta",
-      username: "mehta_birthday",
-      role: "customer",
-    },
-    false,
-    true
-  );
-
   async function getOrCreateEvent(input: {
-    customerId: string;
     name: string;
     type: "wedding" | "birthday";
     date: string;
     venue: string;
     status: "planning" | "finalized";
-    showPayments: boolean;
   }): Promise<string> {
     const { data: existing, error: lookupError } = await supabase
       .from("events")
       .select("id")
-      .eq("customer_id", input.customerId)
+      .eq("name", input.name)
       .maybeSingle();
     assertNoError(lookupError);
 
     const values = {
-      customer_id: input.customerId,
       name: input.name,
       type: input.type,
       date: input.date,
       venue: input.venue,
       status: input.status,
-      show_payments_to_customer: input.showPayments,
     };
     if (existing) {
       const { data, error } = await supabase
@@ -206,22 +177,18 @@ async function runSeed(): Promise<void> {
   }
 
   const weddingId = await getOrCreateEvent({
-    customerId: customer1Id,
     name: "Sharma Royal Wedding Celebrations",
     type: "wedding",
     date: "2026-11-20",
     venue: "The Oberoi Rajvilas, Jaipur",
     status: "finalized",
-    showPayments: true,
   });
   const birthdayId = await getOrCreateEvent({
-    customerId: customer2Id,
     name: "Aarav's First Birthday Celebration",
     type: "birthday",
     date: "2026-12-12",
     venue: "Palm Grove Banquet, Mumbai",
     status: "planning",
-    showPayments: false,
   });
 
   async function clearEventRows(eventId: string): Promise<void> {

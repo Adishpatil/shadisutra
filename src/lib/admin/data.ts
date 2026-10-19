@@ -8,27 +8,11 @@ export interface AdminEventSummary {
   date: string;
   venue: string;
   status: "planning" | "finalized" | "completed" | "cancelled";
-  customer_id: string | null;
-  customer_name?: string;
-  customer_username?: string;
-  show_payments_to_customer: boolean;
   total_functions?: number;
   total_items?: number;
   pending_items?: number;
   budget_total?: number;
   total_paid?: number;
-}
-
-export interface AdminCustomerSummary {
-  id: string;
-  username: string;
-  full_name: string;
-  role: "admin" | "customer";
-  access_enabled: boolean;
-  must_change_password: boolean;
-  created_at: string;
-  linked_event_id?: string | null;
-  linked_event_name?: string | null;
 }
 
 export interface AdminFunction {
@@ -82,21 +66,12 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
   if (!eventRows.length) return [];
 
   const eventIds = eventRows.map((event) => event.id);
-  const customerIds = eventRows.flatMap((event) => event.customer_id ?? []);
-  const [functionsResult, customersResult, budgetsResult, paymentsResult] =
-    await Promise.all([
+  const [functionsResult, budgetsResult, paymentsResult] = await Promise.all([
       supabase.from("event_functions").select("id,event_id").in("event_id", eventIds),
-      customerIds.length
-        ? supabase
-            .from("profiles")
-            .select("id,full_name,username")
-            .in("id", customerIds)
-        : Promise.resolve({ data: [], error: null }),
       supabase.from("budgets").select("event_id,agreed_total").in("event_id", eventIds),
       supabase.from("payments").select("event_id,amount").in("event_id", eventIds),
     ]);
   throwOnError(functionsResult.error);
-  throwOnError(customersResult.error);
   throwOnError(budgetsResult.error);
   throwOnError(paymentsResult.error);
 
@@ -113,9 +88,6 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
     : { data: [], error: null };
   throwOnError(itemsError);
 
-  const customersById = new Map(
-    (customersResult.data ?? []).map((customer) => [customer.id, customer])
-  );
   const functionCounts = new Map<string, number>();
   const budgetsByEvent = new Map<string, number>();
   const paidByEvent = new Map<string, number>();
@@ -167,9 +139,6 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
   }
 
   return eventRows.map((event) => {
-    const customer = event.customer_id
-      ? customersById.get(event.customer_id)
-      : undefined;
     const itemTotals = itemTotalsByEvent.get(event.id);
     return {
       id: event.id,
@@ -178,10 +147,6 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
       date: event.date,
       venue: event.venue,
       status: event.status,
-      customer_id: event.customer_id,
-      customer_name: customer?.full_name ?? "Unassigned",
-      customer_username: customer?.username ?? "unassigned",
-      show_payments_to_customer: event.show_payments_to_customer,
       total_functions: functionCounts.get(event.id) ?? 0,
       total_items: itemTotals?.total ?? 0,
       pending_items: itemTotals?.pending ?? 0,
@@ -205,21 +170,11 @@ export async function getAdminEventById(id: string): Promise<{
   throwOnError(eventError);
   if (!event) return { event: null, functions: [], itemsByFunction: {} };
 
-  const [customerResult, functionsResult] = await Promise.all([
-    event.customer_id
-      ? supabase
-          .from("profiles")
-          .select("full_name,username")
-          .eq("id", event.customer_id)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    supabase
+  const functionsResult = await supabase
       .from("event_functions")
       .select("*")
       .eq("event_id", id)
-      .order("date", { ascending: true }),
-  ]);
-  throwOnError(customerResult.error);
+      .order("date", { ascending: true });
   throwOnError(functionsResult.error);
   const functionRows = requireData(
     functionsResult.data,
@@ -267,87 +222,9 @@ export async function getAdminEventById(id: string): Promise<{
       date: event.date,
       venue: event.venue,
       status: event.status,
-      customer_id: event.customer_id,
-      customer_name: customerResult.data?.full_name ?? "Unassigned",
-      customer_username: customerResult.data?.username ?? "unassigned",
-      show_payments_to_customer: event.show_payments_to_customer,
     },
     functions,
     itemsByFunction,
-  };
-}
-
-export async function getAdminCustomers(): Promise<AdminCustomerSummary[]> {
-  const supabase = await createClient();
-  const { data: customers, error: customersError } = await supabase
-    .from("profiles")
-    .select(
-      "id,username,full_name,role,access_enabled,must_change_password,created_at"
-    )
-    .eq("role", "customer")
-    .order("created_at", { ascending: false });
-  throwOnError(customersError);
-  const customerRows = requireData(customers, "Could not load customers.");
-  if (!customerRows.length) return [];
-
-  const { data: events, error: eventsError } = await supabase
-    .from("events")
-    .select("id,name,customer_id")
-    .in(
-      "customer_id",
-      customerRows.map((customer) => customer.id)
-    );
-  throwOnError(eventsError);
-  const eventByCustomerId = new Map(
-    (events ?? []).map((event) => [event.customer_id, event])
-  );
-
-  return customerRows.map((customer) => {
-    const event = eventByCustomerId.get(customer.id);
-    return {
-      id: customer.id,
-      username: customer.username,
-      full_name: customer.full_name,
-      role: customer.role,
-      access_enabled: customer.access_enabled,
-      must_change_password: customer.must_change_password,
-      created_at: customer.created_at,
-      linked_event_id: event?.id ?? null,
-      linked_event_name: event?.name ?? null,
-    };
-  });
-}
-
-export async function getCustomerById(
-  id: string
-): Promise<AdminCustomerSummary | null> {
-  const supabase = await createClient();
-  const { data: customer, error: customerError } = await supabase
-    .from("profiles")
-    .select(
-      "id,username,full_name,role,access_enabled,must_change_password,created_at"
-    )
-    .eq("id", id)
-    .maybeSingle();
-  throwOnError(customerError);
-  if (!customer) return null;
-
-  const { data: event, error: eventError } = await supabase
-    .from("events")
-    .select("id,name")
-    .eq("customer_id", customer.id)
-    .maybeSingle();
-  throwOnError(eventError);
-  return {
-    id: customer.id,
-    username: customer.username,
-    full_name: customer.full_name,
-    role: customer.role,
-    access_enabled: customer.access_enabled,
-    must_change_password: customer.must_change_password,
-    created_at: customer.created_at,
-    linked_event_id: event?.id ?? null,
-    linked_event_name: event?.name ?? null,
   };
 }
 

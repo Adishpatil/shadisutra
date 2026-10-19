@@ -68,13 +68,13 @@ describe("Security Code Rules", () => {
     ).toHaveLength(0);
   });
 
-  it("requires a configured server-side JWT secret", () => {
-    const authSource = fs.readFileSync(
-      path.resolve(process.cwd(), "src/lib/auth.ts"),
+  it("requires aal2 before rendering admin routes", () => {
+    const adminLayout = fs.readFileSync(
+      path.resolve(process.cwd(), "src/app/admin/layout.tsx"),
       "utf-8"
     );
 
-    expect(authSource).toContain("process.env.JWT_SECRET");
-    expect(authSource).not.toMatch(/shadi-sutra-local-dev-jwt-secret/);
+    expect(adminLayout).toContain('assurance.currentLevel !== "aal2"');
+    expect(adminLayout).toContain("isAdminClientConfigured()");
   });
 });

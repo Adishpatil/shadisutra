@@ -20,11 +20,6 @@ export function Navbar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
-  // Do not render marketing navbar in admin or portal consoles
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/portal")) {
-    return null;
-  }
-
   // Track scroll for navbar background
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -82,6 +77,11 @@ export function Navbar() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  // Do not render marketing navigation in the admin console.
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <header

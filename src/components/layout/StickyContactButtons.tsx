@@ -12,7 +12,7 @@ export function StickyContactButtons() {
   const hasPhone = site.phone && site.phone !== "TODO";
   const hasWhatsApp = site.whatsapp && site.whatsapp !== "TODO";
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/portal")) return null;
+  if (pathname?.startsWith("/admin")) return null;
   if (!hasPhone && !hasWhatsApp) return null;
 
   return (

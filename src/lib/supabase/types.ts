@@ -442,17 +442,61 @@ export interface Database {
         };
         Relationships: [];
       };
-    };
-    Views: {
-      customer_event_financial_summary: {
+      event_share_links: {
         Row: {
           event_id: string;
-          agreed_total: number | null;
-          total_paid: number;
+          token: string;
+          expires_at: string;
+          revoked_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          event_id: string;
+          token: string;
+          expires_at: string;
+          revoked_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          event_id?: string;
+          token?: string;
+          expires_at?: string;
+          revoked_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_share_links_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      event_share_rate_limits: {
+        Row: {
+          key_hash: string;
+          window_started_at: string;
+          hits: number;
+          updated_at: string;
+        };
+        Insert: {
+          key_hash: string;
+          window_started_at: string;
+          hits: number;
+          updated_at?: string;
+        };
+        Update: {
+          key_hash?: string;
+          window_started_at?: string;
+          hits?: number;
+          updated_at?: string;
         };
         Relationships: [];
       };
     };
+    Views: Record<string, never>;
     Functions: {
       is_admin: {
         Args: Record<PropertyKey, never>;
@@ -461,6 +505,14 @@ export interface Database {
       customer_can_access_event: {
         Args: {
           target_event_id: string;
+        };
+        Returns: boolean;
+      };
+      consume_rate_limit: {
+        Args: {
+          p_key_hash: string;
+          p_limit: number;
+          p_window_seconds: number;
         };
         Returns: boolean;
       };

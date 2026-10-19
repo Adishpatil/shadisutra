@@ -7,7 +7,10 @@ import { StickyContactButtons } from "@/components/layout/StickyContactButtons";
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isDashboardRoute = pathname?.startsWith("/admin") || pathname?.startsWith("/portal");
+  const isDashboardRoute =
+    pathname?.startsWith("/admin") ||
+    pathname === "/login" ||
+    pathname?.startsWith("/e/");
 
   if (isDashboardRoute) {
     return <>{children}</>;

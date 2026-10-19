@@ -22,12 +22,13 @@ import {
 } from "@/lib/admin/event-actions";
 
 import { BudgetPaymentsTab } from "@/components/admin/BudgetPaymentsTab";
-import { QRCodeModal } from "@/components/admin/QRCodeModal";
 import { GuestListTab } from "@/components/admin/GuestListTab";
 import { DesignsTab } from "@/components/admin/DesignsTab";
 import { TimelineTab } from "@/components/admin/TimelineTab";
+import { EventShareLinkPanel } from "@/components/admin/EventShareLinkPanel";
 import type { PaymentRecord } from "@/lib/admin/budget-calculations";
 import type { AuditLogItem } from "@/lib/admin/data";
+import type { AdminEventShareLink } from "@/lib/events/share-actions";
 import type { GuestRecord } from "@/lib/guests/data";
 import type { EventDesignRecord, EventTimelineEntry } from "@/lib/admin/designs-timeline-data";
 
@@ -41,6 +42,7 @@ interface EventDetailClientProps {
   initialGuests?: GuestRecord[];
   initialDesigns?: EventDesignRecord[];
   initialTimeline?: EventTimelineEntry[];
+  initialShareLink: AdminEventShareLink | null;
 }
 
 type TabType = "items" | "functions" | "budget" | "designs" | "timeline" | "guests";
@@ -55,6 +57,7 @@ export function EventDetailClient({
   initialGuests = [],
   initialDesigns = [],
   initialTimeline = [],
+  initialShareLink,
 }: EventDetailClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("items");
@@ -70,7 +73,6 @@ export function EventDetailClient({
   const [editingFunction, setEditingFunction] = useState<AdminFunction | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState<{ item: AdminItem; functionId: string } | null>(null);
-  const [showQrModal, setShowQrModal] = useState(false);
   const [addItemTargetFunctionId, setAddItemTargetFunctionId] = useState<string>(
     functions[0]?.id || ""
   );
@@ -345,24 +347,19 @@ export function EventDetailClient({
               {eventData.name}
             </h1>
 
-            <p className="text-xs sm:text-sm text-ink-muted">
-              Client: <strong className="text-ink font-semibold">{eventData.customer_name}</strong>{" "}
-              <span className="font-mono text-ink-muted">(@{eventData.customer_username})</span>
-            </p>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowQrModal(true)}
+            <Link
+              href={`/admin/events/${event.id}`}
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-radius-md border border-accent/40 bg-accent/10 text-accent text-xs font-semibold hover:bg-accent hover:text-accent-ink transition-all min-h-[40px] shadow-sm"
-              title="Generate QR code for guest webpage"
+              title="Manage event share link"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
-              <span>Event QR Webpage</span>
-            </button>
+              <span>Event share link</span>
+            </Link>
 
             <div className="flex items-center gap-2">
               <label htmlFor="event-detail-status" className="sr-only">
@@ -383,6 +380,8 @@ export function EventDetailClient({
           </div>
         </div>
       </div>
+
+      <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} />
 
       {/* ------------------------------------------------------------- */}
       {/* 2. Swipeable Tab Bar with Active Indicator                    */}
@@ -1229,14 +1228,6 @@ export function EventDetailClient({
         </div>
       )}
 
-      {/* QR Code Modal for Guest Showcase */}
-      <QRCodeModal
-        isOpen={showQrModal}
-        onClose={() => setShowQrModal(false)}
-        eventId={event.id}
-        eventName={eventData.name}
-        eventStatus={status}
-      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { site } from "@/config/site";
@@ -18,7 +19,7 @@ export default function LoginPage() {
 
   const handleMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state?.factorId || !mfaCode.trim()) return;
+    if (!state?.factorId || mfaCode.length !== 6) return;
 
     setMfaPending(true);
     setMfaError(null);
@@ -42,12 +43,18 @@ export default function LoginPage() {
             {site.name}
           </Link>
           <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold text-ink">
-            {state?.requiresMfa ? "Two-Factor Authentication" : "Admin Login"}
+            {state?.requiresEnrollment
+              ? "Set up authenticator"
+              : state?.requiresMfa
+                ? "Two-factor authentication"
+                : "Admin Login"}
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-ink-muted leading-relaxed">
-            {state?.requiresMfa
-              ? "Enter the 6-digit verification code from your authenticator app to access the admin console."
-              : "Please enter your administrator credentials to access the management portal."}
+            {state?.requiresEnrollment
+              ? "Scan this QR code with an authenticator app, then enter its 6-digit code to finish securing your account."
+              : state?.requiresMfa
+                ? "Enter the 6-digit code from your authenticator app to continue."
+                : "Sign in with your administrator username and password."}
           </p>
         </div>
 
@@ -62,7 +69,19 @@ export default function LoginPage() {
         )}
 
         {/* Conditional View: TOTP MFA Code Entry */}
-        {state?.requiresMfa ? (
+        {state?.requiresEnrollment && state.qrCode && (
+          <div className="mb-5 flex justify-center rounded-radius-md border border-border bg-white p-4">
+            <Image
+              src={state.qrCode}
+              alt="QR code to enroll this admin account in an authenticator app"
+              width={220}
+              height={220}
+              unoptimized
+            />
+          </div>
+        )}
+
+        {state?.requiresMfa || state?.requiresEnrollment ? (
           <form onSubmit={handleMfaSubmit} className="space-y-5">
             <div>
               <label
@@ -91,7 +110,11 @@ export default function LoginPage() {
               disabled={mfaPending || mfaCode.length !== 6}
               className="w-full mt-2 inline-flex items-center justify-center px-6 py-3.5 bg-accent text-accent-ink font-semibold rounded-radius-full hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] disabled:opacity-50 min-h-[44px]"
             >
-              {mfaPending ? "Verifying..." : "Verify & Sign In"}
+              {mfaPending
+                ? "Verifying..."
+                : state.requiresEnrollment
+                  ? "Enable MFA & Sign In"
+                  : "Verify & Sign In"}
             </button>
           </form>
         ) : (
@@ -113,8 +136,8 @@ export default function LoginPage() {
                 autoCapitalize="none"
                 autoCorrect="off"
                 autoComplete="username"
-                placeholder="e.g. sharma_wedding or admin"
-                className="w-full px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+                placeholder="Administrator username"
+                className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
 
@@ -134,7 +157,7 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   placeholder="••••••••••••"
-                  className="w-full px-4 py-3 rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 <button
                   type="button"
@@ -153,7 +176,7 @@ export default function LoginPage() {
               disabled={isPending}
               className="w-full mt-2 inline-flex items-center justify-center px-6 py-3.5 bg-accent text-accent-ink font-semibold rounded-radius-full hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] disabled:opacity-50 min-h-[44px]"
             >
-              {isPending ? "Signing in..." : "Sign In to Portal"}
+              {isPending ? "Signing in..." : "Sign In"}
             </button>
           </form>
         )}
@@ -161,8 +184,7 @@ export default function LoginPage() {
         {/* Security notice / no self-registration */}
         <div className="mt-8 pt-6 border-t border-border text-center">
           <p className="text-xs text-ink-muted leading-relaxed">
-            Client portal access is private and granted by your event planner once your event is finalized.
-            Self-registration is disabled.
+            Admin access only. Account registration is disabled.
           </p>
         </div>
       </div>

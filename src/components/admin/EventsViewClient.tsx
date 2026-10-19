@@ -5,23 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AdminEventSummary } from "@/lib/admin/data";
 import { CreateEventModal } from "@/components/admin/CreateEventModal";
-import { QRCodeModal } from "@/components/admin/QRCodeModal";
 import { updateEventStatusAction } from "@/lib/admin/event-actions";
 
 interface EventsViewClientProps {
   initialEvents: AdminEventSummary[];
-  customers: { id: string; name: string }[];
 }
 
-export function EventsViewClient({
-  initialEvents,
-  customers,
-}: EventsViewClientProps) {
+export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
   const router = useRouter();
   const [events, setEvents] = useState(initialEvents);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedQrEvent, setSelectedQrEvent] = useState<AdminEventSummary | null>(null);
 
   const filteredEvents =
     filterStatus === "all"
@@ -93,7 +87,6 @@ export function EventsViewClient({
               <th className="py-3.5 px-4">Type</th>
               <th className="py-3.5 px-4">Target Date</th>
               <th className="py-3.5 px-4">Venue</th>
-              <th className="py-3.5 px-4">Client</th>
               <th className="py-3.5 px-4">Status</th>
               <th className="py-3.5 px-4 text-right">Action</th>
             </tr>
@@ -120,9 +113,6 @@ export function EventsViewClient({
                 <td className="py-4 px-4 text-xs text-ink-muted truncate max-w-xs">
                   {ev.venue}
                 </td>
-                <td className="py-4 px-4 text-xs text-ink font-medium">
-                  {ev.customer_name || "Unassigned"}
-                </td>
                 <td className="py-4 px-4">
                   <select
                     value={ev.status}
@@ -138,17 +128,16 @@ export function EventsViewClient({
                   </select>
                 </td>
                 <td className="py-4 px-4 text-right space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedQrEvent(ev)}
+                  <Link
+                    href={`/admin/events/${ev.id}`}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold border border-border text-ink hover:text-accent hover:border-accent rounded-radius-md transition-colors min-h-[36px]"
-                    title="View QR Code"
+                    title="Manage event share link"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                     </svg>
-                    <span>QR</span>
-                  </button>
+                    <span>Share</span>
+                  </Link>
                   <Link
                     href={`/admin/events/${ev.id}`}
                     className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-accent text-accent-ink hover:bg-accent-hover rounded-radius-md transition-colors min-h-[36px]"
@@ -210,12 +199,6 @@ export function EventsViewClient({
                   </svg>
                   <span><strong>Venue:</strong> {ev.venue}</span>
                 </p>
-                <p className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span><strong>Client:</strong> {ev.customer_name || "Unassigned"}</span>
-                </p>
               </div>
 
               <div className="pt-3 border-t border-border flex items-center justify-between gap-2">
@@ -233,16 +216,16 @@ export function EventsViewClient({
                 </select>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedQrEvent(ev)}
+                  <Link
+                    href={`/admin/events/${ev.id}`}
                     className="inline-flex items-center justify-center gap-1 px-3 py-2 border border-border text-ink hover:text-accent rounded-radius-md text-xs font-semibold min-h-[44px]"
+                    aria-label={`Manage share link for ${ev.name}`}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                     </svg>
-                    <span>QR</span>
-                  </button>
+                    <span>Share</span>
+                  </Link>
                   <Link
                     href={`/admin/events/${ev.id}`}
                     className="inline-flex items-center justify-center px-4 py-2 bg-accent text-accent-ink font-semibold text-xs rounded-radius-md min-h-[44px]"
@@ -258,7 +241,6 @@ export function EventsViewClient({
 
       {modalOpen && (
         <CreateEventModal
-          customers={customers}
           onClose={() => setModalOpen(false)}
           onSuccess={(newEventId) => {
             setModalOpen(false);
@@ -267,15 +249,6 @@ export function EventsViewClient({
         />
       )}
 
-      {selectedQrEvent && (
-        <QRCodeModal
-          isOpen={true}
-          onClose={() => setSelectedQrEvent(null)}
-          eventId={selectedQrEvent.id}
-          eventName={selectedQrEvent.name}
-          eventStatus={selectedQrEvent.status}
-        />
-      )}
     </div>
   );
 }

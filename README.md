@@ -2,7 +2,7 @@
 
 **Event Management** — Weddings, Birthdays, Functions.
 
-A Next.js full-stack application with Supabase backend, featuring a public marketing website and a private client/admin portal.
+A Next.js full-stack application with Supabase backend, featuring a public marketing website, an admin console, and expiring token-based event pages.
 
 ---
 
@@ -42,7 +42,6 @@ A Next.js full-stack application with Supabase backend, featuring a public marke
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   JWT_SECRET=generate-a-random-secret-for-this-environment
    ```
 
 3. **Run the dev server:**
@@ -113,6 +112,7 @@ All SQL migrations reside in `/supabase/migrations`:
 2. `002_rls_and_storage.sql` — Row Level Security enabled and FORCED on all 11 tables (default deny), admin policies, customer event-scoped policies, and storage policies (`gallery`, `event-files`).
 3. `003_phase2_security.sql` — Requires MFA for admin RLS access, restricts customer financial reads to a summary, and removes direct customer access to private storage objects (design URLs are short-lived).
 4. `004_grants.sql` — Explicit least-privilege table/function grants for `anon`, `authenticated`, and `service_role`.
+5. `006_phase3_event_sharing.sql` — Admin-managed expiring event links, database-backed request rate limits, and removal of the customer financial summary view.
 
 ### Applying Migrations to Supabase:
 1. In your **Supabase Dashboard**, open **SQL Editor**.
@@ -120,9 +120,10 @@ All SQL migrations reside in `/supabase/migrations`:
 3. Run `002_rls_and_storage.sql`.
 4. Run `003_phase2_security.sql`.
 5. Run `004_grants.sql`.
+6. Run `006_phase3_event_sharing.sql`.
 
-If migrations `001`–`003` have already been applied, apply only the new
-`004_grants.sql` migration; do not edit or rerun applied migrations.
+Apply only migrations that have not already been applied. Do not edit applied
+migrations; Phase 3 database changes are in `006_phase3_event_sharing.sql`.
 
 ---
 
@@ -131,22 +132,22 @@ If migrations `001`–`003` have already been applied, apply only the new
 Admin accounts are created directly in Supabase:
 
 1. Go to **Supabase Dashboard → Authentication → Users** and create a new user with email `admin@shadisutra.app`.
-2. In the `profiles` table, set `role = 'admin'` and `access_enabled = true`.
-3. Enable **TOTP MFA** for the admin account in Supabase Auth settings.
+2. In the `profiles` table, set `role = 'admin'`, `username = 'admin'`, and `access_enabled = true`.
+3. Sign in at `/login` with username `admin`; the first successful sign-in presents a TOTP enrollment QR code and requires verification before `/admin` is accessible.
 
 ---
 
 ## Running the Local Development Seed
 
 ```bash
-# Copy .env.example to .env.local and set all three seed passwords first.
+# Copy .env.example to .env.local and set the admin seed password first.
 npm run seed
 ```
 
-The seed script requires `SEED_ADMIN_PASSWORD`, `SEED_CUSTOMER1_PASSWORD`, and
-`SEED_CUSTOMER2_PASSWORD` from the environment. It refuses to run against remote
-projects unless `SUPABASE_SEED_TARGET=development` is explicitly set, and it
-never prints passwords. Do not run it against production or commit `.env.local`.
+The seed script requires `SEED_ADMIN_PASSWORD` from the environment. It refuses
+to run against remote projects unless `SUPABASE_SEED_TARGET=development` is
+explicitly set, never prints passwords, and does not create customer login
+accounts. Do not run it against production or commit `.env.local`.
 
 ---
 
@@ -160,19 +161,15 @@ Runs `pg_dump` against your Supabase database. Run weekly as a minimum.
 
 ---
 
-## QR Code Event Showcase
+## Public Event Links
 
-When an event is marked as **Finalized** by the admin:
-- The Admin can click the **📱 QR** button from either the Event List or the Event Details header.
-- A high-resolution **QR Code** is generated for guests and family members.
-- Admins can copy the link or download the print-ready SVG QR code to put on physical wedding cards or digital invitations.
-- Guests scanning the QR code land on `/events/[id]` (e.g. `/events/e1-sharma-wedding`), a mobile-optimized webpage showing:
-  - Event title, hosts, dates, and live countdown.
-  - Ceremony-by-ceremony timeline (times, attire, locations).
-  - Venue directions with 1-tap Google Maps integration.
-  - WhatsApp share button and emergency coordinator call button.
-  - Interactive RSVP & blessings form for guests.
-- **Security & Privacy:** Unfinalized events are blocked from guest viewing. Customers no longer require separate login credentials, leaving only the secure Admin Login portal behind.
+Customers do not sign in. From an event's admin page, the administrator can
+generate an expiring `/e/[token]` link, regenerate it (which revokes all earlier
+links for that event), or revoke it. A QR code can be downloaded as a PNG.
+The public page shows only the event name, date, venue, functions, timeline, and
+finalized design files through short-lived signed URLs. It never shows budgets,
+payments, production items, phone numbers, or guest lists. Invalid, expired, and
+revoked links use the same generic response.
 
 ```
 src/
@@ -206,7 +203,6 @@ supabase/
 | `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client + Server | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server only** | Service role key (never import in client code) |
-| `JWT_SECRET` | **Server only** | Random secret used to sign the existing session cookie |
 
 ---
 

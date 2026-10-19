@@ -4,13 +4,11 @@ import { useState } from "react";
 import { createEventAction } from "@/lib/admin/event-actions";
 
 interface CreateEventModalProps {
-  customers: { id: string; name: string }[];
   onClose: () => void;
   onSuccess: (eventId: string) => void;
 }
 
 export function CreateEventModal({
-  customers,
   onClose,
   onSuccess,
 }: CreateEventModalProps) {
@@ -149,28 +147,6 @@ export function CreateEventModal({
             />
           </div>
 
-          {/* Customer Assignment */}
-          <div>
-            <label
-              htmlFor="event-customer"
-              className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
-            >
-              Assign to Customer Account (Optional)
-            </label>
-            <select
-              id="event-customer"
-              name="customerId"
-              className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              <option value="">-- Assign later --</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Budget */}
           <div>
             <label
@@ -186,20 +162,6 @@ export function CreateEventModal({
               placeholder="e.g. 1000000"
               className="w-full px-3.5 py-2.5 rounded-radius-md border border-border bg-bg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
-          </div>
-
-          {/* Reveal payments to customer toggle */}
-          <div className="pt-2 flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="show-payments"
-              name="showPayments"
-              value="true"
-              className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
-            />
-            <label htmlFor="show-payments" className="text-xs text-ink">
-              Allow customer to view read-only budget summary in portal
-            </label>
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-border">

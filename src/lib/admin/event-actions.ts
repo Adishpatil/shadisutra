@@ -61,8 +61,6 @@ export async function createEventAction(formData: FormData) {
         type: eventTypeSchema,
         date: functionDateSchema,
         venue: z.string().trim().min(1).max(500),
-        customerId: z.union([z.literal(""), idSchema]).transform((value) => value || null),
-        showPayments: z.boolean(),
         budgetTotal: z.number().finite().min(0),
       })
       .safeParse({
@@ -70,8 +68,6 @@ export async function createEventAction(formData: FormData) {
         type: text(formData, "type") || "wedding",
         date: text(formData, "date"),
         venue: text(formData, "venue"),
-        customerId: text(formData, "customerId"),
-        showPayments: formData.get("showPayments") === "true",
         budgetTotal: Number(text(formData, "budgetTotal") || "0"),
       });
     if (!parsed.success) {
@@ -86,8 +82,6 @@ export async function createEventAction(formData: FormData) {
         type: parsed.data.type,
         date: parsed.data.date,
         venue: parsed.data.venue,
-        customer_id: parsed.data.customerId,
-        show_payments_to_customer: parsed.data.showPayments,
       })
       .select("id")
       .single();

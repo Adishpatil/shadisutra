@@ -150,11 +150,6 @@ export default async function AdminDashboardPage() {
                       >
                         {event.status}
                       </span>
-                      {event.show_payments_to_customer && (
-                        <span className="text-[10px] text-ink-muted bg-bg px-2 py-0.5 rounded-radius-full border border-border">
-                          Portal: Payments Visible
-                        </span>
-                      )}
                     </div>
                     <Link
                       href={`/admin/events/${event.id}`}
@@ -175,12 +170,6 @@ export default async function AdminDashboardPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         {event.venue}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 font-medium text-ink">
-                        <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        {event.customer_name}
                       </span>
                     </div>
                   </div>

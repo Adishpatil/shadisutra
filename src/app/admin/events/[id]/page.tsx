@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getAdminEventById, getEventBudgetAndPayments } from "@/lib/admin/data";
 import { getEventGuests } from "@/lib/guests/data";
 import { getEventDesigns, getEventTimelineEntries } from "@/lib/admin/designs-timeline-data";
+import { getAdminEventShareLink } from "@/lib/events/share-actions";
 import { EventDetailClient } from "@/components/admin/EventDetailClient";
 
 export default async function AdminEventDetailPage({
@@ -11,13 +12,21 @@ export default async function AdminEventDetailPage({
 }) {
   const { id } = await params;
 
-  const [{ event, functions, itemsByFunction }, budgetData, guests, designs, timeline] =
+  const [
+    { event, functions, itemsByFunction },
+    budgetData,
+    guests,
+    designs,
+    timeline,
+    shareLink,
+  ] =
     await Promise.all([
       getAdminEventById(id),
       getEventBudgetAndPayments(id),
       getEventGuests(id),
       getEventDesigns(id),
       getEventTimelineEntries(id),
+      getAdminEventShareLink(id),
     ]);
 
   if (!event) {
@@ -36,6 +45,7 @@ export default async function AdminEventDetailPage({
         initialGuests={guests}
         initialDesigns={designs}
         initialTimeline={timeline}
+        initialShareLink={shareLink}
       />
     </div>
   );

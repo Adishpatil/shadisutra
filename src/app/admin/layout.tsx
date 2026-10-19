@@ -1,7 +1,8 @@
-import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import type { Metadata } from "next";
 import { redirect } from 'next/navigation';
-import { verifyAuthToken } from '@/lib/auth';
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isAdminClientConfigured } from "@/lib/supabase/admin";
 import { AdminNav } from '@/components/admin/AdminNav';
 
 export const metadata: Metadata = {
@@ -13,15 +14,33 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Server‑side auth check via JWT cookie
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value ?? null;
-  const payload = token ? verifyAuthToken(token) : null;
-
-  // If not logged in or not an admin, redirect to login page
-  if (!payload || payload.role !== 'admin') {
-    redirect('/login');
+  if (!isSupabaseConfigured() || !isAdminClientConfigured()) {
+    redirect("/login");
   }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) redirect("/login");
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,access_enabled")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (
+    profileError ||
+    profile?.role !== "admin" ||
+    !profile.access_enabled
+  ) {
+    redirect("/login");
+  }
+
+  const { data: assurance, error: assuranceError } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (assuranceError || assurance.currentLevel !== "aal2") redirect("/login");
 
   return (
     <div className="flex flex-col min-h-screen bg-bg">
