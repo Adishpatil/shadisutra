@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import { site } from "@/config/site";
+import { pageMetadata } from "@/config/seo";
 import { getGalleryImages } from "@/lib/gallery";
 import { GalleryView } from "@/components/sections/GalleryView";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Event Gallery",
-  description: `Browse past event designs, weddings, birthdays, and stage decor curated by ${site.name}.`,
-};
+export const metadata = pageMetadata(
+  "Event Gallery",
+  `Browse event designs and celebrations curated by ${site.name}.`,
+  "/gallery"
+);
 
 export default function GalleryPage() {
   const images = getGalleryImages("all");

@@ -4,6 +4,9 @@
 
 A Next.js full-stack application with Supabase backend, featuring a public marketing website, an admin console, and expiring token-based event pages.
 
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the folder map, request flows,
+and security model.
+
 ---
 
 ## Tech Stack
@@ -49,6 +52,19 @@ A Next.js full-stack application with Supabase backend, featuring a public marke
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000).
+
+4. **Configure launch metadata:** set `SITE_URL` to the public HTTPS origin
+   (for example, `https://events.example.com`) in the deployment environment.
+   It is used for canonical URLs and the sitemap.
+
+5. **Check launch inputs:** run `npm run check:launch`. It checks site
+   placeholders, the client logo, public image size/signatures, gallery alt
+   text, and `SITE_URL`. A launch check cannot pass until the production URL
+   and client-provided `public/brand/logo.*` are present.
+
+The `/privacy` and `/terms` pages are drafts for client review and must be
+approved before publication. The privacy page explicitly marks its proposed
+retention schedule as inactive until the client approves and implements it.
 
 ---
 
@@ -138,9 +154,16 @@ Migration 008 does not depend on the Phase 4A changes in migration 007.
 
 Admin accounts are created directly in Supabase:
 
-1. Go to **Supabase Dashboard → Authentication → Users** and create a new user with email `admin@shadisutra.app`.
-2. In the `profiles` table, set `role = 'admin'`, `username = 'admin'`, and `access_enabled = true`.
-3. Sign in at `/login` with username `admin`; the first successful sign-in presents a TOTP enrollment QR code and requires verification before `/admin` is accessible.
+1. In **Supabase Dashboard → Authentication → Users**, create the administrator using a unique email and a strong, unique password.
+2. In `profiles`, set that user’s `role` to `admin`, choose a unique `username`, and set `access_enabled` to `true`.
+3. Sign in at `/login` using the profile username and password. On first sign-in, scan the TOTP enrollment QR with an authenticator app and verify its six-digit code.
+4. Store recovery information securely. Do not save or share enrollment QR codes or TOTP secrets. Admin pages require an `aal2` session.
+
+In **Supabase Dashboard → Authentication → Sessions**, configure a time-boxed
+admin session and an inactivity timeout appropriate to your operations (for
+example, 8 hours maximum and 30 minutes idle). The app checks the authenticated
+user and `aal2` on every admin request; the configured session policy controls
+when Supabase expires it.
 
 ---
 
@@ -160,11 +183,32 @@ accounts. Do not run it against production or commit `.env.local`.
 
 ## Backup
 
+Install PostgreSQL client tools so `pg_dump` is available on `PATH`. Put the
+direct Supabase Postgres connection URI in `DATABASE_URL` (or
+`SUPABASE_DB_URL`) in `.env.local`; never commit it or paste it into logs or
+support tickets.
+
 ```bash
 npm run backup
 ```
 
-Runs `pg_dump` against your Supabase database. Run weekly as a minimum.
+Run a backup weekly at minimum, and before any database migration. The script
+writes a custom-format dump under the ignored `backups/` directory and does not
+print the connection URI. Protect those files as sensitive data and store a
+copy in encrypted off-site storage.
+
+To test a restore, restore into a separate development/staging database, never
+over production. Set `DATABASE_URL` to that target and run:
+
+```bash
+pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$DATABASE_URL" backups/shadisutra_backup_<timestamp>.dump
+```
+
+On PowerShell, set `$env:DATABASE_URL` for the target first and replace the
+placeholder with the chosen dump filename. Verify the restored tables and
+storage references in staging before relying on a backup. Supabase Storage
+objects need their own backup/export plan; a Postgres dump does not contain
+those file contents.
 
 ---
 
@@ -205,7 +249,7 @@ src/
     gallery.ts     ← Gallery data helpers
     types.ts       ← Shared TypeScript types
 public/
-  brand/           ← Logo, favicon, manifest icons
+  brand/           ← Logo, favicon, admin app icon
   images/          ← All site images (see folder structure above)
   manifest.json    ← PWA manifest
 supabase/
@@ -221,6 +265,11 @@ supabase/
 | `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client + Server | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server only** | Service role key (never import in client code) |
+| `SITE_URL` | Server metadata | Public HTTPS origin for canonical URLs and the sitemap |
+| `DATABASE_URL` | Backup script only | Optional direct Postgres connection URI for `pg_dump` |
+| `SUPABASE_DB_URL` | Backup script only | Alternative name for the direct Postgres connection URI |
+| `SEED_ADMIN_PASSWORD` | Local seed script only | Development admin password; set outside source control |
+| `SUPABASE_SEED_TARGET` | Local seed script only | Must be `development` to permit a remote dev seed |
 
 ---
 

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { site, siteLinks } from "@/config/site";
+import { site, siteLinks, hasSiteValue } from "@/config/site";
+import { pageMetadata } from "@/config/seo";
 import { ContactForm } from "@/components/sections/ContactForm";
 
-export const metadata: Metadata = {
-  title: "Contact Us",
-  description: `Get in touch with ${site.name} to plan your wedding, birthday, or special function. Call, WhatsApp, or request a consultation.`,
-};
+export const metadata: Metadata = pageMetadata(
+  "Contact",
+  `Contact ${site.name} to discuss planning an event.`,
+  "/contact"
+);
 
 export default async function ContactPage({
   searchParams,
@@ -13,6 +15,12 @@ export default async function ContactPage({
   searchParams: Promise<{ service?: string }>;
 }) {
   const { service } = await searchParams;
+  const hasDirectContact =
+    hasSiteValue(site.whatsapp) ||
+    hasSiteValue(site.phone) ||
+    hasSiteValue(site.email) ||
+    hasSiteValue(site.address) ||
+    hasSiteValue(site.hours);
 
   return (
     <div className="pt-24 pb-20">
@@ -31,9 +39,9 @@ export default async function ContactPage({
 
       {/* Main Grid: Form + Direct Contact Cards */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto my-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className={`grid grid-cols-1 gap-12 ${hasDirectContact ? "lg:grid-cols-12" : ""}`}>
           {/* Contact Form */}
-          <div className="lg:col-span-7">
+          <div className={hasDirectContact ? "lg:col-span-7" : ""}>
             <h2 className="text-2xl font-heading font-bold text-ink mb-6">
               Send An Enquiry
             </h2>
@@ -41,14 +49,16 @@ export default async function ContactPage({
           </div>
 
           {/* Quick Contact & Details */}
-          <div className="lg:col-span-5 space-y-8">
-            <div>
+          {hasDirectContact && <div className="lg:col-span-5 space-y-8">
+            {(hasSiteValue(site.whatsapp) ||
+              hasSiteValue(site.phone) ||
+              hasSiteValue(site.email)) && <div>
               <h2 className="text-2xl font-heading font-bold text-ink mb-6">
                 Direct Channels
               </h2>
               <div className="space-y-4">
                 {/* WhatsApp Button card */}
-                {site.whatsapp && site.whatsapp !== "TODO" && (
+                {hasSiteValue(site.whatsapp) && (
                   <a
                     href={siteLinks.whatsappUrl}
                     target="_blank"
@@ -72,7 +82,7 @@ export default async function ContactPage({
                 )}
 
                 {/* Direct Phone card */}
-                {site.phone && site.phone !== "TODO" && (
+                {hasSiteValue(site.phone) && (
                   <a
                     href={siteLinks.phoneUrl}
                     className="flex items-center gap-4 p-5 rounded-radius-md bg-surface border border-border text-ink hover:border-accent/40 transition-colors group"
@@ -94,7 +104,7 @@ export default async function ContactPage({
                 )}
 
                 {/* Email card */}
-                {site.email && site.email !== "TODO" && (
+                {hasSiteValue(site.email) && (
                   <a
                     href={siteLinks.emailUrl}
                     className="flex items-center gap-4 p-5 rounded-radius-md bg-surface border border-border text-ink hover:border-accent/40 transition-colors group"
@@ -115,25 +125,25 @@ export default async function ContactPage({
                   </a>
                 )}
               </div>
-            </div>
+            </div>}
 
             {/* Office & Studio Info */}
-            <div className="p-6 rounded-radius-lg bg-surface border border-border space-y-4">
+            {(hasSiteValue(site.address) || hasSiteValue(site.hours)) && <div className="p-6 rounded-radius-lg bg-surface border border-border space-y-4">
               <h3 className="font-heading text-lg font-bold text-ink">
                 Office &amp; Consultations
               </h3>
               <div className="text-sm text-ink-muted space-y-2">
-                <p>
+                {hasSiteValue(site.address) && <p>
                   <strong className="text-ink font-semibold">Address: </strong>
-                  {site.address !== "TODO" ? site.address : "Main Studio & Design Office (By appointment)"}
-                </p>
-                <p>
+                  {site.address}
+                </p>}
+                {hasSiteValue(site.hours) && <p>
                   <strong className="text-ink font-semibold">Consultation Hours: </strong>
-                  {site.hours !== "TODO" ? site.hours : "Monday – Saturday: 10:00 AM – 7:00 PM IST"}
-                </p>
+                  {site.hours}
+                </p>}
               </div>
-            </div>
-          </div>
+            </div>}
+          </div>}
         </div>
       </section>
     </div>

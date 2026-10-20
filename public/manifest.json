@@ -2,15 +2,17 @@
   "name": "Shadi Sutra",
   "short_name": "ShadiSutra",
   "description": "Event management — weddings, birthdays, functions",
-  "start_url": "/",
+  "start_url": "/admin/",
+  "scope": "/admin/",
   "display": "standalone",
   "background_color": "#FAF8F5",
   "theme_color": "#FAF8F5",
   "icons": [
     {
-      "src": "/brand/logo.svg",
+      "src": "/brand/admin-icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

@@ -114,7 +114,7 @@ export function BudgetPaymentsTab({
       {/* 1. Calculated KPI Summary Cards                               */}
       {/* Paid, remaining, % are calculated and NEVER typed             */}
       {/* ------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="money-summary grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Agreed Total */}
         <div className="bg-surface p-5 sm:p-6 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -264,7 +264,7 @@ export function BudgetPaymentsTab({
         </div>
 
         {/* Right: Quick Action Banner */}
-        <div className="lg:col-span-4 bg-accent-light/40 p-6 rounded-radius-lg border border-accent/30 flex flex-col justify-between gap-4">
+        <div className="hidden lg:col-span-4 bg-accent-light/40 p-6 rounded-radius-lg border border-accent/30 lg:flex flex-col justify-between gap-4">
           <div>
             <span className="text-xs uppercase font-bold text-accent tracking-wider block">
               Quick Action
@@ -298,14 +298,14 @@ export function BudgetPaymentsTab({
           <button
             type="button"
             onClick={() => showPaymentForm(null)}
-            className="min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+            className="payment-add-fixed min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
           >
             + Add Payment
           </button>
         </div>
 
         {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto bg-surface border border-border rounded-radius-lg shadow-[var(--shadow-sm)]">
+        <div className="hidden lg:block overflow-x-auto bg-surface border border-border rounded-radius-lg shadow-[var(--shadow-sm)]">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="border-b border-border bg-bg/50 text-xs font-semibold uppercase tracking-wider text-ink-muted">
@@ -356,7 +356,7 @@ export function BudgetPaymentsTab({
         </div>
 
         {/* Mobile Stacked Cards */}
-        <div className="md:hidden space-y-3">
+        <div className="lg:hidden space-y-3">
           {payments.map((p) => (
             <div
               key={p.id}

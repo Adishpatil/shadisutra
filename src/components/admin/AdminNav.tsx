@@ -1,16 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { site } from "@/config/site";
 import { signOutAction } from "@/lib/auth/admin-actions";
+import { CreateEventModal } from "@/components/admin/CreateEventModal";
+import { Button, Sheet } from "@/components/ui/AdminPrimitives";
 
 const navItems = [
   {
     href: "/admin",
     label: "Dashboard",
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
       </svg>
     ),
@@ -19,7 +22,7 @@ const navItems = [
     href: "/admin/events",
     label: "Events",
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     ),
@@ -28,122 +31,89 @@ const navItems = [
     href: "/admin/enquiries",
     label: "Enquiries",
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     ),
   },
-];
+] as const;
+
+function pageTitle(pathname: string) {
+  if (pathname === "/admin") return "Dashboard";
+  if (pathname.startsWith("/admin/events/")) return "Event details";
+  if (pathname.startsWith("/admin/events")) return "Events";
+  if (pathname.startsWith("/admin/enquiries")) return "Enquiries";
+  return "Admin";
+}
 
 export function AdminNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
-  const isItemActive = (href: string) => {
-    if (href === "/admin") return pathname === "/admin";
-    return pathname.startsWith(href);
-  };
+  const isItemActive = (href: string) =>
+    href === "/admin" ? pathname === href : pathname.startsWith(href);
 
   return (
     <>
-      {/* ------------------------------------------------------------- */}
-      {/* 1. Desktop & Tablet Sidebar (Hidden on mobile <768px)          */}
-      {/* ------------------------------------------------------------- */}
-      <aside className="hidden md:flex flex-col fixed inset-y-0 left-0 z-40 bg-surface border-r border-border md:w-20 lg:w-64 transition-all select-none">
-        {/* Brand */}
-        <div className="h-20 flex items-center px-4 lg:px-6 border-b border-border/80">
-          <Link href="/admin" className="flex items-center gap-3.5 group">
-            <span className="w-10 h-10 rounded-radius-md bg-accent text-accent-ink flex items-center justify-center font-heading font-bold text-xl shrink-0 shadow-[var(--shadow-sm)] group-hover:scale-105 transition-transform">
-              SS
-            </span>
-            <div className="hidden lg:block truncate">
-              <span className="font-heading font-bold text-lg text-ink block leading-none tracking-tight">
-                {site.name}
-              </span>
-              <span className="text-[10px] uppercase tracking-widest text-accent font-semibold block mt-1">
-                Admin Console
-              </span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Navigation items */}
-        <nav className="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto" aria-label="Admin Navigation">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col bg-surface md:flex">
+        <Link
+          href="/admin"
+          className="flex min-h-20 items-center gap-3 px-6"
+          aria-label={`${site.name} admin dashboard`}
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-radius-md bg-accent font-heading text-xl font-bold text-accent-ink">
+            SS
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate font-heading text-lg font-bold text-ink">{site.name}</span>
+            <span className="block text-base text-ink-muted">Admin workspace</span>
+          </span>
+        </Link>
+        <nav className="flex-1 space-y-2 px-3 py-6" aria-label="Admin navigation">
           {navItems.map((item) => {
             const active = isItemActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3.5 px-3.5 py-3 rounded-radius-md text-sm font-medium transition-all ${
-                  active
-                    ? "bg-accent text-accent-ink shadow-[var(--shadow-sm)] font-semibold"
-                    : "text-ink-muted hover:text-ink hover:bg-bg/80"
+                className={`flex min-h-12 items-center gap-3 rounded-radius-md px-4 text-base font-semibold transition-colors ${
+                  active ? "bg-accent-light text-accent" : "text-ink-muted hover:bg-bg hover:text-ink"
                 }`}
                 aria-current={active ? "page" : undefined}
-                title={item.label}
               >
-                <span className="shrink-0">{item.icon}</span>
-                <span className="hidden lg:inline">{item.label}</span>
+                {item.icon}
+                {item.label}
               </Link>
             );
           })}
         </nav>
-
-        {/* User Footer / Sign Out with clearance for Next.js dev indicator */}
-        <div className="p-3.5 border-t border-border/80 mb-8 md:mb-12 lg:mb-2">
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-radius-md text-xs font-semibold text-danger hover:bg-danger-light transition-colors min-h-[44px]"
-              title="Sign Out"
-            >
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span className="hidden lg:inline">Sign Out</span>
-            </button>
-          </form>
-        </div>
+        <form action={signOutAction} className="p-4">
+          <Button type="submit" variant="quiet" className="w-full justify-start text-danger">
+            Sign out
+          </Button>
+        </form>
       </aside>
 
-      {/* ------------------------------------------------------------- */}
-      {/* 2. Mobile Top Bar (<768px)                                    */}
-      {/* ------------------------------------------------------------- */}
       <header
-        className="md:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-surface/95 backdrop-blur-md border-b border-border flex items-center justify-between px-4 shadow-[var(--shadow-xs)]"
+        className="fixed inset-x-0 top-0 z-40 flex h-[calc(4rem+var(--safe-top))] items-center justify-between border-b border-border bg-bg/95 px-4 pt-[var(--safe-top)] backdrop-blur md:left-60 md:px-6"
         style={{ paddingTop: "var(--safe-top)" }}
       >
-        <Link href="/admin" className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-radius-sm bg-accent text-accent-ink flex items-center justify-center font-heading font-bold text-base shadow-sm">
-            SS
-          </span>
-          <div className="flex flex-col">
-            <span className="font-heading font-bold text-base text-ink leading-tight">
-              {site.name}
-            </span>
-            <span className="text-[9px] uppercase tracking-wider text-accent font-semibold leading-tight">
-              Admin
-            </span>
-          </div>
-        </Link>
-
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            className="text-xs font-semibold text-danger px-3 py-1.5 rounded-radius-sm border border-danger/20 hover:bg-danger-light transition-colors min-h-[36px]"
-          >
-            Sign Out
-          </button>
-        </form>
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-ink">{pageTitle(pathname)}</p>
+          <p className="hidden text-base text-ink-muted sm:block">{site.name} · Admin</p>
+        </div>
+        <Button type="button" variant="primary" onClick={() => setCreateOpen(true)} className="min-h-11 px-4">
+          <span aria-hidden="true">+</span>
+          <span className="hidden sm:inline">New event</span>
+          <span className="sm:hidden">New</span>
+        </Button>
       </header>
 
-      {/* ------------------------------------------------------------- */}
-      {/* 3. Mobile Bottom Tab Bar (<768px)                             */}
-      {/* ------------------------------------------------------------- */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-border flex items-center justify-around h-16 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
-        style={{ paddingBottom: "var(--safe-bottom)" }}
-        aria-label="Mobile Admin Navigation"
+        className="fixed inset-x-0 bottom-0 z-50 flex h-[calc(3.5rem+var(--safe-bottom))] items-stretch border-t border-border bg-surface/95 pb-[var(--safe-bottom)] backdrop-blur md:hidden"
+        aria-label="Admin tabs"
       >
         {navItems.map((item) => {
           const active = isItemActive(item.href);
@@ -151,20 +121,58 @@ export function AdminNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center flex-1 h-full py-1 min-h-[44px] transition-colors relative ${
-                active ? "text-accent font-semibold" : "text-ink-muted hover:text-ink"
-              }`}
               aria-current={active ? "page" : undefined}
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-base font-semibold ${
+                active ? "text-accent" : "text-ink-muted"
+              }`}
             >
-              <span className="shrink-0">{item.icon}</span>
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
-              {active && (
-                <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-accent" />
-              )}
+              {item.icon}
+              <span>{item.label}</span>
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          aria-expanded={moreOpen}
+          className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-base font-semibold ${
+            moreOpen ? "text-accent" : "text-ink-muted"
+          }`}
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="5" cy="12" r="1" strokeWidth="2" />
+            <circle cx="12" cy="12" r="1" strokeWidth="2" />
+            <circle cx="19" cy="12" r="1" strokeWidth="2" />
+          </svg>
+          More
+        </button>
       </nav>
+
+      <Sheet open={moreOpen} title="More" onClose={() => setMoreOpen(false)} className="sm:max-w-md">
+        <div className="space-y-3">
+          <Link href="/admin/events" onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center rounded-radius-md px-4 text-base font-semibold text-ink hover:bg-bg">
+            All events
+          </Link>
+          <Link href="/admin/enquiries" onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center rounded-radius-md px-4 text-base font-semibold text-ink hover:bg-bg">
+            Website enquiries
+          </Link>
+          <form action={signOutAction} className="border-t border-border pt-3">
+            <Button type="submit" variant="danger" className="w-full justify-start">
+              Sign out
+            </Button>
+          </form>
+        </div>
+      </Sheet>
+
+      {createOpen && (
+        <CreateEventModal
+          onClose={() => setCreateOpen(false)}
+          onSuccess={(eventId) => {
+            setCreateOpen(false);
+            router.push(`/admin/events/${eventId}`);
+          }}
+        />
+      )}
     </>
   );
 }

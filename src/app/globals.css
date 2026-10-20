@@ -13,17 +13,17 @@
   --surface: #FFFFFF;
   --ink: #1C1A17;
   --ink-muted: #6B6560;
-  --accent: #B8860B;          /* dark goldenrod — passes 4.5:1 on ivory */
-  --accent-hover: #9A7209;
+  --accent: #806000;
+  --accent-hover: #654B00;
   --accent-ink: #FFFFFF;      /* white text on accent buttons */
   --accent-light: #F5ECD7;    /* light gold for subtle backgrounds */
   --border: #E8E4DF;
   --border-strong: #D1CBC4;
   --danger: #C0392B;
   --danger-light: #FDEDEB;
-  --success: #27855A;
+  --success: #217449;
   --success-light: #EAFBF1;
-  --warning: #E67E22;
+  --warning: #9B4A00;
   --warning-light: #FFF5EB;
 
   /* Spacing scale */
@@ -185,6 +185,9 @@ h3 {
   top: -100%;
   left: var(--space-md);
   z-index: 9999;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   padding: var(--space-sm) var(--space-md);
   background: var(--accent);
   color: var(--accent-ink);
@@ -292,4 +295,162 @@ textarea {
 
 .animate-fade-in {
   animation: fadeIn var(--duration-base) var(--ease-out) both;
+}
+
+.home-hero-scrim {
+  background:
+    linear-gradient(90deg, rgba(20, 15, 16, 0.88) 0%, rgba(20, 15, 16, 0.68) 48%, rgba(20, 15, 16, 0.28) 100%),
+    linear-gradient(0deg, rgba(20, 15, 16, 0.28), transparent 50%);
+}
+
+.home-hero h1,
+.home-dark-section h2,
+.home-dark-section h3 {
+  color: #fff;
+}
+
+.section-ornament {
+  display: block;
+  position: relative;
+  width: 3.5rem;
+  height: 1px;
+  background: var(--accent);
+}
+
+.section-ornament::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.section-ornament-light::after {
+  background: var(--ink);
+}
+
+#admin-shell button,
+#admin-shell a[href],
+#admin-shell select,
+#admin-shell input,
+#admin-shell textarea {
+  min-height: 44px;
+}
+
+#admin-shell {
+  overflow-x: clip;
+}
+
+#admin-shell input,
+#admin-shell select,
+#admin-shell textarea {
+  font-size: 16px;
+}
+
+#admin-shell :focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  #admin-shell .money-summary > div:nth-child(4) {
+    display: none;
+  }
+
+  #admin-shell .money-summary > div:nth-child(3) {
+    border: 2px solid var(--accent);
+    background: var(--accent-light);
+  }
+
+  #admin-shell .payment-add-fixed,
+  #admin-shell .guest-add-fixed {
+    position: fixed;
+    z-index: 45;
+    right: 1rem;
+    bottom: calc(3.5rem + var(--safe-bottom) + 0.75rem);
+    min-height: 48px;
+    border-radius: 9999px;
+    background: var(--accent);
+    padding: 0 1.25rem;
+    color: var(--accent-ink);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+
+  #admin-shell .guest-add-fixed {
+    left: auto;
+  }
+
+  #admin-shell [role="dialog"] {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  #admin-shell [role="dialog"] > div {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    padding-top: calc(1rem + var(--safe-top));
+    padding-bottom: calc(1rem + var(--safe-bottom));
+  }
+
+  #admin-shell [role="dialog"] form > div:last-child {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding-top: 0.75rem;
+    padding-bottom: calc(0.75rem + var(--safe-bottom));
+  }
+
+  #admin-shell details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  #admin-shell .admin-sheet-panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding-bottom: var(--safe-bottom);
+  }
+}
+
+@media (min-width: 768px) {
+  #admin-shell .payment-add-fixed,
+  #admin-shell .guest-add-fixed {
+    position: static;
+    z-index: auto;
+    min-height: 44px;
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  #admin-shell .admin-table {
+    display: none;
+  }
+
+  #admin-shell .admin-cards {
+    display: block;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .home-reveal {
+      animation: fadeInUp linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
 }

@@ -97,7 +97,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
                 setActiveCategory(cat.value);
                 setLightboxIndex(null);
               }}
-              className={`px-5 py-2.5 rounded-radius-full text-sm font-medium transition-all ${
+              className={`min-h-11 px-5 py-2.5 rounded-radius-full text-sm font-medium transition-all ${
                 isActive
                   ? "bg-accent text-accent-ink shadow-[var(--shadow-sm)]"
                   : "bg-surface border border-border text-ink-muted hover:text-ink hover:border-accent/40"
@@ -130,7 +130,6 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
               }}
               tabIndex={0}
               role="button"
-              aria-label={`View photo: ${img.alt}`}
             >
               <div className="overflow-hidden aspect-[4/3] relative">
                 <PlaceholderImage
@@ -175,7 +174,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
             ref={closeButtonRef}
             type="button"
             onClick={closeLightbox}
-            className="absolute top-4 right-4 z-50 text-white/80 hover:text-white p-2 rounded-radius-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="absolute top-4 right-4 z-50 flex min-h-11 min-w-11 items-center justify-center rounded-radius-full bg-white/10 p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
             aria-label="Close lightbox"
           >
             <svg

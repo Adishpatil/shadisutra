@@ -209,6 +209,31 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
     setGuests((prev) => prev.filter((g) => g.id !== guestId));
   };
 
+  const handleQuickRsvpChange = async (
+    guest: GuestRecord,
+    rsvp: GuestRecord["rsvp"]
+  ) => {
+    const formData = new FormData();
+    formData.set("name", guest.name);
+    formData.set("party_size", String(guest.party_size));
+    formData.set("phone", guest.phone ?? "");
+    formData.set("rsvp", rsvp);
+    formData.set("table_no", guest.table_no ?? "");
+    formData.set("notes", guest.notes ?? "");
+
+    const result = await updateGuestAction(eventId, guest.id, formData);
+    if (!result.success) {
+      alert(result.error ?? "Could not update RSVP.");
+      return;
+    }
+
+    setGuests((current) =>
+      current.map((entry) =>
+        entry.id === guest.id ? { ...entry, rsvp } : entry
+      )
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Summary Cards */}
@@ -252,7 +277,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
 
       {/* 2. Action Toolbar & Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-surface p-4 rounded-radius-lg border border-border">
-        <div className="flex items-center gap-2 flex-1 max-w-md">
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
           <input
             type="text"
             value={search}
@@ -260,49 +285,65 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
             placeholder="Search by name, phone, or table..."
             className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
           />
-          <select
-            value={rsvpFilter}
-            onChange={(e) => setRsvpFilter(e.target.value)}
-            className="text-base font-medium px-3 py-2 rounded-radius-md border border-border bg-bg text-ink min-h-[44px]"
-          >
-            <option value="all">All RSVP</option>
-            <option value="yes">Attending</option>
-            <option value="pending">Pending</option>
-            <option value="no">Declined</option>
-          </select>
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1" aria-label="Filter guests by RSVP">
+            {[
+              ["all", "All"],
+              ["yes", "Attending"],
+              ["pending", "Pending"],
+              ["no", "Declined"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={rsvpFilter === value}
+                onClick={() => setRsvpFilter(value)}
+                className={`min-h-11 shrink-0 rounded-radius-full px-4 text-base font-semibold ${
+                  rsvpFilter === value
+                    ? "bg-ink text-white"
+                    : "bg-bg text-ink-muted hover:text-ink"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-radius-md border border-border text-ink bg-bg hover:bg-surface transition-colors min-h-[44px]"
-          >
-            <span>📊</span>
-            <span>Export Excel</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowImportModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-radius-md border border-accent/40 bg-accent/10 text-accent hover:bg-accent hover:text-accent-ink transition-colors min-h-[44px]"
-          >
-            <span>📥</span>
-            <span>Import (.xlsx/.csv)</span>
-          </button>
+        <div className="flex items-center gap-2">
+          <details className="relative">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-radius-md border border-border bg-bg px-4 text-base font-semibold text-ink">
+              More
+            </summary>
+            <div className="absolute right-0 top-full z-20 mt-2 flex min-w-52 flex-col gap-2 rounded-radius-md border border-border bg-surface p-2 shadow-lg">
+              <button
+                type="button"
+                onClick={handleExport}
+                className="min-h-11 rounded-radius-sm px-3 text-left text-base font-semibold text-ink hover:bg-bg"
+              >
+                Export Excel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(true)}
+                className="min-h-11 rounded-radius-sm px-3 text-left text-base font-semibold text-ink hover:bg-bg"
+              >
+                Import CSV / Excel
+              </button>
+            </div>
+          </details>
 
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[44px]"
+            className="guest-add-fixed inline-flex items-center gap-1.5 px-4 py-2 text-base font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[44px]"
           >
-            <span>+ Quick Add</span>
+            <span>+ Add guest</span>
           </button>
         </div>
       </div>
 
-      {/* 3. Guests List (Desktop Table ≥ 768px) */}
-      <div className="hidden md:block bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] overflow-hidden">
+      {/* 3. Guests List (Desktop Table ≥ 1024px) */}
+      <div className="hidden lg:block bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] overflow-hidden">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-border bg-bg text-ink-muted uppercase tracking-wider font-semibold">
@@ -381,8 +422,8 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
         </table>
       </div>
 
-      {/* 4. Guests Stacked Cards (< 768px Mobile First) */}
-      <div className="md:hidden space-y-3">
+      {/* 4. Guests Stacked Cards (< 1024px) */}
+      <div className="lg:hidden space-y-3">
         {filteredGuests.length === 0 ? (
           <div className="p-8 text-center bg-surface border border-dashed border-border rounded-radius-lg text-ink-muted text-xs">
             No guests found. Tap &quot;+ Quick Add&quot; or &quot;Import&quot; to begin.
@@ -407,6 +448,24 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                       Party of {g.party_size}
                     </span>
                   </div>
+                  <label className="block text-base font-medium text-ink" htmlFor={`guest-rsvp-${g.id}`}>
+                    RSVP
+                  </label>
+                  <select
+                    id={`guest-rsvp-${g.id}`}
+                    value={g.rsvp}
+                    onChange={(event) =>
+                      handleQuickRsvpChange(
+                        g,
+                        event.target.value as GuestRecord["rsvp"]
+                      )
+                    }
+                    className="w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink"
+                  >
+                    <option value="yes">Attending</option>
+                    <option value="pending">Pending</option>
+                    <option value="no">Declined</option>
+                  </select>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-radius-sm text-[10px] font-bold uppercase tracking-wider border ${rsvpBadge}`}
                   >

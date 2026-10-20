@@ -3,9 +3,11 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { verifyAdminCaller } from "@/lib/auth/verify-admin";
 import { createClient } from "@/lib/supabase/server";
+import { consumeRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 import {
   DESIGN_MIME_EXTENSIONS,
   designSignatureMatches,
@@ -24,6 +26,17 @@ export async function uploadDesignAction(formData: FormData) {
   let uploadedPath: string | null = null;
   try {
     await verifyAdminCaller();
+    const allowed = await consumeRateLimit(
+      rateLimitKey(await headers(), "design-upload"),
+      5,
+      900
+    );
+    if (!allowed) {
+      return {
+        success: false as const,
+        error: "Too many uploads. Please try again later.",
+      };
+    }
     const file = formData.get("file");
     const parsed = z
       .object({

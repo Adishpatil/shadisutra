@@ -1,265 +1,318 @@
+import Image from "next/image";
 import Link from "next/link";
+import galleryImages from "@/data/gallery.json";
 import { site } from "@/config/site";
-import { getFeaturedImages } from "@/lib/gallery";
+import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 
+export const metadata = pageMetadata(
+  "Event Planning & Management",
+  `Explore weddings, celebrations, and event planning from ${site.name}.`,
+  "/"
+);
+
+const eventTypes = [
+  {
+    title: "Weddings",
+    category: "weddings",
+    description: "Ceremonies and celebrations shaped around your traditions.",
+    href: "/services/weddings",
+  },
+  {
+    title: "Birthdays",
+    category: "birthdays",
+    description: "Personal themes and thoughtful details for milestone days.",
+    href: "/services/birthdays",
+  },
+  {
+    title: "Functions",
+    category: "functions",
+    description: "Considered planning for gatherings, galas and special occasions.",
+    href: "/services/functions",
+  },
+] as const;
+
+const services = [
+  {
+    title: "Full-cycle planning",
+    description:
+      "From the first conversation to the practical details that bring an event together.",
+  },
+  {
+    title: "Décor & architecture",
+    description:
+      "Bespoke stages, mandaps, draping and centerpieces shaped to your celebration.",
+  },
+  {
+    title: "Lighting & atmosphere",
+    description:
+      "Thoughtful lighting that sets the mood and brings each space to life.",
+  },
+  {
+    title: "Floral styling",
+    description:
+      "Seasonal flowers arranged into arches, garlands and table details.",
+  },
+] as const;
+
+const process = [
+  {
+    step: "01",
+    title: "Discover",
+    description: "We start by listening to your ideas, occasion and priorities.",
+  },
+  {
+    step: "02",
+    title: "Plan",
+    description: "Together, we shape the details and a clear event plan.",
+  },
+  {
+    step: "03",
+    title: "Execute",
+    description: "Our team coordinates the plan so you can be present on the day.",
+  },
+  {
+    step: "04",
+    title: "Remember",
+    description: "Enjoy the celebration and the moments you came together for.",
+  },
+] as const;
+
 export default function HomePage() {
-  const featuredImages = getFeaturedImages();
+  const heroAlt =
+    galleryImages.find((image) => image.featured)?.alt ?? "Celebration setting";
+  const mosaicImages = galleryImages;
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
-        {/* Hero background placeholder */}
-        <div className="absolute inset-0 image-placeholder" aria-hidden="true">
+      <section className="home-hero relative isolate flex h-[50svh] min-h-[22rem] max-h-[26rem] items-center overflow-hidden sm:h-[60vh] sm:max-h-[36rem]">
+        <div className="absolute inset-0 -z-20">
           <PlaceholderImage
             src="/images/hero/hero-01.webp"
-            alt="Hero celebration backdrop"
+            alt={heroAlt}
             fill
             priority
-            className="w-full h-full object-cover"
+            sizes="100vw"
+            className="h-full w-full object-cover"
           />
         </div>
-        {/* Dark overlay for contrast */}
-        <div className="absolute inset-0 bg-ink/50" aria-hidden="true" />
+        <div className="home-hero-scrim absolute inset-0 -z-10" aria-hidden="true" />
 
-        <div className="relative z-10 text-center px-4 sm:px-6 max-w-3xl mx-auto pt-20">
-          <h1 className="text-white font-heading text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
-            {site.tagline !== "TODO: tagline"
-              ? site.tagline
-              : "Crafting Unforgettable Celebrations"}
-          </h1>
-          <p className="mt-6 text-white/90 text-lg sm:text-xl font-body max-w-xl mx-auto">
-            Weddings, birthdays, and milestone events — planned and executed with care,
-            creativity, and attention to every detail.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/contact"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-accent text-accent-ink font-semibold rounded-radius-full text-base sm:text-lg hover:bg-accent-hover transition-colors shadow-[var(--shadow-md)]"
-            >
-              Plan Your Event
-            </Link>
-            <Link
-              href="/gallery"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white/15 backdrop-blur-sm text-white font-semibold rounded-radius-full text-base sm:text-lg hover:bg-white/25 transition-colors border border-white/30"
-            >
-              View Portfolio
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Services Overview */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-12 sm:mb-16">
-          <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-            Curated Experiences
-          </span>
-          <h2 className="mt-2 font-heading text-3xl sm:text-4xl font-bold text-ink">
-            Our Services
-          </h2>
-          <p className="mt-4 text-ink-muted max-w-2xl mx-auto">
-            From intimate gatherings to grand celebrations, we bring your vision to life.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {[
-            {
-              title: "Weddings",
-              desc: "Complete wedding planning and execution — from venue décor and floral design to coordination on the big day.",
-              href: "/services/weddings",
-              img: "/images/services/weddings.webp",
-            },
-            {
-              title: "Birthdays",
-              desc: "Themed birthday celebrations with creative décor, lighting, and entertainment for all ages.",
-              href: "/services/birthdays",
-              img: "/images/services/birthdays.webp",
-            },
-            {
-              title: "Functions",
-              desc: "Corporate events, social gatherings, and special occasions — professionally managed from start to finish.",
-              href: "/services/functions",
-              img: "/images/services/functions.webp",
-            },
-          ].map((service) => (
-            <Link
-              key={service.title}
-              href={service.href}
-              className="group block bg-surface border border-border rounded-radius-lg p-6 sm:p-8 transition-all hover:shadow-[var(--shadow-md)] hover:border-accent/40"
-            >
-              {/* Service image placeholder */}
-              <div className="overflow-hidden rounded-radius-md mb-6 aspect-[4/3] relative">
-                <PlaceholderImage
-                  src={service.img}
-                  alt={service.title}
-                  aspectRatio={4 / 3}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <h3 className="font-heading text-xl sm:text-2xl font-semibold text-ink group-hover:text-accent transition-colors">
-                {service.title}
-              </h3>
-              <p className="mt-3 text-ink-muted text-sm leading-relaxed">
-                {service.desc}
-              </p>
-              <span className="mt-4 inline-flex items-center text-accent font-semibold text-sm group-hover:gap-2 transition-all">
-                Learn more
-                <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Gallery Strip */}
-      <section className="py-16 sm:py-24 bg-surface border-y border-border">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-              Recent Highlights
-            </span>
-            <h2 className="mt-2 font-heading text-3xl sm:text-4xl font-bold text-ink">
-              Our Work
-            </h2>
-            <p className="mt-4 text-ink-muted max-w-2xl mx-auto">
-              A glimpse into the celebrations we&rsquo;ve brought to life.
+        <div className="mx-auto w-full max-w-7xl px-5 pb-5 pt-20 sm:px-8 lg:px-12">
+          <div className="max-w-3xl">
+            <p className="mb-4 text-base font-semibold uppercase tracking-[0.18em] text-white/90">
+              {site.name}
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredImages.slice(0, 3).map((item, i) => (
-              <div
-                key={`${item.src}-${i}`}
-                className="rounded-radius-md overflow-hidden bg-bg border border-border group"
+            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] text-white sm:text-5xl md:text-6xl">
+              Celebrations, thoughtfully brought to life.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-white sm:text-lg">
+              Thoughtful planning for weddings, birthdays and gatherings, from
+              the first idea to the final detail.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/contact"
+                className="inline-flex min-h-11 items-center justify-center rounded-radius-full bg-accent px-7 py-3 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
               >
-                <div className="aspect-[4/3] overflow-hidden relative">
+                Plan Your Event
+              </Link>
+              <Link
+                href="/gallery"
+                className="inline-flex min-h-11 items-center justify-center rounded-radius-full border border-white/70 bg-ink/20 px-7 py-3 text-base font-semibold text-white transition-colors hover:bg-white/15"
+              >
+                View Gallery
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="home-reveal mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+        aria-labelledby="event-types-heading"
+      >
+        <div className="mb-9 max-w-2xl">
+          <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
+            Occasions
+          </p>
+          <h2 id="event-types-heading" className="mt-3 text-3xl sm:text-4xl">
+            Made for your kind of gathering
+          </h2>
+          <span className="section-ornament mt-5" aria-hidden="true" />
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {eventTypes.map((event) => {
+            const image = galleryImages.find(
+              (item) => item.category === event.category
+            );
+
+            return (
+              <Link
+                key={event.title}
+                href={event.href}
+                className="group overflow-hidden border border-border bg-surface transition-colors hover:border-accent focus-visible:outline-offset-4"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-accent-light">
                   <PlaceholderImage
-                    src={item.src}
-                    alt={item.alt}
-                    width={item.width}
-                    height={item.height}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    src={image?.src}
+                    alt={image?.alt ?? event.title}
+                    width={image?.width ?? 800}
+                    height={image?.height ?? 600}
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 </div>
-                <div className="p-4">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-accent">
-                    {item.category}
-                  </span>
-                  <p className="text-sm font-medium text-ink truncate mt-1">
-                    {item.alt}
+                <div className="p-5 sm:p-6">
+                  <h3 className="text-2xl">{event.title}</h3>
+                  <p className="mt-2 text-base leading-relaxed text-ink-muted">
+                    {event.description}
                   </p>
                 </div>
-              </div>
-            ))}
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <section
+        className="home-reveal home-dark-section bg-ink text-white"
+        aria-labelledby="services-heading"
+      >
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+          <div className="mb-10 max-w-2xl">
+            <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent-light">
+              What we do
+            </p>
+            <h2 id="services-heading" className="mt-3 text-3xl text-white sm:text-4xl">
+              Thoughtful details, considered together
+            </h2>
+            <span className="section-ornament section-ornament-light mt-5" aria-hidden="true" />
           </div>
 
-          <div className="text-center mt-12">
-            <Link
-              href="/gallery"
-              className="inline-flex items-center px-8 py-3.5 border-2 border-accent text-accent font-semibold rounded-radius-full hover:bg-accent hover:text-accent-ink transition-colors"
-            >
-              Explore Full Gallery
-            </Link>
+          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
+            {services.map((service, index) => (
+              <article
+                key={service.title}
+                className="border-t border-white/20 py-6 sm:px-5 sm:first:pl-0 lg:border-l lg:border-t-0 lg:py-2 lg:first:border-l-0"
+              >
+                <p className="font-heading text-4xl text-accent-light">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <h3 className="mt-4 text-xl text-white">{service.title}</h3>
+                <p className="mt-3 text-base leading-relaxed text-white/75">
+                  {service.description}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How We Work */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-12 sm:mb-16">
-          <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-            Step-by-Step
-          </span>
-          <h2 className="mt-2 font-heading text-3xl sm:text-4xl font-bold text-ink">
-            How We Work
-          </h2>
-          <p className="mt-4 text-ink-muted max-w-xl mx-auto">
-            From your first thought to the final send-off, our structured process ensures nothing is left to chance.
-          </p>
+      <section
+        className="home-reveal mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+        aria-labelledby="gallery-heading"
+      >
+        <div className="mb-9 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
+              From the gallery
+            </p>
+            <h2 id="gallery-heading" className="mt-3 text-3xl sm:text-4xl">
+              A glimpse of the details
+            </h2>
+            <span className="section-ornament mt-5" aria-hidden="true" />
+          </div>
+          <Link
+            href="/gallery"
+            className="inline-flex min-h-11 items-center text-base font-semibold text-accent underline decoration-border-strong underline-offset-4 hover:decoration-accent"
+          >
+            Explore the gallery
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { step: "01", title: "Consultation", desc: "We listen to your vision, understand your requirements, and discuss your budget." },
-            { step: "02", title: "Planning", desc: "Our team creates a detailed plan covering every element — décor, vendors, timelines." },
-            { step: "03", title: "Design", desc: "We present design concepts and finalize every detail before execution begins." },
-            { step: "04", title: "Execution", desc: "On the day, we handle everything so you can enjoy every moment stress-free." },
-          ].map((item) => (
-            <div key={item.step} className="p-6 bg-surface border border-border rounded-radius-lg">
-              <span className="inline-block text-accent font-heading text-4xl font-bold opacity-40">
-                {item.step}
-              </span>
-              <h3 className="mt-3 font-heading text-xl font-semibold text-ink">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-ink-muted text-sm leading-relaxed">
-                {item.desc}
-              </p>
-            </div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+          {mosaicImages.map((image, index) => (
+            <Link
+              key={image.src}
+              href="/gallery"
+              className={`group relative block overflow-hidden bg-accent-light ${
+                index === 0
+                  ? "col-span-2 aspect-[16/9] lg:col-span-2 lg:row-span-2 lg:aspect-auto"
+                  : "aspect-[4/3]"
+              }`}
+              aria-label={`View gallery: ${image.alt}`}
+            >
+              {index === 0 ? (
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              ) : (
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, 50vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              )}
+            </Link>
           ))}
         </div>
       </section>
 
-      {/* Testimonials (placeholder) */}
-      <section className="py-16 sm:py-24 bg-accent-light/40 border-y border-border">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-              Client Feedback
-            </span>
-            <h2 className="mt-2 font-heading text-3xl sm:text-4xl font-bold text-ink">
-              What Our Clients Say
+      <section
+        className="home-reveal border-y border-border bg-surface"
+        aria-labelledby="process-heading"
+      >
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+          <div className="mb-10 max-w-2xl">
+            <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
+              How we work
+            </p>
+            <h2 id="process-heading" className="mt-3 text-3xl sm:text-4xl">
+              A clear path from idea to celebration
             </h2>
+            <span className="section-ornament mt-5" aria-hidden="true" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {[1, 2, 3].map((i) => (
-              <blockquote
-                key={i}
-                className="bg-surface border border-border rounded-radius-lg p-6 sm:p-8 flex flex-col justify-between"
-              >
-                <p className="text-ink-muted italic leading-relaxed text-sm sm:text-base">
-                  &ldquo;TODO: Real testimonial from a client. Replace this
-                  placeholder with genuine feedback.&rdquo;
+          <ol className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+            {process.map((item) => (
+              <li key={item.step} className="border-t border-border pt-5">
+                <p className="font-heading text-3xl text-accent">{item.step}</p>
+                <h3 className="mt-3 text-2xl">{item.title}</h3>
+                <p className="mt-2 text-base leading-relaxed text-ink-muted">
+                  {item.description}
                 </p>
-                <footer className="mt-6 pt-4 border-t border-border text-sm font-semibold text-ink">
-                  — TODO: Client Name
-                </footer>
-              </blockquote>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* Contact CTA */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-ink">
-            Ready to Start Planning?
-          </h2>
-          <p className="mt-4 text-ink-muted text-lg max-w-xl mx-auto">
-            Let&rsquo;s discuss your event. Reach out to us and we&rsquo;ll make
-            it unforgettable.
+      <section className="home-reveal px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <div className="mx-auto max-w-4xl border border-border bg-accent-light/40 px-6 py-10 text-center sm:px-12 sm:py-14">
+          <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
+            Begin a conversation
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/contact"
-              className="inline-flex items-center px-8 py-4 bg-accent text-accent-ink font-semibold rounded-radius-full text-base hover:bg-accent-hover transition-colors shadow-[var(--shadow-md)] w-full sm:w-auto justify-center"
-            >
-              Get in Touch
-            </Link>
-            <Link
-              href="/gallery"
-              className="inline-flex items-center px-8 py-4 border-2 border-border text-ink font-semibold rounded-radius-full text-base hover:border-accent hover:text-accent transition-colors w-full sm:w-auto justify-center"
-            >
-              View Our Work
-            </Link>
-          </div>
+          <h2 className="mt-3 text-3xl sm:text-4xl">
+            Let&apos;s plan something meaningful
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-ink-muted">
+            Share what you have in mind. We&apos;ll talk through your occasion
+            and the details that matter to you.
+          </p>
+          <Link
+            href="/contact"
+            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-radius-full bg-accent px-7 py-3 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
+          >
+            Plan Your Event
+          </Link>
         </div>
       </section>
     </>

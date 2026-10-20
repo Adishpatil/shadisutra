@@ -1,16 +1,16 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { site, siteLinks } from "@/config/site";
+import { site, siteLinks, hasSiteValue } from "@/config/site";
 
 /**
  * Sticky Call & WhatsApp floating buttons on mobile.
- * Only rendered when the phone/whatsapp values are configured (not "TODO").
+ * Only rendered when at least one contact channel is configured.
  */
 export function StickyContactButtons() {
   const pathname = usePathname();
-  const hasPhone = site.phone && site.phone !== "TODO";
-  const hasWhatsApp = site.whatsapp && site.whatsapp !== "TODO";
+  const hasPhone = hasSiteValue(site.phone);
+  const hasWhatsApp = hasSiteValue(site.whatsapp);
 
   if (pathname?.startsWith("/admin")) return null;
   if (!hasPhone && !hasWhatsApp) return null;

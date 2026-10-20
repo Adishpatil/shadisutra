@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { site } from "@/config/site";
 import { getPublicSharedEvent } from "@/lib/events/public-share";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "Private Event Details — Shadi Sutra",
+  title: `Private Event Details | ${site.name}`,
   robots: { index: false, follow: false, noarchive: true },
 };
 
 function InvalidLink() {
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-bg px-4 py-10">
+    <>
+    <a href="#main-content" className="skip-to-content">
+      Skip to content
+    </a>
+    <main id="main-content" className="flex min-h-[100dvh] items-center justify-center bg-bg px-4 py-10">
       <section
         aria-labelledby="invalid-link-title"
         className="w-full max-w-lg rounded-radius-lg border border-border bg-surface p-6 text-center shadow-[var(--shadow-sm)] sm:p-10"
@@ -29,6 +34,7 @@ function InvalidLink() {
         </p>
       </section>
     </main>
+    </>
   );
 }
 
@@ -42,7 +48,11 @@ export default async function SharedEventPage({
   if (!event) return <InvalidLink />;
 
   return (
-    <main className="min-h-[100dvh] bg-bg px-4 py-8 text-ink sm:px-6 sm:py-12">
+    <>
+    <a href="#main-content" className="skip-to-content">
+      Skip to content
+    </a>
+    <main id="main-content" className="min-h-[100dvh] bg-bg px-4 py-8 text-ink sm:px-6 sm:py-12">
       <article className="mx-auto w-full max-w-3xl space-y-8">
         <header className="space-y-3 border-b border-border pb-6">
           <p className="text-sm font-semibold uppercase tracking-widest text-accent">
@@ -160,5 +170,6 @@ export default async function SharedEventPage({
         )}
       </article>
     </main>
+    </>
   );
 }

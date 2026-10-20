@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/config/site";
+import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 
-export const metadata: Metadata = {
-  title: "About Us",
-  description: `Learn about ${site.name}, our philosophy, team, and bespoke approach to event management.`,
-};
+export const metadata: Metadata = pageMetadata(
+  "About",
+  `Learn about the event planning approach at ${site.name}.`,
+  "/about"
+);
 
 export default function AboutPage() {
   return (
@@ -43,25 +45,10 @@ export default function AboutPage() {
               Our Journey &amp; Approach
             </h2>
             <p>
-              [TODO: Insert founding story. Founded with a vision to eliminate the chaos and stress
-              traditionally associated with milestone events, {site.name} brings together seasoned event designers,
-              master floral artists, logistical managers, and technical directors under one unified team.]
-            </p>
-            <p>
               Whether it is a regal wedding mandap steeped in cultural heritage, an energetic milestone birthday,
               or a sophisticated corporate gala, we oversee every touchpoint — from structural stage safety and
               acoustic tuning to ambient illumination and guest hospitality.
             </p>
-            <div className="pt-4 border-t border-border grid grid-cols-2 gap-6">
-              <div>
-                <span className="block font-heading text-3xl font-bold text-accent">100%</span>
-                <span className="text-sm text-ink-muted">Tailored &amp; Bespoke Design</span>
-              </div>
-              <div>
-                <span className="block font-heading text-3xl font-bold text-accent">Zero</span>
-                <span className="text-sm text-ink-muted">Stress For Your Family</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -96,8 +83,8 @@ export default function AboutPage() {
                 Transparent Execution
               </h3>
               <p className="mt-3 text-sm text-ink-muted leading-relaxed">
-                Clear communication, honest vendor pricing, and real-time portal tracking mean you are never left
-                guessing what is happening behind the scenes.
+                Clear communication, honest vendor pricing, and a carefully maintained event plan mean you are never
+                left guessing what is happening behind the scenes.
               </p>
             </div>
 

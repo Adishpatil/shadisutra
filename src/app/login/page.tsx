@@ -33,13 +33,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[90dvh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-24">
+    <>
+    <a href="#main-content" className="skip-to-content">
+      Skip to content
+    </a>
+    <main id="main-content" className="min-h-[90dvh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-24">
       <div className="w-full max-w-md bg-surface p-8 sm:p-10 rounded-radius-lg border border-border shadow-[var(--shadow-md)]">
         {/* Brand header */}
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="inline-block font-heading text-3xl font-bold text-accent tracking-tight"
+            className="inline-flex min-h-11 items-center font-heading text-3xl font-bold text-accent tracking-tight"
           >
             {site.name}
           </Link>
@@ -63,6 +67,7 @@ export default function LoginPage() {
         {(state?.error || mfaError) && (
           <div
             role="alert"
+            id="login-error"
             className="mb-6 p-4 rounded-radius-md bg-danger-light border border-danger/30 text-danger text-sm font-medium"
           >
             {mfaError || state?.error}
@@ -100,6 +105,7 @@ export default function LoginPage() {
                 autoComplete="one-time-code"
                 maxLength={6}
                 placeholder="123456"
+                aria-describedby={mfaError || state?.error ? "login-error" : undefined}
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
                 className="w-full text-center tracking-widest text-xl font-mono px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
@@ -140,6 +146,7 @@ export default function LoginPage() {
                 autoCorrect="off"
                 autoComplete="username"
                 placeholder="Administrator username"
+                aria-describedby={state?.error ? "login-error" : undefined}
                 className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
@@ -160,12 +167,13 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   placeholder="••••••••••••"
+                  aria-describedby={state?.error ? "login-error" : undefined}
                   className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink px-2 py-1 rounded-radius-sm text-xs font-semibold"
+                  className="absolute right-3 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-radius-sm px-2 py-1 text-xs font-semibold text-ink-muted hover:text-ink"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -191,6 +199,7 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
+    </>
   );
 }

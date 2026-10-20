@@ -2,9 +2,8 @@
 
 import { enquirySchema } from "@/lib/validation";
 import { createClient } from "@/lib/supabase/server";
-
-// Simple in-memory rate limiting map for dev/server actions (IP or timestamp based)
-const submissionTimestamps = new Map<string, number>();
+import { headers } from "next/headers";
+import { consumeRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 
 export interface SubmitEnquiryResult {
   success: boolean;
@@ -50,19 +49,20 @@ export async function submitEnquiryAction(
     };
   }
 
-  // 3. Basic Rate limit check (limit 1 enquiry per 10 seconds per phone)
-  const phoneKey = validation.data.phone.replace(/\D/g, "");
-  const lastSubmit = submissionTimestamps.get(phoneKey);
-  const now = Date.now();
-  if (lastSubmit && now - lastSubmit < 10000) {
-    return {
-      success: false,
-      message: "Please wait a few seconds before submitting another enquiry.",
-    };
-  }
-  submissionTimestamps.set(phoneKey, now);
-
   try {
+    const requestHeaders = await headers();
+    const allowed = await consumeRateLimit(
+      rateLimitKey(requestHeaders, "contact"),
+      1,
+      10
+    );
+    if (!allowed) {
+      return {
+        success: false,
+        message: "Please wait a few seconds before submitting another enquiry.",
+      };
+    }
+
     const supabase = await createClient();
     const { error } = await supabase.from("enquiries").insert({
       name: validation.data.name,
@@ -72,17 +72,12 @@ export async function submitEnquiryAction(
       message: validation.data.message,
     });
     if (error) {
-      console.error("[contact] Failed to save enquiry:", error.message);
       return {
         success: false,
         message: "Your enquiry could not be submitted. Please try again later.",
       };
     }
-  } catch (error: unknown) {
-    console.error(
-      "[contact] Failed to save enquiry:",
-      error instanceof Error ? error.message : "Unknown error."
-    );
+  } catch {
     return {
       success: false,
       message: "Your enquiry could not be submitted. Please try again later.",

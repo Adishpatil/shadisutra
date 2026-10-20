@@ -43,10 +43,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (assuranceError || assurance.currentLevel !== "aal2") redirect("/login");
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg">
+    <div id="admin-shell" className="min-h-screen bg-bg">
+      <a href="#main-content" className="skip-to-content">
+        Skip to content
+      </a>
       <AdminNav />
-      <main className="flex-1 pt-20 md:pt-8 pb-24 md:pb-12 px-4 sm:px-6 lg:px-10 md:ml-20 lg:ml-64 transition-all min-h-screen">
-        <div className="max-w-7xl mx-auto w-full">
+      <main id="main-content" className="min-h-screen flex-1 px-4 pb-[calc(9rem+var(--safe-bottom))] pt-[calc(5rem+var(--safe-top))] sm:px-6 md:ml-60 md:px-8 md:pb-10 md:pt-20 lg:px-10">
+        <div className="mx-auto w-full max-w-7xl">
           {children}
         </div>
       </main>

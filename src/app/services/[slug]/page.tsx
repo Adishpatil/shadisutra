@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { site } from "@/config/site";
+import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 
 interface ServiceDetail {
@@ -94,9 +94,9 @@ const serviceData: Record<string, ServiceDetail> = {
           "Ideally 4 to 9 months prior to your wedding dates. However, we also cater to expedited timelines depending on venue availability and season.",
       },
       {
-        question: "Can we track our wedding items and finalized stage designs online?",
+        question: "How will we receive event updates and finalized designs?",
         answer:
-          "Yes! Through our dedicated Client Portal, you receive private access to finalized 3D renders, schedule timelines, and guest list tracking.",
+          "Our team will share finalized designs, timelines, and coordination details directly with you.",
       },
     ],
   },
@@ -271,12 +271,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const service = serviceData[slug];
-  if (!service) return { title: "Service Not Found" };
+  if (!service) return { title: "Service Not Found", robots: { index: false } };
 
-  return {
-    title: service.title,
-    description: service.overview,
-  };
+  return pageMetadata(service.title, service.overview, `/services/${slug}`);
 }
 
 export default async function ServiceDetailPage({
@@ -297,13 +294,13 @@ export default async function ServiceDetailPage({
       <nav aria-label="Breadcrumb" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <ol className="flex items-center space-x-2 text-sm text-ink-muted">
           <li>
-            <Link href="/" className="hover:text-ink transition-colors">
+            <Link href="/" className="inline-flex min-h-11 items-center hover:text-ink transition-colors">
               Home
             </Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href="/services" className="hover:text-ink transition-colors">
+            <Link href="/services" className="inline-flex min-h-11 items-center hover:text-ink transition-colors">
               Services
             </Link>
           </li>

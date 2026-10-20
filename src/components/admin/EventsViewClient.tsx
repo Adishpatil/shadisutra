@@ -2,25 +2,32 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { AdminEventSummary } from "@/lib/admin/data";
-import { CreateEventModal } from "@/components/admin/CreateEventModal";
 import { updateEventStatusAction } from "@/lib/admin/event-actions";
+import { formatINRDecimal } from "@/lib/format";
+import { Badge, Card, EmptyState } from "@/components/ui/AdminPrimitives";
 
 interface EventsViewClientProps {
   initialEvents: AdminEventSummary[];
 }
 
+const statuses = ["all", "planning", "finalized", "completed", "cancelled"] as const;
+
 export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
-  const router = useRouter();
   const [events, setEvents] = useState(initialEvents);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const filteredEvents =
-    filterStatus === "all"
-      ? events
-      : events.filter((e) => e.status === filterStatus);
+  const filteredEvents = events.filter((event) => {
+    const matchesStatus = filterStatus === "all" || event.status === filterStatus;
+    const query = search.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [event.name, event.venue, event.type].some((value) =>
+        value.toLowerCase().includes(query)
+      );
+    return matchesStatus && matchesSearch;
+  });
 
   const handleStatusChange = async (
     eventId: string,
@@ -32,226 +39,211 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
       return;
     }
     setEvents((prev) =>
-      prev.map((e) => (e.id === eventId ? { ...e, status: newStatus } : e))
+      prev.map((event) =>
+        event.id === eventId ? { ...event, status: newStatus } : event
+      )
     );
   };
 
+  const statusVariant = {
+    planning: "warning",
+    finalized: "success",
+    completed: "neutral",
+    cancelled: "danger",
+  } as const;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <span className="text-xs uppercase tracking-widest text-accent font-semibold">
-            Planning &amp; Staging
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-ink mt-1">
-            Events Management
-          </h1>
-          <p className="text-xs sm:text-sm text-ink-muted mt-1">
-            Track active productions, sub-events, vendors, and items across all client functions.
-          </p>
-        </div>
+      <header>
+        <p className="text-base font-semibold uppercase tracking-wider text-accent">
+          Planning &amp; staging
+        </p>
+        <h1 className="mt-1 text-3xl font-heading font-bold text-ink">
+          Events
+        </h1>
+        <p className="mt-2 text-base text-ink-muted">
+          Search and manage your events, plans and vendors.
+        </p>
+      </header>
 
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-accent-ink rounded-radius-md font-semibold text-sm hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] min-h-[44px]"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Create Event</span>
-        </button>
-      </div>
+      <label className="block">
+        <span className="sr-only">Search events</span>
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search events or venues"
+          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        />
+      </label>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 pb-2">
-        {["all", "planning", "finalized", "completed", "cancelled"].map((st) => (
+      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0" aria-label="Filter events by status">
+        {statuses.map((status) => (
           <button
-            key={st}
+            key={status}
             type="button"
-            onClick={() => setFilterStatus(st)}
-            className={`px-3.5 py-1.5 rounded-radius-full text-xs font-semibold capitalize transition-all min-h-[36px] ${
-              filterStatus === st
-                ? "bg-accent text-accent-ink shadow-[var(--shadow-sm)]"
-                : "bg-surface border border-border text-ink-muted hover:text-ink"
+            aria-pressed={filterStatus === status}
+            onClick={() => setFilterStatus(status)}
+            className={`min-h-11 shrink-0 rounded-radius-full px-4 text-base font-semibold capitalize ${
+              filterStatus === status
+                ? "bg-ink text-white"
+                : "bg-surface text-ink-muted hover:text-ink"
             }`}
           >
-            {st}
+            {status}
           </button>
         ))}
       </div>
 
-      {/* 1. Desktop & Tablet Table (Hidden below 768px) */}
-      <div className="hidden md:block overflow-x-auto bg-surface border border-border rounded-radius-lg shadow-[var(--shadow-sm)]">
-        <table className="w-full text-left border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border bg-bg/50 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-              <th className="py-3.5 px-4">Event Name</th>
-              <th className="py-3.5 px-4">Type</th>
-              <th className="py-3.5 px-4">Target Date</th>
-              <th className="py-3.5 px-4">Venue</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {filteredEvents.map((ev) => (
-              <tr key={ev.id} className="hover:bg-bg/40 transition-colors">
-                <td className="py-4 px-4 font-semibold text-ink">
-                  <Link
-                    href={`/admin/events/${ev.id}`}
-                    className="hover:text-accent transition-colors font-heading text-base"
-                  >
-                    {ev.name}
-                  </Link>
-                </td>
-                <td className="py-4 px-4 uppercase text-xs font-bold text-accent">
-                  <span className="px-2 py-0.5 rounded-radius-sm bg-accent/10 border border-accent/20">
-                    {ev.type}
-                  </span>
-                </td>
-                <td className="py-4 px-4 text-xs font-mono text-ink-muted">
-                  {ev.date}
-                </td>
-                <td className="py-4 px-4 text-xs text-ink-muted truncate max-w-xs">
-                  {ev.venue}
-                </td>
-                <td className="py-4 px-4">
-                  <select
-                    value={ev.status}
-                    onChange={(e) =>
-                      handleStatusChange(ev.id, e.target.value as "planning" | "finalized" | "completed" | "cancelled")
-                    }
-                    className="text-xs font-semibold px-2.5 py-1 rounded-radius-md border border-border bg-bg text-ink focus:ring-1 focus:ring-accent"
-                  >
-                    <option value="planning">Planning</option>
-                    <option value="finalized">Finalized</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </td>
-                <td className="py-4 px-4 text-right space-x-2">
-                  <Link
-                    href={`/admin/events/${ev.id}`}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold border border-border text-ink hover:text-accent hover:border-accent rounded-radius-md transition-colors min-h-[36px]"
-                    title="Manage event share link"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                    </svg>
-                    <span>Share</span>
-                  </Link>
-                  <Link
-                    href={`/admin/events/${ev.id}`}
-                    className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-accent text-accent-ink hover:bg-accent-hover rounded-radius-md transition-colors min-h-[36px]"
-                  >
-                    Manage →
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 2. Mobile Stacked Cards (Visible only below 768px) */}
-      <div className="md:hidden space-y-4">
-        {filteredEvents.map((ev) => {
-          const statusColors = {
-            planning: "bg-warning-light text-warning border-warning/30",
-            finalized: "bg-success-light text-success border-success/30",
-            completed: "bg-bg text-ink-muted border-border",
-            cancelled: "bg-danger-light text-danger border-danger/30",
-          }[ev.status];
+      <div className="space-y-3 lg:hidden">
+        {filteredEvents.map((event) => {
+          const balanceDue = Math.max(
+            0,
+            Math.round((event.budget_total ?? 0) * 100) -
+              Math.round((event.total_paid ?? 0) * 100)
+          );
 
           return (
-            <div
-              key={ev.id}
-              className="bg-surface p-5 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] space-y-3.5"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-[11px] uppercase font-bold text-accent tracking-wider">
-                    {ev.type}
-                  </span>
+            <Card key={event.id} className="space-y-4 p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-base font-semibold uppercase tracking-wider text-accent">
+                    {event.type}
+                  </p>
                   <Link
-                    href={`/admin/events/${ev.id}`}
-                    className="font-heading font-bold text-lg text-ink block mt-0.5"
+                    href={`/admin/events/${event.id}`}
+                    className="mt-1 block break-words text-xl font-heading font-bold text-ink focus-visible:outline-2 focus-visible:outline-accent"
                   >
-                    {ev.name}
+                    {event.name}
                   </Link>
                 </div>
-                <span
-                  className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-radius-full border shrink-0 ${statusColors}`}
-                >
-                  {ev.status}
-                </span>
+                <Badge variant={statusVariant[event.status]}>{event.status}</Badge>
               </div>
-
-              <div className="text-xs text-ink-muted space-y-1.5">
-                <p className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span><strong>Date:</strong> {ev.date}</span>
-                </p>
-                <p className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span><strong>Venue:</strong> {ev.venue}</span>
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-border flex items-center justify-between gap-2">
+              <dl className="space-y-2 text-base text-ink-muted">
+                <div className="flex justify-between gap-3">
+                  <dt>Date</dt>
+                  <dd className="text-right text-ink">{event.date}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt>Venue</dt>
+                  <dd className="max-w-[65%] text-right text-ink">{event.venue}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt>Balance due</dt>
+                  <dd className="text-right font-semibold text-ink">
+                    {formatINRDecimal(balanceDue / 100)}
+                  </dd>
+                </div>
+              </dl>
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                <label className="sr-only" htmlFor={`event-status-${event.id}`}>
+                  Change status for {event.name}
+                </label>
                 <select
-                  value={ev.status}
+                  id={`event-status-${event.id}`}
+                  value={event.status}
                   onChange={(e) =>
-                    handleStatusChange(ev.id, e.target.value as "planning" | "finalized" | "completed" | "cancelled")
+                    handleStatusChange(
+                      event.id,
+                      e.target.value as "planning" | "finalized" | "completed" | "cancelled"
+                    )
                   }
-                  className="text-xs font-semibold px-2 py-1.5 rounded-radius-md border border-border bg-bg text-ink"
+                  className="min-h-11 min-w-0 rounded-radius-md border border-border bg-bg px-3 text-base text-ink"
                 >
                   <option value="planning">Planning</option>
                   <option value="finalized">Finalized</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/admin/events/${ev.id}`}
-                    className="inline-flex items-center justify-center gap-1 px-3 py-2 border border-border text-ink hover:text-accent rounded-radius-md text-xs font-semibold min-h-[44px]"
-                    aria-label={`Manage share link for ${ev.name}`}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                    </svg>
-                    <span>Share</span>
-                  </Link>
-                  <Link
-                    href={`/admin/events/${ev.id}`}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-accent text-accent-ink font-semibold text-xs rounded-radius-md min-h-[44px]"
-                  >
-                    Manage →
-                  </Link>
-                </div>
+                <Link
+                  href={`/admin/events/${event.id}`}
+                  className="inline-flex min-h-11 items-center justify-center rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink"
+                >
+                  Open event
+                </Link>
               </div>
-            </div>
+            </Card>
           );
         })}
+        {filteredEvents.length === 0 && (
+          <EmptyState
+            title={search ? "No matching events" : "No events in this status"}
+            description="Try another search or status filter."
+          />
+        )}
       </div>
 
-      {modalOpen && (
-        <CreateEventModal
-          onClose={() => setModalOpen(false)}
-          onSuccess={(newEventId) => {
-            setModalOpen(false);
-            router.push(`/admin/events/${newEventId}`);
-          }}
-        />
-      )}
+      <div className="hidden overflow-x-auto rounded-radius-lg bg-surface shadow-[var(--shadow-sm)] lg:block">
+        <table className="w-full min-w-[900px] text-left">
+          <thead>
+            <tr className="border-b border-border text-base font-semibold text-ink-muted">
+              <th className="p-4">Event</th>
+              <th className="p-4">Type</th>
+              <th className="p-4">Date</th>
+              <th className="p-4">Venue</th>
+              <th className="p-4">Status</th>
+              <th className="p-4">Balance due</th>
+              <th className="p-4">Manage</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {filteredEvents.map((event) => {
+              const balanceDue = Math.max(
+                0,
+                Math.round((event.budget_total ?? 0) * 100) -
+                  Math.round((event.total_paid ?? 0) * 100)
+              );
+              return (
+                <tr key={event.id}>
+                  <td className="p-4 font-semibold text-ink">
+                    <Link href={`/admin/events/${event.id}`} className="hover:text-accent">
+                      {event.name}
+                    </Link>
+                  </td>
+                  <td className="p-4 capitalize text-ink-muted">{event.type}</td>
+                  <td className="p-4 text-ink-muted">{event.date}</td>
+                  <td className="p-4 text-ink-muted">{event.venue}</td>
+                  <td className="p-4">
+                    <label className="sr-only" htmlFor={`event-status-wide-${event.id}`}>
+                      Change status for {event.name}
+                    </label>
+                    <select
+                      id={`event-status-wide-${event.id}`}
+                      value={event.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          event.id,
+                          e.target.value as "planning" | "finalized" | "completed" | "cancelled"
+                        )
+                      }
+                      className="min-h-11 rounded-radius-md border border-border bg-bg px-3 text-base text-ink"
+                    >
+                      <option value="planning">Planning</option>
+                      <option value="finalized">Finalized</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </td>
+                  <td className="p-4 font-semibold text-ink">
+                    {formatINRDecimal(balanceDue / 100)}
+                  </td>
+                  <td className="p-4">
+                    <Link
+                      href={`/admin/events/${event.id}`}
+                      className="inline-flex min-h-11 items-center rounded-radius-md px-4 font-semibold text-accent hover:bg-accent-light"
+                    >
+                      Open
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {filteredEvents.length === 0 && (
+          <EmptyState title={search ? "No matching events" : "No events in this status"} />
+        )}
+      </div>
 
     </div>
   );

@@ -1,17 +1,22 @@
 import type { MetadataRoute } from "next";
+import { getCanonicalUrl } from "@/config/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Replace with your production URL after deployment
-  const baseUrl = "https://yourdomain.com";
+  const routes = [
+    ["/", "weekly", 1],
+    ["/about", "monthly", 0.8],
+    ["/services", "monthly", 0.8],
+    ["/services/weddings", "monthly", 0.7],
+    ["/services/birthdays", "monthly", 0.7],
+    ["/services/functions", "monthly", 0.7],
+    ["/gallery", "weekly", 0.8],
+    ["/contact", "monthly", 0.9],
+    ["/privacy", "yearly", 0.3],
+    ["/terms", "yearly", 0.3],
+  ] as const;
 
-  return [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${baseUrl}/services`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${baseUrl}/services/weddings`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${baseUrl}/services/birthdays`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${baseUrl}/services/functions`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${baseUrl}/gallery`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-  ];
+  return routes.flatMap(([path, changeFrequency, priority]) => {
+    const url = getCanonicalUrl(path);
+    return url ? [{ url, lastModified: new Date(), changeFrequency, priority }] : [];
+  });
 }

@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/config/site";
+import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 
-export const metadata: Metadata = {
-  title: "Services",
-  description: `Comprehensive event planning and production services for weddings, birthdays, and private functions by ${site.name}.`,
-};
+export const metadata = pageMetadata(
+  "Services",
+  `Explore wedding, birthday, and function planning services from ${site.name}.`,
+  "/services"
+);
 
 const serviceCards = [
   {

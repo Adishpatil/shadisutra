@@ -7,14 +7,15 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function signOutAction() {
   const cookieStore = await cookies();
+  let signOutFailed = false;
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     const { error } = await supabase.auth.signOut();
-    if (error) throw new Error(`Could not sign out: ${error.message}`);
-  } else {
-    for (const cookie of cookieStore.getAll()) {
-      if (cookie.name.startsWith("sb-")) cookieStore.delete(cookie.name);
-    }
+    signOutFailed = !!error;
   }
+  for (const cookie of cookieStore.getAll()) {
+    if (cookie.name.startsWith("sb-")) cookieStore.delete(cookie.name);
+  }
+  if (signOutFailed) throw new Error("Could not complete sign out.");
   redirect("/login");
 }

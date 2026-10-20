@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { site, siteLinks } from "@/config/site";
+import { site, siteLinks, hasSiteValue } from "@/config/site";
 
 const footerLinks = [
   {
@@ -41,22 +41,26 @@ export function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <Link
               href="/"
-              className="inline-block font-heading text-2xl font-bold text-white tracking-tight"
+              className="inline-flex min-h-11 items-center font-heading text-2xl font-bold text-white tracking-tight"
             >
               {site.name}
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-white/60 max-w-xs">
-              {site.tagline}
-            </p>
+            {hasSiteValue(site.tagline) && (
+              <p className="mt-4 max-w-xs text-base leading-relaxed text-white/75">
+                {site.tagline}
+              </p>
+            )}
 
             {/* Social links */}
-            <div className="mt-6 flex items-center gap-3">
-              {site.social.instagram && site.social.instagram !== "TODO" && (
+            {(hasSiteValue(site.social.instagram) ||
+              hasSiteValue(site.social.facebook) ||
+              hasSiteValue(site.social.youtube)) && <div className="mt-6 flex items-center gap-3">
+              {hasSiteValue(site.social.instagram) && (
                 <a
                   href={siteLinks.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-10 h-10 rounded-radius-full bg-white/10 text-white/70 hover:bg-accent hover:text-accent-ink transition-colors"
+                  className="flex h-11 w-11 items-center justify-center rounded-radius-full bg-white/10 text-white/80 transition-colors hover:bg-accent hover:text-accent-ink"
                   aria-label="Follow us on Instagram"
                 >
                   <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -64,12 +68,12 @@ export function Footer() {
                   </svg>
                 </a>
               )}
-              {site.social.facebook && site.social.facebook !== "TODO" && (
+              {hasSiteValue(site.social.facebook) && (
                 <a
                   href={siteLinks.facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-10 h-10 rounded-radius-full bg-white/10 text-white/70 hover:bg-accent hover:text-accent-ink transition-colors"
+                  className="flex h-11 w-11 items-center justify-center rounded-radius-full bg-white/10 text-white/80 transition-colors hover:bg-accent hover:text-accent-ink"
                   aria-label="Follow us on Facebook"
                 >
                   <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -77,12 +81,12 @@ export function Footer() {
                   </svg>
                 </a>
               )}
-              {site.social.youtube && siteLinks.youtubeUrl && (
+              {hasSiteValue(site.social.youtube) && siteLinks.youtubeUrl && (
                 <a
                   href={siteLinks.youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-10 h-10 rounded-radius-full bg-white/10 text-white/70 hover:bg-accent hover:text-accent-ink transition-colors"
+                  className="flex h-11 w-11 items-center justify-center rounded-radius-full bg-white/10 text-white/80 transition-colors hover:bg-accent hover:text-accent-ink"
                   aria-label="Watch us on YouTube"
                 >
                   <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -90,21 +94,21 @@ export function Footer() {
                   </svg>
                 </a>
               )}
-            </div>
+            </div>}
           </div>
 
           {/* Link columns */}
           {footerLinks.map((col) => (
             <div key={col.title}>
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+              <h3 className="text-base font-semibold text-white uppercase tracking-wider">
                 {col.title}
               </h3>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-4 space-y-1">
                 {col.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white/60 hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center text-base text-white/75 transition-colors hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -115,51 +119,62 @@ export function Footer() {
           ))}
 
           {/* Contact column */}
-          <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+          {(hasSiteValue(site.phone) ||
+            hasSiteValue(site.email) ||
+            hasSiteValue(site.address) ||
+            hasSiteValue(site.hours)) && <div>
+            <h3 className="text-base font-semibold text-white uppercase tracking-wider">
               Contact
             </h3>
-            <ul className="mt-4 space-y-3 text-sm text-white/60">
-              {site.phone && site.phone !== "TODO" && (
+            <ul className="mt-4 space-y-1 text-base text-white/75">
+              {hasSiteValue(site.phone) && (
                 <li>
                   <a
                     href={siteLinks.phoneUrl}
-                    className="hover:text-white transition-colors"
+                    className="inline-flex min-h-11 items-center transition-colors hover:text-white"
                   >
                     {site.phone}
                   </a>
                 </li>
               )}
-              {site.email && site.email !== "TODO" && (
+              {hasSiteValue(site.email) && (
                 <li>
                   <a
                     href={siteLinks.emailUrl}
-                    className="hover:text-white transition-colors"
+                    className="inline-flex min-h-11 items-center transition-colors hover:text-white"
                   >
                     {site.email}
                   </a>
                 </li>
               )}
-              {site.address && site.address !== "TODO" && (
+              {hasSiteValue(site.address) && (
                 <li>{site.address}</li>
               )}
-              {site.hours && site.hours !== "TODO" && (
+              {hasSiteValue(site.hours) && (
                 <li>{site.hours}</li>
               )}
             </ul>
-          </div>
+          </div>}
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/40">
-            © {currentYear} {site.name}. All rights reserved.
-          </p>
-          <div className="flex items-center gap-6 text-xs text-white/40">
-            <Link href="/contact" className="hover:text-white/70 transition-colors">
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 py-4 sm:flex-row">
+          <div className="flex flex-wrap items-center justify-center gap-x-4">
+            <p className="text-base text-white/75">
+              © {currentYear} {site.name}. All rights reserved.
+            </p>
+            <Link
+              href="/login"
+              className="inline-flex min-h-11 items-center text-sm text-white/60 transition-colors hover:text-white"
+            >
+              Admin
+            </Link>
+          </div>
+          <div className="flex items-center gap-4 text-base text-white/75 sm:gap-6">
+            <Link href="/privacy" className="inline-flex min-h-11 items-center transition-colors hover:text-white">
               Privacy Policy
             </Link>
-            <Link href="/contact" className="hover:text-white/70 transition-colors">
+            <Link href="/terms" className="inline-flex min-h-11 items-center transition-colors hover:text-white">
               Terms
             </Link>
           </div>

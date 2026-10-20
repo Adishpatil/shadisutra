@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState } from "react";
 import { submitEnquiryAction, type SubmitEnquiryResult } from "@/app/contact/actions";
 
 interface ContactFormProps {

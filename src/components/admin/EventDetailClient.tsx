@@ -27,6 +27,7 @@ import { GuestListTab } from "@/components/admin/GuestListTab";
 import { DesignsTab } from "@/components/admin/DesignsTab";
 import { TimelineTab } from "@/components/admin/TimelineTab";
 import { EventShareLinkPanel } from "@/components/admin/EventShareLinkPanel";
+import { Badge, Sheet, Tabs } from "@/components/ui/AdminPrimitives";
 import type { PaymentRecord } from "@/lib/admin/budget-calculations";
 import type { AuditLogItem } from "@/lib/admin/data";
 import type { AdminEventShareLink } from "@/lib/events/share-actions";
@@ -46,7 +47,7 @@ interface EventDetailClientProps {
   initialShareLink: AdminEventShareLink | null;
 }
 
-type TabType = "items" | "functions" | "budget" | "designs" | "timeline" | "guests";
+type TabType = "overview" | "plan" | "budget" | "designs" | "guests";
 const eventTypes = ["wedding", "birthday", "function"] as const;
 const itemCategories = ["lighting", "flowers", "decor", "instruments", "other"] as const;
 const itemStatuses = ["not_started", "in_progress", "done"] as const;
@@ -71,7 +72,7 @@ export function EventDetailClient({
   initialShareLink,
 }: EventDetailClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("items");
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [eventData, setEventData] = useState(event);
   const [functions, setFunctions] = useState(initialFunctions);
   const [itemsByFunction, setItemsByFunction] = useState(initialItemsByFunction);
@@ -80,6 +81,7 @@ export function EventDetailClient({
 
   // Modals state
   const [showEditEventModal, setShowEditEventModal] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const [showAddFunction, setShowAddFunction] = useState(false);
   const [editingFunction, setEditingFunction] = useState<AdminFunction | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -343,7 +345,7 @@ export function EventDetailClient({
       {/* ------------------------------------------------------------- */}
       {/* 1. Header Banner & Status                                     */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-surface p-6 sm:p-8 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] space-y-5">
+      <div className="rounded-radius-lg bg-surface p-4 shadow-[var(--shadow-sm)] sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs text-ink-muted">
           <div className="flex items-center gap-2">
             <Link href="/admin/events" className="hover:text-accent font-medium transition-colors">
@@ -374,12 +376,15 @@ export function EventDetailClient({
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="flex items-center gap-3 flex-wrap text-xs text-ink-muted">
-              <span className="px-2.5 py-0.5 rounded-radius-sm bg-accent/10 border border-accent/30 text-accent font-semibold tracking-wider uppercase text-[11px]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-base text-ink-muted">
+              <span className="rounded-radius-full bg-accent-light px-3 py-1 font-semibold capitalize text-accent">
                 {eventData.type}
               </span>
+              <Badge variant={status === "planning" ? "warning" : status === "finalized" ? "success" : status === "cancelled" ? "danger" : "neutral"}>
+                {status}
+              </Badge>
               <span className="inline-flex items-center gap-1">
                 <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -395,11 +400,11 @@ export function EventDetailClient({
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-ink tracking-tight">
+            <h1 className="break-words text-2xl font-heading font-bold text-ink tracking-tight sm:text-3xl">
               {eventData.name}
             </h1>
             {(eventData.client_name || eventData.client_phone) && (
-              <div className="text-sm text-ink-muted">
+              <div className="text-base text-ink-muted">
                 {eventData.client_name && <p>Client: {eventData.client_name}</p>}
                 {eventData.client_phone && (
                   <p>
@@ -417,17 +422,18 @@ export function EventDetailClient({
 
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap shrink-0">
-            <Link
-              href={`/admin/events/${event.id}`}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-radius-md border border-accent/40 bg-accent/10 text-accent text-sm font-semibold hover:bg-accent hover:text-accent-ink transition-all min-h-[44px] shadow-sm"
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowShareSheet(true)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink"
               title="Manage event share link"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
-              <span>Event share link</span>
-            </Link>
+              <span>Share</span>
+            </button>
 
             <div className="flex items-center gap-2">
               <label htmlFor="event-detail-status" className="sr-only">
@@ -449,42 +455,57 @@ export function EventDetailClient({
         </div>
       </div>
 
-      <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} />
+      <Sheet
+        open={showShareSheet}
+        title="Share event"
+        onClose={() => setShowShareSheet(false)}
+      >
+        <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} />
+      </Sheet>
 
       {/* ------------------------------------------------------------- */}
       {/* 2. Swipeable Tab Bar with Active Indicator                    */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-border text-sm">
-        {[
-          { key: "items", label: "Items & Production" },
-          { key: "functions", label: `Sub-Events (${functions.length})` },
-          { key: "budget", label: "Budget & Payments" },
-          { key: "designs", label: "3D Renders" },
-          { key: "timeline", label: "Timeline" },
-          { key: "guests", label: "Guest List" },
-        ].map((t) => {
-          const isActive = activeTab === t.key;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setActiveTab(t.key as TabType)}
-              className={`px-4 py-2.5 font-medium whitespace-nowrap text-xs sm:text-sm transition-all border-b-2 -mb-[2px] ${
-                isActive
-                  ? "border-accent text-accent font-semibold"
-                  : "border-transparent text-ink-muted hover:text-ink hover:border-border"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        label="Event sections"
+        value={activeTab}
+        onChange={setActiveTab}
+        items={[
+          { value: "overview", label: "Overview" },
+          { value: "plan", label: "Plan" },
+          { value: "budget", label: "Money" },
+          { value: "designs", label: "Designs" },
+          { value: "guests", label: "Guests" },
+        ]}
+      />
+
+      {activeTab === "overview" && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ["Functions", functions.length],
+            ["Items", displayItems.length],
+            ["Guests", initialGuests.length],
+            ["Designs", initialDesigns.length],
+          ].map(([label, count]) => (
+            <div key={label} className="rounded-radius-lg bg-surface p-4 shadow-[var(--shadow-sm)]">
+              <p className="text-base font-semibold text-ink-muted">{label}</p>
+              <p className="mt-1 font-heading text-3xl font-bold text-ink">{count}</p>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setActiveTab("plan")}
+            className="col-span-2 min-h-11 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink sm:col-span-4"
+          >
+            Open event plan
+          </button>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------- */}
       {/* TAB 1: Tracking View (Items grouped by Category)              */}
       {/* ------------------------------------------------------------- */}
-      {activeTab === "items" && (
+      {activeTab === "plan" && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -525,9 +546,9 @@ export function EventDetailClient({
             return (
               <div
                 key={cat}
-                className="bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] overflow-hidden"
+                className="space-y-3"
               >
-                <div className="bg-bg/60 px-5 py-3.5 border-b border-border flex items-center justify-between">
+                <div className="flex items-center justify-between px-1 py-2">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-accent" />
                     <h3 className="font-heading font-bold text-base text-ink capitalize">
@@ -542,7 +563,7 @@ export function EventDetailClient({
                   </span>
                 </div>
 
-                <div className="divide-y divide-border/60">
+                <div className="space-y-3">
                   {catItems.map((item, idx) => {
                     const statusBadgeClass = {
                       not_started: "bg-ink-muted/10 text-ink-muted border-border",
@@ -559,13 +580,13 @@ export function EventDetailClient({
                     return (
                       <div
                         key={`${item.id}-${idx}`}
-                        className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-bg/20 transition-colors"
+                        className="flex flex-col gap-4 rounded-radius-lg bg-surface p-4 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between sm:p-5"
                       >
                         <div className="space-y-1.5 flex-1">
-                          <h4 className="font-semibold text-sm text-ink leading-tight">
+                          <h4 className="font-semibold text-base text-ink leading-tight">
                             {item.title}
                           </h4>
-                          <div className="flex items-center gap-3 text-xs text-ink-muted flex-wrap">
+                          <div className="flex flex-wrap items-center gap-3 text-base text-ink-muted">
                             {item.vendor && (
                               <span className="inline-flex items-center gap-1 font-medium text-ink">
                                 <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -644,8 +665,12 @@ export function EventDetailClient({
       {/* ------------------------------------------------------------- */}
       {/* TAB 2: Functions (Sub-events)                                 */}
       {/* ------------------------------------------------------------- */}
-      {activeTab === "functions" && (
-        <div className="space-y-6">
+      {activeTab === "plan" && (
+        <details open className="rounded-radius-lg bg-surface p-4 shadow-[var(--shadow-sm)] sm:p-5">
+          <summary className="min-h-11 cursor-pointer text-xl font-heading font-bold text-ink">
+            Functions &amp; ceremonies ({functions.length})
+          </summary>
+          <div className="mt-4 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-heading font-bold text-ink">
@@ -724,7 +749,8 @@ export function EventDetailClient({
               </button>
             </div>
           )}
-        </div>
+          </div>
+        </details>
       )}
 
       {/* ------------------------------------------------------------- */}
@@ -747,7 +773,7 @@ export function EventDetailClient({
         />
       )}
 
-      {activeTab === "timeline" && (
+      {activeTab === "plan" && (
         <TimelineTab
           eventId={event.id}
           eventDate={eventData.date}

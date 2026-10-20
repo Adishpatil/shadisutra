@@ -1,10 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
+import { headers } from "next/headers";
 import { cormorant, dmSans } from "@/lib/fonts";
 import { site } from "@/config/site";
+import { getCanonicalUrl, localBusinessJsonLd } from "@/config/seo";
 import { SiteShell } from "@/components/layout/SiteShell";
 import "./globals.css";
 
+const siteUrl = process.env.SITE_URL?.trim();
+const socialImage = getCanonicalUrl("/images/hero/hero-01.webp");
+
 export const metadata: Metadata = {
+  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
   title: {
     default: `${site.name} — Event Management`,
     template: `%s | ${site.name}`,
@@ -16,6 +23,12 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: "en_IN",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: site.name,
+    description: `${site.name} — Event planning and management.`,
+    ...(socialImage ? { images: [socialImage] } : {}),
   },
   robots: {
     index: true,
@@ -31,7 +44,11 @@ export const viewport: Viewport = {
   themeColor: "#FAF8F5",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const businessJsonLd = localBusinessJsonLd();
+
   return (
     <html
       lang="en"
@@ -39,6 +56,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${cormorant.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="min-h-[100dvh] flex flex-col bg-bg text-ink font-body">
+        {businessJsonLd && (
+          <script
+            type="application/ld+json"
+            nonce={nonce}
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(businessJsonLd).replace(/</g, "\\u003c"),
+            }}
+          />
+        )}
         <SiteShell>{children}</SiteShell>
       </body>
     </html>
