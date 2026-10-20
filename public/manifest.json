@@ -1,7 +1,7 @@
 {
   "name": "Shadi Sutra",
   "short_name": "ShadiSutra",
-  "description": "Event management — weddings, birthdays, functions",
+  "description": "Weddings, birthdays and special occasions, planned and styled with care.",
   "start_url": "/admin/",
   "scope": "/admin/",
   "display": "standalone",
@@ -9,10 +9,16 @@
   "theme_color": "#FAF8F5",
   "icons": [
     {
-      "src": "/brand/admin-icon.svg",
+      "src": "/brand/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/logo.webp",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/webp",
+      "purpose": "any"
     }
   ]
 }

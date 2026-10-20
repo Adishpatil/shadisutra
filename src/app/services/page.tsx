@@ -1,95 +1,58 @@
 import Link from "next/link";
-import { site } from "@/config/site";
 import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 
 export const metadata = pageMetadata(
-  "Services",
-  `Explore wedding, birthday, and function planning services from ${site.name}.`,
+  "Our Services | Shadi Sutra",
+  "Wedding, birthday and function planning with decor, lighting, floral design, music and day-of coordination from Shadi Sutra.",
   "/services"
 );
 
 const serviceCards = [
   {
     slug: "weddings",
-    title: "Weddings & Pre-Wedding Ceremonies",
-    subtitle: "Haldi, Mehendi, Sangeet & Reception",
-    description:
-      "End-to-end wedding production tailored to your traditions. We manage conceptual stage décor, mandap architecture, floral artistry, lighting sequences, and day-of coordination.",
-    image: "/images/services/weddings.webp",
+    title: "Weddings",
+    subtitle: "Wedding planning and styling",
+    description: "Your wedding, planned and styled from the first ceremony to the last dance.",
+    image: "/images/gallery/weddings/weddings-3.webp",
+    imageAlt:
+      "Hanging floral arrangements and brass vessels beneath a tree at an outdoor celebration",
     aspectRatio: 16 / 9,
     highlights: [
-      "Custom Mandap & Stage Architecture",
-      "Fresh Exotic & Seasonal Floral Styling",
-      "Mood, Ambient & Kinetic Stage Lighting",
-      "Traditional Shehnai, Dhol & Acoustic Ensemble",
-      "Guest Hospitality & On-Ground Timeline Control",
+      "Planning and day-by-day timeline",
+      "Stage, mandap and venue decor",
+      "Lighting design",
+      "Floral design",
+      "Music and instruments",
+      "On-the-day coordination",
     ],
   },
   {
     slug: "birthdays",
-    title: "Birthdays & Milestone Galas",
-    subtitle: "From 1st Birthdays to 50th Jubilees",
-    description:
-      "Creative themes and atmospheric experiences curated to delight guests of all ages. Stunning photo backdrops, interactive entertainment, ambient sound, and seamless coordination.",
-    image: "/images/services/birthdays.webp",
+    title: "Birthdays",
+    subtitle: "Birthday celebrations",
+    description: "Birthday celebrations with a theme your family will love, from first birthdays to milestone years.",
+    image: "/images/gallery/birthdays/birthdays-5.webp",
+    imageAlt:
+      "Floral arrangements lining an event walkway beneath a canopy of warm string lights",
     aspectRatio: 16 / 9,
     highlights: [
-      "Immersive Custom Theme Concepts",
-      "Organic Balloon Installations & Backdrop Art",
-      "Dynamic Sound & Live Entertainment Curation",
-      "Themed Cake Stage & Dessert Table Styling",
-      "Vendor Coordination & Timed Surprises",
+      "Themed decor",
+      "Lighting and setup",
+      "Music",
+      "Event-day coordination",
     ],
   },
   {
     slug: "functions",
-    title: "Functions & Corporate Gatherings",
-    subtitle: "Anniversaries, Galas & Corporate Evenings",
-    description:
-      "Polished, professional event production for celebrations, cultural gatherings, and corporate galas. High-end staging, AV integration, and flawless itinerary management.",
-    image: "/images/services/functions.webp",
+    title: "Functions",
+    subtitle: "Family functions and special occasions",
+    description: "Family gatherings and special occasions, managed from setup to farewell.",
+    image: "/images/gallery/functions/functions-3.webp",
+    imageAlt:
+      "Round banquet tables arranged across a rooftop lawn during event setup",
     aspectRatio: 16 / 9,
-    highlights: [
-      "Modular Staging & Professional AV Systems",
-      "Refined Minimalist Table & Hall Décor",
-      "Artist & MC Stage Management",
-      "Registration & VIP Guest Coordination",
-      "Precision Itinerary & Protocol Execution",
-    ],
-  },
-];
-
-const pillars = [
-  {
-    title: "Full-Cycle Planning",
-    desc: "From initial budget allocation and venue walkthroughs to vendor contract vetting and logistical planning.",
-    icon: "📋",
-  },
-  {
-    title: "Bespoke Décor & Architecture",
-    desc: "3D concepts, fabric draping, structural stage design, and bespoke centerpieces tailored to your aesthetic.",
-    icon: "✨",
-  },
-  {
-    title: "Ambient & Architectural Lighting",
-    desc: "Warm mood washes, beam effects, fairy light canopies, and kinetic stage lighting engineered for stunning photos.",
-    icon: "💡",
-  },
-  {
-    title: "Artisanal Floral Styling",
-    desc: "Locally sourced and exotic blooms crafted into fragrant garlands, floral arches, and delicate dining runners.",
-    icon: "🌸",
-  },
-  {
-    title: "Music & Live Instruments",
-    desc: "Acoustic ensembles, traditional instrumentalists, DJ sound setups, and seamless audio reinforcement.",
-    icon: "🎶",
-  },
-  {
-    title: "Day-of Coordination",
-    desc: "Dedicated shadow planners for hosts, backstage production crew, and synchronized vendor cue management.",
-    icon: "⏱️",
+    highlights: [],
   },
 ];
 
@@ -102,11 +65,10 @@ export default function ServicesPage() {
           What We Do
         </span>
         <h1 className="mt-3 text-4xl sm:text-5xl font-heading font-bold text-ink">
-          Curated Event Services
+          Our Services
         </h1>
         <p className="mt-6 text-lg sm:text-xl text-ink-muted leading-relaxed max-w-3xl mx-auto">
-          Every celebration is unique. Explore our specialized services designed to bring your vision to life
-          with elegance, calm, and flawless execution.
+          Whatever you are celebrating, we plan it, style it and run it, so you don&apos;t have to.
         </p>
       </section>
 
@@ -126,7 +88,7 @@ export default function ServicesPage() {
               >
                 <PlaceholderImage
                   src={service.image}
-                  alt={service.title}
+                  alt={service.imageAlt}
                   aspectRatio={service.aspectRatio}
                   className="w-full h-auto object-cover rounded-radius-md"
                 />
@@ -150,7 +112,7 @@ export default function ServicesPage() {
                   {service.description}
                 </p>
 
-                <div className="space-y-2.5 pt-2">
+                {service.highlights.length > 0 && <div className="space-y-2.5 pt-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-ink">
                     What&apos;s Included:
                   </h3>
@@ -162,7 +124,7 @@ export default function ServicesPage() {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </div>}
 
                 <div className="pt-4 flex flex-wrap gap-4 items-center">
                   <Link
@@ -175,7 +137,7 @@ export default function ServicesPage() {
                     href={`/contact?service=${service.slug}`}
                     className="inline-flex items-center px-6 py-3 border border-border text-ink font-medium rounded-radius-full text-sm hover:border-accent hover:text-accent transition-colors"
                   >
-                    Enquire Now
+                    Send an Enquiry
                   </Link>
                 </div>
               </div>
@@ -184,58 +146,19 @@ export default function ServicesPage() {
         })}
       </section>
 
-      {/* Scope Matrix */}
-      <section className="bg-surface border-y border-border py-16 sm:py-24 my-16">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-              Core Capabilities
-            </span>
-            <h2 className="mt-2 text-3xl font-heading font-bold text-ink">
-              What Is Covered In Every Engagement
-            </h2>
-            <p className="mt-4 text-ink-muted">
-              We handle every technical, logistical, and artistic dimension so you never have to juggle vendors.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {pillars.map((pillar) => (
-              <div
-                key={pillar.title}
-                className="p-6 rounded-radius-lg bg-bg border border-border flex flex-col justify-between"
-              >
-                <div>
-                  <span className="text-3xl mb-4 block" aria-hidden="true">
-                    {pillar.icon}
-                  </span>
-                  <h3 className="text-xl font-heading font-semibold text-ink">
-                    {pillar.title}
-                  </h3>
-                  <p className="mt-3 text-sm text-ink-muted leading-relaxed">
-                    {pillar.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Bottom CTA */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center py-8">
         <h2 className="text-3xl font-heading font-bold text-ink">
-          Need a Custom Plan for Your Celebration?
+          Planning a celebration?
         </h2>
         <p className="mt-4 text-ink-muted text-base max-w-xl mx-auto">
-          Get in touch with our team for a personalised walkthrough and quotation.
+          Tell us your date and your dream, and we&apos;ll get back to you.
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <Link
             href="/contact"
             className="inline-flex items-center px-8 py-3.5 bg-accent text-accent-ink font-semibold rounded-radius-full hover:bg-accent-hover transition-colors shadow-[var(--shadow-md)]"
           >
-            Request a Consultation
+            Send an Enquiry
           </Link>
         </div>
       </section>

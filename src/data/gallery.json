@@ -1,42 +1,50 @@
 [
   {
-    "src": "/images/gallery/weddings/wedding-haldi-01.webp",
+    "src": "/images/gallery/weddings/weddings-3.webp",
     "category": "weddings",
-    "alt": "Marigold haldi stage with yellow drapes",
-    "width": 1600,
-    "height": 1067,
+    "alt": "Hanging floral arrangements and brass vessels beneath a tree at an outdoor celebration",
+    "width": 591,
+    "height": 1280,
     "featured": true
   },
   {
-    "src": "/images/gallery/weddings/wedding-mandap-01.webp",
+    "src": "/images/gallery/weddings/weddings-4.webp",
     "category": "weddings",
-    "alt": "Floral mandap with rose and marigold arches",
-    "width": 1600,
-    "height": 1067,
+    "alt": "A garden walkway under a canopy of warm string lights and a crystal chandelier",
+    "width": 591,
+    "height": 1280,
     "featured": true
   },
   {
-    "src": "/images/gallery/weddings/wedding-reception-01.webp",
+    "src": "/images/gallery/weddings/weddings-6.webp",
     "category": "weddings",
-    "alt": "Grand reception hall with crystal chandeliers and warm lighting",
-    "width": 1600,
-    "height": 1067,
-    "featured": false
+    "alt": "Outdoor ceremony stage beneath a tree, framed by white drapes and floral arrangements",
+    "width": 1280,
+    "height": 591,
+    "featured": true
   },
   {
-    "src": "/images/gallery/birthdays/birthday-decor-01.webp",
+    "src": "/images/gallery/birthdays/birthdays-4.webp",
     "category": "birthdays",
-    "alt": "Balloon arch and themed birthday stage setup",
-    "width": 1600,
-    "height": 1067,
+    "alt": "Peach roses and greenery beside a banquet walkway lined with warm string lights",
+    "width": 597,
+    "height": 1280,
     "featured": true
   },
   {
-    "src": "/images/gallery/functions/function-corporate-01.webp",
+    "src": "/images/gallery/birthdays/birthdays-5.webp",
+    "category": "birthdays",
+    "alt": "Floral arrangements lining an event walkway beneath a canopy of warm string lights",
+    "width": 1280,
+    "height": 597,
+    "featured": true
+  },
+  {
+    "src": "/images/gallery/functions/functions-2.webp",
     "category": "functions",
-    "alt": "Elegant corporate event setup with floral centrepieces",
-    "width": 1600,
-    "height": 1067,
-    "featured": false
+    "alt": "Layered arched entryway with chandeliers and patterned carpet",
+    "width": 591,
+    "height": 1280,
+    "featured": true
   }
 ]

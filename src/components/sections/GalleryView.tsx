@@ -9,7 +9,7 @@ interface GalleryViewProps {
 }
 
 const categories: { label: string; value: GalleryCategory }[] = [
-  { label: "All Works", value: "all" },
+  { label: "All", value: "all" },
   { label: "Weddings", value: "weddings" },
   { label: "Birthdays", value: "birthdays" },
   { label: "Functions", value: "functions" },

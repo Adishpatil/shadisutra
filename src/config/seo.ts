@@ -14,10 +14,10 @@ export function pageMetadata(
   path: string
 ): Metadata {
   const canonical = getCanonicalUrl(path);
-  const socialImage = getCanonicalUrl("/images/hero/hero-01.webp");
+  const socialImage = getCanonicalUrl("/brand/logo.webp") ?? "/brand/logo.webp";
 
   return {
-    title,
+    title: { absolute: title },
     description,
     ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {

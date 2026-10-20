@@ -60,7 +60,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           name="name"
           required
           autoComplete="name"
-          placeholder="e.g. Priyanshu Sharma"
+          placeholder="Your name"
           aria-describedby={state?.errors?.name ? "name-error" : undefined}
           aria-invalid={Boolean(state?.errors?.name)}
           className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${
@@ -89,7 +89,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           required
           inputMode="tel"
           autoComplete="tel"
-          placeholder="e.g. 9876543210"
+          placeholder="Your phone number"
           aria-describedby={state?.errors?.phone ? "phone-error" : undefined}
           aria-invalid={Boolean(state?.errors?.phone)}
           className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${
@@ -122,10 +122,9 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
               state?.errors?.eventType ? "border-danger" : "border-border"
             }`}
           >
-            <option value="wedding">Wedding / Pre-Wedding</option>
-            <option value="birthday">Birthday Celebration</option>
-            <option value="function">Corporate Gala / Social Function</option>
-            <option value="other">Other Event</option>
+            <option value="wedding">Wedding</option>
+            <option value="birthday">Birthday</option>
+            <option value="function">Function</option>
           </select>
           {state?.errors?.eventType && (
             <p id="event-type-error" className="mt-1 text-xs text-danger font-medium">
@@ -167,7 +166,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           name="message"
           required
           rows={4}
-          placeholder="Share your expected guest count, venue preferences, ideas or questions..."
+          placeholder="Share your date, venue and ideas"
           aria-describedby={state?.errors?.message ? "message-error" : undefined}
           aria-invalid={Boolean(state?.errors?.message)}
           className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${

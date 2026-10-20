@@ -6,8 +6,8 @@ import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 
 export const metadata = pageMetadata(
-  "Event Planning & Management",
-  `Explore weddings, celebrations, and event planning from ${site.name}.`,
+  "Shadi Sutra | Wedding & Event Management",
+  "Shadi Sutra plans and styles weddings, birthday parties and family functions, with decor, lighting, flowers, music and on-the-day coordination.",
   "/"
 );
 
@@ -15,43 +15,36 @@ const eventTypes = [
   {
     title: "Weddings",
     category: "weddings",
-    description: "Ceremonies and celebrations shaped around your traditions.",
     href: "/services/weddings",
   },
   {
     title: "Birthdays",
     category: "birthdays",
-    description: "Personal themes and thoughtful details for milestone days.",
     href: "/services/birthdays",
   },
   {
     title: "Functions",
     category: "functions",
-    description: "Considered planning for gatherings, galas and special occasions.",
     href: "/services/functions",
   },
 ] as const;
 
 const services = [
   {
-    title: "Full-cycle planning",
-    description:
-      "From the first conversation to the practical details that bring an event together.",
+    title: "Planning",
+    description: "We turn your ideas into a clear plan, timeline and budget.",
   },
   {
-    title: "Décor & architecture",
-    description:
-      "Bespoke stages, mandaps, draping and centerpieces shaped to your celebration.",
+    title: "Decor & Lighting",
+    description: "Stages, mandaps, entrances and lighting designed around your theme.",
   },
   {
-    title: "Lighting & atmosphere",
-    description:
-      "Thoughtful lighting that sets the mood and brings each space to life.",
+    title: "Flowers & Music",
+    description: "Fresh florals and music that set the mood for every moment.",
   },
   {
-    title: "Floral styling",
-    description:
-      "Seasonal flowers arranged into arches, garlands and table details.",
+    title: "Coordination",
+    description: "A dedicated team on the day, so you can enjoy your own celebration.",
   },
 ] as const;
 
@@ -59,28 +52,27 @@ const process = [
   {
     step: "01",
     title: "Discover",
-    description: "We start by listening to your ideas, occasion and priorities.",
+    description: "We listen to your ideas, dates and budget.",
   },
   {
     step: "02",
     title: "Plan",
-    description: "Together, we shape the details and a clear event plan.",
+    description: "We design the look, the schedule and the vendors.",
   },
   {
     step: "03",
     title: "Execute",
-    description: "Our team coordinates the plan so you can be present on the day.",
+    description: "We set up and run the day with a dedicated team.",
   },
   {
     step: "04",
     title: "Remember",
-    description: "Enjoy the celebration and the moments you came together for.",
+    description: "You take home the memories, not the stress.",
   },
 ] as const;
 
 export default function HomePage() {
-  const heroAlt =
-    galleryImages.find((image) => image.featured)?.alt ?? "Celebration setting";
+  const heroAlt = "White floral stage set against dark curtains with a matching dance-floor monogram";
   const mosaicImages = galleryImages;
 
   return (
@@ -88,7 +80,7 @@ export default function HomePage() {
       <section className="home-hero relative isolate flex h-[50svh] min-h-[22rem] max-h-[26rem] items-center overflow-hidden sm:h-[60vh] sm:max-h-[36rem]">
         <div className="absolute inset-0 -z-20">
           <PlaceholderImage
-            src="/images/hero/hero-01.webp"
+            src="/images/hero/hero-1.webp"
             alt={heroAlt}
             fill
             priority
@@ -104,11 +96,11 @@ export default function HomePage() {
               {site.name}
             </p>
             <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] text-white sm:text-5xl md:text-6xl">
-              Celebrations, thoughtfully brought to life.
+              Celebrations, beautifully woven.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-white sm:text-lg">
-              Thoughtful planning for weddings, birthdays and gatherings, from
-              the first idea to the final detail.
+              Weddings, birthdays and special occasions, planned and styled
+              with care, from the first idea to the last goodbye.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -137,7 +129,7 @@ export default function HomePage() {
             Occasions
           </p>
           <h2 id="event-types-heading" className="mt-3 text-3xl sm:text-4xl">
-            Made for your kind of gathering
+            Weddings · Birthdays · Functions
           </h2>
           <span className="section-ornament mt-5" aria-hidden="true" />
         </div>
@@ -157,7 +149,7 @@ export default function HomePage() {
                 <div className="relative aspect-[4/3] overflow-hidden bg-accent-light">
                   <PlaceholderImage
                     src={image?.src}
-                    alt={image?.alt ?? event.title}
+                    alt={image?.alt ?? ""}
                     width={image?.width ?? 800}
                     height={image?.height ?? 600}
                     sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -166,9 +158,6 @@ export default function HomePage() {
                 </div>
                 <div className="p-5 sm:p-6">
                   <h3 className="text-2xl">{event.title}</h3>
-                  <p className="mt-2 text-base leading-relaxed text-ink-muted">
-                    {event.description}
-                  </p>
                 </div>
               </Link>
             );
@@ -182,11 +171,8 @@ export default function HomePage() {
       >
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
           <div className="mb-10 max-w-2xl">
-            <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent-light">
-              What we do
-            </p>
-            <h2 id="services-heading" className="mt-3 text-3xl text-white sm:text-4xl">
-              Thoughtful details, considered together
+              <h2 id="services-heading" className="mt-3 text-3xl text-white sm:text-4xl">
+              What We Handle
             </h2>
             <span className="section-ornament section-ornament-light mt-5" aria-hidden="true" />
           </div>
@@ -217,10 +203,10 @@ export default function HomePage() {
         <div className="mb-9 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
-              From the gallery
+              Our Work
             </p>
             <h2 id="gallery-heading" className="mt-3 text-3xl sm:text-4xl">
-              A glimpse of the details
+              A look at celebrations we have styled.
             </h2>
             <span className="section-ornament mt-5" aria-hidden="true" />
           </div>
@@ -276,7 +262,7 @@ export default function HomePage() {
               How we work
             </p>
             <h2 id="process-heading" className="mt-3 text-3xl sm:text-4xl">
-              A clear path from idea to celebration
+              From First Idea to Final Farewell
             </h2>
             <span className="section-ornament mt-5" aria-hidden="true" />
           </div>
@@ -297,21 +283,17 @@ export default function HomePage() {
 
       <section className="home-reveal px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
         <div className="mx-auto max-w-4xl border border-border bg-accent-light/40 px-6 py-10 text-center sm:px-12 sm:py-14">
-          <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
-            Begin a conversation
-          </p>
           <h2 className="mt-3 text-3xl sm:text-4xl">
-            Let&apos;s plan something meaningful
+            Planning a celebration?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-ink-muted">
-            Share what you have in mind. We&apos;ll talk through your occasion
-            and the details that matter to you.
+            Tell us your date and your dream, and we&apos;ll get back to you.
           </p>
           <Link
             href="/contact"
             className="mt-7 inline-flex min-h-11 items-center justify-center rounded-radius-full bg-accent px-7 py-3 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
           >
-            Plan Your Event
+            Send an Enquiry
           </Link>
         </div>
       </section>

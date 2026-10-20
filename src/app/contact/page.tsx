@@ -4,8 +4,8 @@ import { pageMetadata } from "@/config/seo";
 import { ContactForm } from "@/components/sections/ContactForm";
 
 export const metadata: Metadata = pageMetadata(
-  "Contact",
-  `Contact ${site.name} to discuss planning an event.`,
+  "Contact Shadi Sutra | Plan Your Event",
+  "Enquire about your wedding, birthday or function. Share your date and ideas, and the Shadi Sutra team will get back to you.",
   "/contact"
 );
 
@@ -27,13 +27,13 @@ export default async function ContactPage({
       {/* Header */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center py-12 sm:py-16">
         <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-          Let’s Talk
+          Contact
         </span>
         <h1 className="mt-3 text-4xl sm:text-5xl font-heading font-bold text-ink">
-          Connect With Our Planners
+          Let&apos;s plan your celebration
         </h1>
         <p className="mt-6 text-lg sm:text-xl text-ink-muted leading-relaxed max-w-2xl mx-auto">
-          Share your dates, vision, and questions. We look forward to bringing your celebration to life.
+          Share your date, venue and ideas, and we&apos;ll be in touch.
         </p>
       </section>
 
@@ -43,7 +43,7 @@ export default async function ContactPage({
           {/* Contact Form */}
           <div className={hasDirectContact ? "lg:col-span-7" : ""}>
             <h2 className="text-2xl font-heading font-bold text-ink mb-6">
-              Send An Enquiry
+              Send an Enquiry
             </h2>
             <ContactForm initialService={service || "wedding"} />
           </div>

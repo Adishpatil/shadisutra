@@ -8,7 +8,7 @@ import { SiteShell } from "@/components/layout/SiteShell";
 import "./globals.css";
 
 const siteUrl = process.env.SITE_URL?.trim();
-const socialImage = getCanonicalUrl("/images/hero/hero-01.webp");
+const socialImage = getCanonicalUrl("/brand/logo.webp") ?? "/brand/logo.webp";
 
 export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: "en_IN",
     type: "website",
+    ...(socialImage ? { images: [socialImage] } : {}),
   },
   twitter: {
     card: "summary_large_image",
@@ -35,13 +36,18 @@ export const metadata: Metadata = {
     follow: true,
   },
   manifest: "/manifest.json",
+  icons: {
+    icon: "/brand/favicon.png",
+    shortcut: "/brand/favicon.png",
+    apple: "/brand/favicon.png",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#FAF8F5",
+  themeColor: site.accentColor,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

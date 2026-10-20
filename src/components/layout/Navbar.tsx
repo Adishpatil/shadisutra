@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
@@ -107,9 +108,14 @@ export function Navbar() {
           }`}
           aria-label={`${site.name} – Home`}
         >
-          <span className={transparentOverHero ? "text-white" : "text-accent"}>
-            {site.name}
-          </span>
+          <Image
+            src="/brand/logo.webp"
+            alt={site.name}
+            width={112}
+            height={74}
+            priority
+            className="h-11 w-[66px] object-contain sm:h-12 sm:w-[72px]"
+          />
         </Link>
 
         {/* Desktop nav */}

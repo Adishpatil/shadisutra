@@ -30,7 +30,7 @@ export async function submitEnquiryAction(
     // Silently pretend success to fool bots
     return {
       success: true,
-      message: "Thank you for reaching out! We will contact you soon.",
+      message: "Thank you. We've received your enquiry and will be in touch soon.",
     };
   }
 
@@ -74,18 +74,18 @@ export async function submitEnquiryAction(
     if (error) {
       return {
         success: false,
-        message: "Your enquiry could not be submitted. Please try again later.",
+        message: "Something went wrong. Please try again or contact us by phone.",
       };
     }
   } catch {
     return {
       success: false,
-      message: "Your enquiry could not be submitted. Please try again later.",
+      message: "Something went wrong. Please try again or contact us by phone.",
     };
   }
 
   return {
     success: true,
-    message: "Thank you! Your enquiry has been received. Our planning team will reach out to you shortly.",
+    message: "Thank you. We've received your enquiry and will be in touch soon.",
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
 
@@ -41,9 +42,16 @@ export function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center font-heading text-2xl font-bold text-white tracking-tight"
+              className="inline-flex min-h-11 items-center"
+              aria-label={`${site.name} home`}
             >
-              {site.name}
+              <Image
+                src="/brand/logo.webp"
+                alt=""
+                width={150}
+                height={100}
+                className="h-20 w-[120px] object-contain"
+              />
             </Link>
             {hasSiteValue(site.tagline) && (
               <p className="mt-4 max-w-xs text-base leading-relaxed text-white/75">

@@ -2,9 +2,8 @@
 
 /* ============================================================
    Design Tokens
-   Palette: ivory bg, near-black text, warm gold accent.
-   Fallback palette (no logo found). Update these when the logo
-   is available at /public/brand/logo.*
+   Palette: ivory background, near-black text, and dark gold sampled
+   from the supplied brand logo; white text on this accent exceeds AA.
    ============================================================ */
 
 :root {
