@@ -26,7 +26,11 @@ export async function GET(request: Request): Promise<Response> {
       status: 200,
       headers: responseHeaders,
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "[Health] Rate-limit check failed.",
+      error instanceof Error ? error.message : "Unknown server error."
+    );
     return new Response(null, {
       status: 503,
       headers: responseHeaders,

@@ -158,6 +158,14 @@ export function Footer() {
               {hasSiteValue(site.address) && (
                 <li>{site.address}</li>
               )}
+              <li>
+                <Link
+                  href="/login"
+                  className="inline-flex min-h-11 items-center text-base text-white/60 transition-colors hover:text-white"
+                >
+                  Admin
+                </Link>
+              </li>
               {hasSiteValue(site.hours) && (
                 <li>{site.hours}</li>
               )}
@@ -171,12 +179,6 @@ export function Footer() {
             <p className="text-base text-white/75">
               © {currentYear} {site.name}. All rights reserved.
             </p>
-            <Link
-              href="/login"
-              className="inline-flex min-h-11 items-center text-sm text-white/60 transition-colors hover:text-white"
-            >
-              Admin
-            </Link>
           </div>
           <div className="flex items-center gap-4 text-base text-white/75 sm:gap-6">
             <Link href="/privacy" className="inline-flex min-h-11 items-center transition-colors hover:text-white">

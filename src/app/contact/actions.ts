@@ -72,12 +72,20 @@ export async function submitEnquiryAction(
       message: validation.data.message,
     });
     if (error) {
+      console.error("[Contact] Enquiry insert failed.", {
+        code: error.code,
+        message: error.message,
+      });
       return {
         success: false,
         message: "Something went wrong. Please try again or contact us by phone.",
       };
     }
-  } catch {
+  } catch (error) {
+    console.error(
+      "[Contact] Enquiry submission failed.",
+      error instanceof Error ? error.message : "Unknown server error."
+    );
     return {
       success: false,
       message: "Something went wrong. Please try again or contact us by phone.",
