@@ -29,10 +29,12 @@ scripts, Server Actions, and API routes on a Netlify Deploy Preview before
 production. If that preview exposes a runtime incompatibility, stop and resolve
 it before promoting the deploy; do not weaken the CSP.
 
-`netlify.toml` sets `npm run build` and Node.js 22. Current Next.js system
-requirements specify Node.js 20.9 minimum; Node 22 satisfies that requirement.
-The Netlify adapter detects Next.js and handles its output, so do not set a
-static publish directory or add/pin a legacy Next.js adapter plugin.
+`netlify.toml` sets `npm run build`, Node.js 22, and `.next` as a non-root
+publish directory so Netlify does not default the publish path to the
+repository root. Current Next.js system requirements specify Node.js 20.9
+minimum; Node 22 satisfies that requirement. The Netlify adapter detects
+Next.js and handles its output; do not configure a static export or add/pin a
+legacy Next.js adapter plugin.
 
 Official references:
 
