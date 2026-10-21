@@ -86,6 +86,11 @@ Set Supabase variables with Netlify's Functions scope for server-side execution
 and Builds scope for values required during the Next.js build. `NEXT_PUBLIC_*`
 values are public and are embedded into client bundles where used. `SITE_URL`
 must be the real production origin, not a placeholder.
+`netlify.toml` excludes only `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SITE_URL` from Netlify's secrets scan
+because these are public application values. Never add
+`SUPABASE_SERVICE_ROLE_KEY` or any other secret to the scan exclusions. If the
+service-role key was exposed, rotate it in Supabase and update Netlify.
 
 ## Fresh production Supabase project
 

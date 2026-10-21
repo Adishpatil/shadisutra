@@ -4,6 +4,7 @@ publish = ".next"
 
 [build.environment]
 NODE_VERSION = "22"
+SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SITE_URL"
 
 [context.production.environment]
 SHADISUTRA_DEPLOY_CONTEXT = "production"
