@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -36,6 +35,13 @@ function buildCsp(nonce: string): string {
   return directives.join("; ");
 }
 
+function isProductionDeployment(): boolean {
+  if (process.env.NETLIFY === "true") {
+    return process.env.SHADISUTRA_DEPLOY_CONTEXT === "production";
+  }
+  return process.env.NODE_ENV === "production";
+}
+
 function applySecurityHeaders(
   response: NextResponse,
   contentSecurityPolicy: string,
@@ -60,7 +66,7 @@ function applySecurityHeaders(
     response.headers.set("Cache-Control", "no-store, max-age=0");
   }
 
-  if (process.env.NODE_ENV === "production") {
+  if (isProductionDeployment()) {
     response.headers.set(
       "Strict-Transport-Security",
       "max-age=63072000; includeSubDomains; preload"
@@ -70,7 +76,8 @@ function applySecurityHeaders(
 }
 
 export async function proxy(request: NextRequest) {
-  const nonce = randomBytes(16).toString("base64");
+  const nonceBytes = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = btoa(String.fromCharCode(...nonceBytes));
   const contentSecurityPolicy = buildCsp(nonce);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);

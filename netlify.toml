@@ -1,0 +1,15 @@
+[build]
+command = "npm run build"
+
+[build.environment]
+NODE_VERSION = "22"
+
+[context.production.environment]
+SHADISUTRA_DEPLOY_CONTEXT = "production"
+SITE_URL = "https://shadisutra.in"
+
+[context.deploy-preview.environment]
+SHADISUTRA_DEPLOY_CONTEXT = "deploy-preview"
+
+[context.branch-deploy.environment]
+SHADISUTRA_DEPLOY_CONTEXT = "branch-deploy"

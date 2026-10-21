@@ -1,0 +1,28 @@
+name: Production health check
+
+on:
+  schedule:
+    - cron: "23 4 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Call production health endpoint
+        env:
+          HEALTHCHECK_URL: ${{ secrets.PRODUCTION_HEALTHCHECK_URL }}
+        run: |
+          if [ -z "$HEALTHCHECK_URL" ]; then
+            echo "Repository secret PRODUCTION_HEALTHCHECK_URL is not configured." >&2
+            exit 1
+          fi
+          body="$(curl --fail --silent --show-error --max-time 20 "$HEALTHCHECK_URL")"
+          if [ "$body" != '{"ok":true}' ]; then
+            echo "Health endpoint returned an unexpected response." >&2
+            exit 1
+          fi

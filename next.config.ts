@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+const isProductionDeployment =
+  process.env.NETLIFY === "true"
+    ? process.env.SHADISUTRA_DEPLOY_CONTEXT === "production"
+    : process.env.NODE_ENV === "production";
+
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
@@ -13,7 +18,7 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "X-Frame-Options", value: "DENY" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-      ...(process.env.NODE_ENV === "production"
+      ...(isProductionDeployment
         ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
         : []),
     ];
