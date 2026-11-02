@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
+import { Sheet } from "@/components/ui/Dialog";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -18,16 +19,42 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const mobileEnquiryTrigger = useRef(false);
+  const closeEnquiry = useCallback(() => {
+    setEnquiryOpen(false);
+    if (mobileEnquiryTrigger.current) {
+      mobileEnquiryTrigger.current = false;
+      window.requestAnimationFrame(() => toggleRef.current?.focus());
+    }
+  }, []);
 
-  // Track scroll for navbar background
+  // Keep the hero navigation transparent until the hero has left the viewport.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    let previousY = window.scrollY;
+    const onScroll = () => {
+      const hero = document.querySelector<HTMLElement>(".home-hero");
+      setScrolled(
+        !hero || window.scrollY >= hero.offsetHeight - 80
+      );
+    };
+    const onDirection = () => {
+      const currentY = window.scrollY;
+      setHidden(currentY > previousY && currentY > 120 && !mobileOpen);
+      if (currentY < 40 || currentY < previousY) setHidden(false);
+      previousY = currentY;
+    };
     onScroll();
+    window.addEventListener("scroll", onDirection, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [pathname]);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onDirection);
+    };
+  }, [pathname, mobileOpen]);
 
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (prevPathname !== pathname) {
@@ -69,14 +96,19 @@ export function Navbar() {
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
+    if (mobileOpen) {
+      menuRef.current
+        ?.querySelector<HTMLElement>('a[href], button:not([disabled])')
+        ?.focus();
+    }
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  }, [handleKeyDown, mobileOpen]);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    document.body.classList.toggle("menu-open", mobileOpen);
     return () => {
-      document.body.style.overflow = "";
+      document.body.classList.remove("menu-open");
     };
   }, [mobileOpen]);
 
@@ -89,12 +121,13 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all ${
+      className={`fixed inset-x-0 top-0 z-50 border-b pt-[env(safe-area-inset-top)] transition-transform duration-300 ${
+        hidden ? "-translate-y-full" : "translate-y-0"
+      } ${
         transparentOverHero
-        ? "bg-gradient-to-b from-ink/80 via-ink/75 to-ink/70"
-          : "border-b border-border bg-bg/95 shadow-[var(--shadow-md)] backdrop-blur-md"
+            ? "hero-navbar border-transparent bg-transparent"
+          : "border-border bg-bg shadow-[var(--shadow-sm)]"
       }`}
-      style={{ paddingTop: "var(--safe-top)" }}
     >
       <nav
         className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
@@ -103,8 +136,8 @@ export function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className={`flex min-h-11 items-center gap-2 font-heading text-xl font-bold tracking-tight ${
-            transparentOverHero ? "text-white" : "text-ink"
+          className={`flex min-h-11 items-center gap-2 rounded-xl font-heading text-xl font-bold tracking-tight focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg ${
+            transparentOverHero ? "bg-bg px-2 text-ink" : "text-ink"
           }`}
           aria-label={`${site.name} – Home`}
         >
@@ -113,7 +146,6 @@ export function Navbar() {
             alt={site.name}
             width={112}
             height={74}
-            priority
             className="h-11 w-[66px] object-contain sm:h-12 sm:w-[72px]"
           />
         </Link>
@@ -133,11 +165,11 @@ export function Navbar() {
                 className={`inline-flex min-h-11 items-center rounded-radius-md px-4 py-2 text-base font-medium transition-colors ${
                   transparentOverHero
                     ? isActive
-                      ? "text-white underline decoration-accent-light decoration-2 underline-offset-8"
-                      : "text-white hover:bg-white/10"
+                      ? "text-bg underline decoration-bg decoration-2 underline-offset-8"
+                      : "text-bg hover:bg-bg/10"
                     : isActive
-                      ? "text-accent bg-accent-light"
-                      : "text-ink-muted hover:text-ink hover:bg-accent-light/50"
+                      ? "bg-ink/5 text-ink"
+                      : "text-ink-muted hover:text-ink hover:bg-ink/5"
                 }`}
                 aria-current={isActive ? "page" : undefined}
               >
@@ -146,12 +178,13 @@ export function Navbar() {
             );
           })}
 
-          <Link
-            href="/contact"
-            className="ml-4 inline-flex min-h-11 items-center justify-center rounded-radius-full bg-accent px-5 py-2 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
+          <button
+            type="button"
+            onClick={() => setEnquiryOpen(true)}
+            className="ml-4 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-2 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Plan Your Event
-          </Link>
+          </button>
         </div>
 
         {/* Mobile menu toggle */}
@@ -160,8 +193,8 @@ export function Navbar() {
           type="button"
           className={`flex h-11 w-11 items-center justify-center rounded-radius-md transition-colors lg:hidden ${
             transparentOverHero
-              ? "text-white hover:bg-white/15"
-              : "text-ink hover:bg-accent-light/50"
+              ? "text-bg hover:bg-bg/15"
+              : "text-ink hover:bg-ink/5"
           }`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-expanded={mobileOpen}
@@ -200,7 +233,7 @@ export function Navbar() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+            className="fixed inset-0 bg-ink/20 z-40 lg:hidden animate-fade-in"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
@@ -212,15 +245,28 @@ export function Navbar() {
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation"
-            className="fixed top-0 right-0 bottom-0 w-[min(85vw,320px)] bg-surface z-50 shadow-[var(--shadow-lg)] flex flex-col animate-fade-in lg:hidden"
-            style={{ paddingTop: "var(--safe-top)" }}
+            className="mobile-nav-panel animate-mobile-nav-in fixed inset-0 z-[70] flex flex-col bg-bg px-5 pb-[calc(1.5rem+var(--safe-bottom))] pt-[calc(1rem+var(--safe-top))] lg:hidden"
           >
             {/* Close button */}
             <div className="flex justify-end p-4">
+              <Link
+                href="/"
+                onClick={() => setMobileOpen(false)}
+                className="inline-flex min-h-11 items-center"
+                aria-label={`${site.name} - Home`}
+              >
+                <Image
+                  src="/brand/logo.webp"
+                  alt={site.name}
+                  width={112}
+                  height={74}
+                  className="h-11 w-[66px] object-contain"
+                />
+              </Link>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center w-11 h-11 rounded-radius-md text-ink hover:bg-accent-light/50 transition-colors"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5"
                 aria-label="Close menu"
               >
                 <svg
@@ -252,11 +298,12 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center px-4 py-3 text-base font-medium rounded-radius-md transition-colors ${
+                    className={`mobile-nav-link flex min-h-14 items-center border-b border-border px-1 py-3 text-3xl font-semibold transition-colors ${
                       isActive
-                        ? "text-accent bg-accent-light"
-                        : "text-ink hover:text-accent hover:bg-accent-light/50"
+                          ? "text-ink underline decoration-ink/40 decoration-2 underline-offset-8"
+                          : "text-ink hover:text-ink-muted"
                     }`}
+                    data-index={navLinks.indexOf(link) + 1}
                     aria-current={isActive ? "page" : undefined}
                   >
                     {link.label}
@@ -266,17 +313,38 @@ export function Navbar() {
             </div>
 
             {/* Primary action */}
-            <div className="p-4 border-t border-border">
-              <Link
-                href="/contact"
-                className="flex min-h-11 w-full items-center justify-center rounded-radius-full bg-accent px-5 py-3 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
+            <div className="pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  mobileEnquiryTrigger.current = true;
+                  setMobileOpen(false);
+                  setEnquiryOpen(true);
+                }}
+                className="flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 Plan Your Event
-              </Link>
+              </button>
             </div>
           </div>
         </>
       )}
+      <Sheet
+        open={enquiryOpen}
+        onClose={closeEnquiry}
+        title="Plan your event"
+      >
+        <p className="text-base leading-relaxed text-ink-muted">
+          Share your date, venue and ideas, and we&apos;ll be in touch.
+        </p>
+        <Link
+          href="/contact"
+            onClick={closeEnquiry}
+          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          Send Event Enquiry
+        </Link>
+      </Sheet>
     </header>
   );
 }

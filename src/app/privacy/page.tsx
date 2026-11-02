@@ -10,19 +10,19 @@ export const metadata: Metadata = pageMetadata(
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-20 pt-28 sm:px-6">
-      <p className="mb-4 inline-flex rounded-full border border-accent/40 px-4 py-2 text-sm font-semibold text-ink">
+    <article className="mx-auto max-w-[70ch] px-5 pb-20 pt-32 sm:px-8">
+      <p className="mb-5 text-base text-ink-muted">
         Draft for client review
       </p>
-      <h1 className="font-heading text-4xl font-bold text-ink">Privacy</h1>
-      <div className="mt-8 space-y-6 text-base leading-7 text-ink-muted">
+      <h1 className="break-words text-[clamp(2.75rem,7vw,5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">Privacy</h1>
+      <div className="mt-8 space-y-8 text-base leading-8 text-ink-muted">
         <p>
           This draft explains how {site.name} handles information submitted
           through this website and information shown on private event pages. It
           must be reviewed and approved before publication.
         </p>
-        <section>
-          <h2 className="font-heading text-2xl font-bold text-ink">What we collect</h2>
+        <section className="space-y-3">
+          <h2 className="text-2xl font-semibold text-ink">What we collect</h2>
           <p>
             The contact form asks for your name, phone number, event type,
             preferred date, and message. If you plan an event with us, our
@@ -38,8 +38,8 @@ export default function PrivacyPage() {
             details.
           </p>
         </section>
-        <section>
-          <h2 className="font-heading text-2xl font-bold text-ink">Use and providers</h2>
+        <section className="space-y-3">
+          <h2 className="text-2xl font-semibold text-ink">Use and providers</h2>
           <p>
             We use submitted information to respond to enquiries and organize
             events. The application stores its database and files with Supabase.
@@ -48,8 +48,8 @@ export default function PrivacyPage() {
             for access control over information that must remain confidential.
           </p>
         </section>
-        <section>
-          <h2 className="font-heading text-2xl font-bold text-ink">Retention</h2>
+        <section className="space-y-3">
+          <h2 className="text-2xl font-semibold text-ink">Retention</h2>
           <p>
             Enquiries and event records remain in the system until an
             administrator deletes them; the application does not currently
@@ -61,8 +61,8 @@ export default function PrivacyPage() {
             implements the corresponding deletion process.
           </p>
         </section>
-        <section>
-          <h2 className="font-heading text-2xl font-bold text-ink">Your requests</h2>
+        <section className="space-y-3">
+          <h2 className="text-2xl font-semibold text-ink">Your requests</h2>
           <p>
             To ask about, correct, or request deletion of information, use the
             contact form and describe your privacy request. The client should
@@ -70,6 +70,6 @@ export default function PrivacyPage() {
           </p>
         </section>
       </div>
-    </div>
+    </article>
   );
 }

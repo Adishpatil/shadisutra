@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import QRCode from "qrcode";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   generateEventShareLink,
@@ -14,6 +13,7 @@ import { TimePicker } from "@/components/ui/TimePicker";
 interface EventShareLinkPanelProps {
   eventId: string;
   initialLink: AdminEventShareLink | null;
+  publicOrigin: string | null;
 }
 
 const subscribeToOrigin = () => () => {};
@@ -23,6 +23,7 @@ const getServerOrigin = () => "";
 export function EventShareLinkPanel({
   eventId,
   initialLink,
+  publicOrigin,
 }: EventShareLinkPanelProps) {
   const [shareLink, setShareLink] = useState(initialLink);
   const [expirationDate, setExpirationDate] = useState("");
@@ -30,25 +31,36 @@ export function EventShareLinkPanel({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [expired, setExpired] = useState(false);
   const origin = useSyncExternalStore(
     subscribeToOrigin,
     getBrowserOrigin,
     getServerOrigin
   );
-  const url = shareLink?.token && origin
-    ? new URL(`/e/${shareLink.token}`, origin).toString()
+  const linkOrigin = publicOrigin || origin;
+  const url = shareLink?.token && linkOrigin
+    ? new URL(`/e/${shareLink.token}`, `${linkOrigin}/`).toString()
     : null;
+  const qrTarget = shareLink?.token && linkOrigin
+    ? new URL(`/scan/guest/${shareLink.token}`, `${linkOrigin}/`).toString()
+    : null;
+  const qrUsesLocalOrigin = (() => {
+    if (!qrTarget) return false;
+    const hostname = new URL(qrTarget).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1" ||
+      hostname === "[::1]" || hostname.endsWith(".local");
+  })();
 
   useEffect(() => {
-    if (!url) return;
+    if (!qrTarget) return;
 
     let active = true;
-    QRCode.toDataURL(url, {
+    import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(qrTarget, {
       errorCorrectionLevel: "H",
-      width: 280,
-      margin: 2,
-    }).then((dataUrl) => {
-      if (active) setQr({ url, dataUrl });
+      width: 420,
+      margin: 4,
+    })).then((dataUrl) => {
+      if (active) setQr({ url: qrTarget, dataUrl });
     }).catch(() => {
       if (active) setError("The QR code could not be generated.");
     });
@@ -56,8 +68,31 @@ export function EventShareLinkPanel({
     return () => {
       active = false;
     };
-  }, [url]);
-  const qrCode = qr?.url === url ? qr.dataUrl : null;
+  }, [qrTarget]);
+  const qrCode = qr?.url === qrTarget ? qr.dataUrl : null;
+
+  useEffect(() => {
+    if (!shareLink?.token) return;
+
+    let timeout: number;
+    const checkExpiry = () => {
+      const remaining = new Date(shareLink.expiresAt).getTime() - Date.now();
+      if (remaining <= 0) {
+        setExpired(true);
+        return;
+      }
+      timeout = window.setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
+    };
+    timeout = window.setTimeout(
+      checkExpiry,
+      Math.min(
+        Math.max(0, new Date(shareLink.expiresAt).getTime() - Date.now()),
+        2_147_483_647
+      )
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [shareLink?.expiresAt, shareLink?.token]);
 
   const handleGenerate = async (formData: FormData) => {
     const date = String(formData.get("expiryDate") ?? "");
@@ -89,6 +124,7 @@ export function EventShareLinkPanel({
         expiresAt: result.expiresAt,
         revokedAt: null,
       });
+      setExpired(false);
       setMessage("Share link generated. Any previous link is no longer valid.");
     } catch {
       setError("Could not create the event share link.");
@@ -156,6 +192,7 @@ export function EventShareLinkPanel({
           </label>
           <input
             id="share-link-expiration"
+            name="expiryDate"
             type="date"
             required
             value={expirationDate}
@@ -177,6 +214,29 @@ export function EventShareLinkPanel({
       {message && (
         <p role="status" className="text-sm font-medium text-success">
           {message}
+        </p>
+      )}
+
+      {shareLink && (
+        <p
+          role="status"
+          className={`w-fit rounded-full px-3 py-1 text-sm font-semibold ${
+            shareLink.revokedAt
+              ? "bg-danger-light text-danger"
+              : expired
+                ? "bg-warning-light text-warning"
+                : shareLink.token
+                  ? "bg-success-light text-success"
+                  : "bg-bg text-ink-muted"
+          }`}
+        >
+          {shareLink.revokedAt
+            ? "Revoked"
+            : expired
+              ? "Expired"
+              : shareLink.token
+                ? "Active"
+                : "Not generated"}
         </p>
       )}
 
@@ -202,15 +262,23 @@ export function EventShareLinkPanel({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="min-h-11 rounded-radius-md border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
+                className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
               >
                 Copy Guest link
               </button>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
+              >
+                Open link
+              </a>
               {qrCode && (
                 <a
                   href={qrCode}
                   download={`event-${eventId}-guest-qr.png`}
-                  className="inline-flex min-h-11 items-center rounded-radius-md border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
+                  className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
                 >
                   Download Guest QR PNG
                 </a>
@@ -219,24 +287,32 @@ export function EventShareLinkPanel({
                 type="button"
                 onClick={handleRevoke}
                 disabled={pending}
-                className="min-h-11 rounded-radius-md border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
+                className="min-h-11 rounded-full border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
               >
                 Revoke Guest link
               </button>
             </div>
           </div>
           {qrCode && (
-            <div className="w-fit rounded-radius-md border border-border bg-white p-3">
-              <Image
-                src={qrCode}
-                width={220}
-                height={220}
-                alt="QR code for the expiring Guest event link"
-                unoptimized
-              />
+            <div className="space-y-2">
+              <div className="w-fit rounded-2xl border border-border bg-white p-4 shadow-[var(--shadow-sm)]">
+                <Image
+                  src={qrCode}
+                  width={320}
+                  height={320}
+                  alt="QR code for the guest event link"
+                  unoptimized
+                />
+              </div>
+              <p className="max-w-80 text-center text-sm text-ink-muted">Scan to open the event link</p>
             </div>
           )}
         </div>
+      )}
+      {qrUsesLocalOrigin && (
+        <p role="alert" className="rounded-xl border border-warning/30 bg-warning-light p-3 text-sm text-warning">
+          This QR uses a local address and won&apos;t open on another device. Set the public site URL in deployment settings, then reload this page.
+        </p>
       )}
     </section>
   );

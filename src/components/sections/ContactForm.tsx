@@ -1,23 +1,39 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { submitEnquiryAction, type SubmitEnquiryResult } from "@/app/contact/actions";
+import { Select, type SelectOption } from "@/components/ui/Select";
+
+const eventTypeOptions: readonly SelectOption[] = [
+  { value: "wedding", label: "Wedding" },
+  { value: "birthday", label: "Birthday" },
+  { value: "function", label: "Function" },
+];
 
 interface ContactFormProps {
   initialService?: string;
 }
 
 export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
+  const searchParams = useSearchParams();
   const [state, formAction, isPending] = useActionState<SubmitEnquiryResult | null, FormData>(
     submitEnquiryAction,
     null
   );
+  const [eventType, setEventType] = useState(initialService);
+  const requestedDate = searchParams.get("date") ?? "";
+  const initialDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)
+    ? requestedDate
+    : undefined;
+  const initialVenue = searchParams.get("venue")?.trim().slice(0, 120);
 
   return (
     <form
       action={formAction}
       noValidate
-      className="space-y-6 bg-surface p-6 sm:p-10 rounded-radius-lg border border-border shadow-[var(--shadow-sm)]"
+      data-contact-form
+      className="space-y-6 rounded-[28px] border border-border bg-surface p-5 sm:p-8"
     >
       {/* Honeypot field (hidden from view and assistive tech) */}
       <div className="hidden" aria-hidden="true">
@@ -112,20 +128,18 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           >
             Event Type <span className="text-danger" aria-hidden="true">*</span>
           </label>
-          <select
+          <Select
             id="contact-event-type"
             name="eventType"
-            defaultValue={initialService}
-            required
-            aria-describedby={state?.errors?.eventType ? "event-type-error" : undefined}
-            className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${
-              state?.errors?.eventType ? "border-danger" : "border-border"
-            }`}
-          >
-            <option value="wedding">Wedding</option>
-            <option value="birthday">Birthday</option>
-            <option value="function">Function</option>
-          </select>
+            ariaLabel="Event Type"
+            ariaDescribedBy={
+              state?.errors?.eventType ? "event-type-error" : undefined
+            }
+            invalid={Boolean(state?.errors?.eventType)}
+            value={eventType}
+            options={eventTypeOptions}
+            onChange={setEventType}
+          />
           {state?.errors?.eventType && (
             <p id="event-type-error" className="mt-1 text-xs text-danger font-medium">
               {state.errors.eventType}
@@ -144,6 +158,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
             type="date"
             id="contact-event-date"
             name="eventDate"
+            defaultValue={initialDate}
             aria-describedby="date-help"
             className="w-full px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
           />
@@ -166,6 +181,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           name="message"
           required
           rows={4}
+          defaultValue={initialVenue ? `Venue or city: ${initialVenue}` : undefined}
           placeholder="Share your date, venue and ideas"
           aria-describedby={state?.errors?.message ? "message-error" : undefined}
           aria-invalid={Boolean(state?.errors?.message)}
@@ -184,7 +200,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-accent text-accent-ink font-semibold rounded-radius-full hover:bg-accent-hover transition-colors shadow-[var(--shadow-md)] disabled:opacity-50 disabled:cursor-not-allowed text-base min-h-[44px]"
+        className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-8 py-3.5 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? "Sending Your Enquiry..." : "Send Event Enquiry"}
       </button>

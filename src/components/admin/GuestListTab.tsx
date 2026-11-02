@@ -16,20 +16,27 @@ import {
   importGuestsAction,
   deleteGuestAction,
 } from "@/lib/guests/actions";
+import { Sheet } from "@/components/ui/AdminPrimitives";
 
 interface GuestListTabProps {
   eventId: string;
   eventName: string;
   initialGuests: GuestRecord[];
+  openAddOnMount?: boolean;
 }
 
-export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTabProps) {
+export function GuestListTab({
+  eventId,
+  eventName,
+  initialGuests,
+  openAddOnMount = false,
+}: GuestListTabProps) {
   const [guests, setGuests] = useState<GuestRecord[]>(initialGuests);
   const [search, setSearch] = useState("");
   const [rsvpFilter, setRsvpFilter] = useState<string>("all");
 
   // Modals
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(openAddOnMount);
   const [editingGuest, setEditingGuest] = useState<GuestRecord | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
 
@@ -239,7 +246,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
       {/* 1. Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-surface p-4 rounded-radius-lg border border-border shadow-[var(--shadow-sm)]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+          <span className="text-sm font-semibold text-ink-muted">
             Total Expected
           </span>
           <p className="text-xl sm:text-2xl font-bold text-ink mt-1">
@@ -248,7 +255,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
         </div>
 
         <div className="bg-surface p-4 rounded-radius-lg border border-border shadow-[var(--shadow-sm)]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-success">
+          <span className="text-sm font-semibold text-success">
             Confirmed (Attending)
           </span>
           <p className="text-xl sm:text-2xl font-bold text-success mt-1">
@@ -257,7 +264,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
         </div>
 
         <div className="bg-surface p-4 rounded-radius-lg border border-border shadow-[var(--shadow-sm)]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-warning">
+          <span className="text-sm font-semibold text-warning">
             Pending RSVP
           </span>
           <p className="text-xl sm:text-2xl font-bold text-warning mt-1">
@@ -266,7 +273,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
         </div>
 
         <div className="bg-surface p-4 rounded-radius-lg border border-border shadow-[var(--shadow-sm)]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-danger">
+          <span className="text-sm font-semibold text-danger">
             Declined
           </span>
           <p className="text-xl sm:text-2xl font-bold text-danger mt-1">
@@ -282,7 +289,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, phone, or table..."
+            placeholder="Search by name, phone, or table…"
             className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
           />
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1" aria-label="Filter guests by RSVP">
@@ -346,7 +353,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
       <div className="hidden lg:block bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] overflow-hidden">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-border bg-bg text-ink-muted uppercase tracking-wider font-semibold">
+            <tr className="border-b border-border bg-bg text-ink-muted font-semibold">
               <th className="py-3 px-4">Guest / Family</th>
               <th className="py-3 px-4 text-center">Party Size</th>
               <th className="py-3 px-4">Phone</th>
@@ -384,7 +391,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                     </td>
                     <td className="py-3.5 px-4">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-radius-sm text-[10px] font-bold uppercase tracking-wider border ${rsvpBadge}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded-radius-sm text-xs font-semibold border ${rsvpBadge}`}
                       >
                         {g.rsvp === "yes" ? "Attending" : g.rsvp}
                       </span>
@@ -467,16 +474,16 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                     <option value="no">Declined</option>
                   </select>
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-radius-sm text-[10px] font-bold uppercase tracking-wider border ${rsvpBadge}`}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-radius-sm text-xs font-semibold border ${rsvpBadge}`}
                   >
                     {g.rsvp === "yes" ? "Attending" : g.rsvp}
                   </span>
                 </div>
 
                 <div className="text-xs text-ink-muted space-y-1 pt-1 border-t border-border/50">
-                  {g.phone && <p>📞 Phone: <span className="font-mono text-ink">{g.phone}</span></p>}
-                  {g.table_no && <p>🪑 Table: <span className="font-semibold text-ink">{g.table_no}</span></p>}
-                  {g.notes && <p className="italic text-ink-muted">📝 {g.notes}</p>}
+                  {g.phone && <p>Phone: <span className="font-mono text-ink">{g.phone}</span></p>}
+                  {g.table_no && <p>Table: <span className="font-semibold text-ink">{g.table_no}</span></p>}
+                  {g.notes && <p className="italic text-ink-muted">{g.notes}</p>}
                 </div>
 
                 <div className="pt-2 flex justify-end">
@@ -506,29 +513,12 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
 
       {/* 5. MODAL: Quick Add Single Guest */}
       {showAddModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
-          onClick={closeGuestModal}
+        <Sheet
+          open={showAddModal}
+          title={editingGuest ? "Edit Guest / Party" : "Add Guest / Party"}
+          onClose={closeGuestModal}
+          className="sm:max-w-md"
         >
-          <div
-            className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="font-heading font-bold text-base text-ink">
-                {editingGuest ? "Edit Guest / Party" : "Add Guest / Party"}
-              </h3>
-              <button
-                type="button"
-                onClick={closeGuestModal}
-                className="text-ink-muted hover:text-ink min-h-[44px] min-w-[44px] flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-
             <form
               onSubmit={saveGuest}
               className="space-y-3"
@@ -634,8 +624,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Sheet>
       )}
 
       {/* 6. MODAL: Batch Import (.xlsx / .csv) */}
@@ -643,18 +632,15 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 "
           onClick={() => setShowImportModal(false)}
         >
           <div
-            className="w-full max-w-2xl bg-surface border border-border rounded-radius-lg p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
+            className="w-full max-w-2xl bg-surface border border-border rounded-radius-lg p-6 shadow-[var(--shadow-sm)] space-y-4 max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
-                  Spreadsheet Ingestion
-                </span>
                 <h3 className="font-heading font-bold text-lg text-ink">
                   Import Guests (.xlsx or .csv)
                 </h3>
@@ -683,7 +669,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                 onClick={handleDownloadTemplate}
                 className="font-bold text-accent hover:underline whitespace-nowrap"
               >
-                📥 Download Template (.xlsx)
+                Download template
               </button>
             </div>
 
@@ -701,7 +687,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
             {/* Errors breakdown */}
             {importErrors.length > 0 && (
               <div className="p-3 bg-danger-light border border-danger/30 rounded-radius-md text-xs text-danger space-y-1">
-                <p className="font-bold">⚠️ Found {importErrors.length} row validation error(s):</p>
+                <p className="font-bold">Found {importErrors.length} row validation error(s):</p>
                 <ul className="list-disc list-inside max-h-24 overflow-y-auto">
                   {importErrors.map((err, i) => (
                     <li key={i}>
@@ -741,7 +727,7 @@ export function GuestListTab({ eventId, eventName, initialGuests }: GuestListTab
                   </table>
                   {importPreview.length > 10 && (
                     <div className="p-2 text-center text-ink-muted bg-bg/50">
-                      ...and {importPreview.length - 10} more rows
+                      … and {importPreview.length - 10} more rows
                     </div>
                   )}
                 </div>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { GalleryImage, GalleryCategory } from "@/lib/types";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
+import { Dialog } from "@/components/ui/Dialog";
+import { useReveal } from "@/components/ui/useReveal";
 
 interface GalleryViewProps {
   initialImages: GalleryImage[];
@@ -15,251 +17,176 @@ const categories: { label: string; value: GalleryCategory }[] = [
   { label: "Functions", value: "functions" },
 ];
 
+const imageRatios = ["aspect-[4/5]", "aspect-[4/3]", "aspect-square"];
+
 export function GalleryView({ initialImages }: GalleryViewProps) {
+  useReveal();
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const touchStartX = useRef<number | null>(null);
 
   const filteredImages =
     activeCategory === "all"
       ? initialImages
-      : initialImages.filter((img) => img.category === activeCategory);
+      : initialImages.filter((image) => image.category === activeCategory);
 
-  const openLightbox = (index: number) => {
-    setLightboxIndex(index);
-  };
-
-  const closeLightbox = useCallback(() => {
-    setLightboxIndex(null);
-  }, []);
-
+  const closeLightbox = useCallback(() => setLightboxIndex(null), []);
   const showNext = useCallback(() => {
-    if (lightboxIndex === null) return;
-    setLightboxIndex((prev) =>
-      prev !== null ? (prev + 1) % filteredImages.length : null
+    setLightboxIndex((index) =>
+      index === null || filteredImages.length === 0
+        ? null
+        : (index + 1) % filteredImages.length
     );
-  }, [lightboxIndex, filteredImages.length]);
-
-  const showPrev = useCallback(() => {
-    if (lightboxIndex === null) return;
-    setLightboxIndex((prev) =>
-      prev !== null
-        ? (prev - 1 + filteredImages.length) % filteredImages.length
-        : null
+  }, [filteredImages.length]);
+  const showPrevious = useCallback(() => {
+    setLightboxIndex((index) =>
+      index === null || filteredImages.length === 0
+        ? null
+        : (index - 1 + filteredImages.length) % filteredImages.length
     );
-  }, [lightboxIndex, filteredImages.length]);
+  }, [filteredImages.length]);
 
-  // Keyboard controls for lightbox
   useEffect(() => {
     if (lightboxIndex === null) return;
-
-    // Focus close button on open
-    setTimeout(() => {
-      closeButtonRef.current?.focus();
-    }, 50);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeLightbox();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
         showNext();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        showPrev();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showPrevious();
       }
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [lightboxIndex, closeLightbox, showNext, showPrev]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, showNext, showPrevious]);
 
   const currentImage =
-    lightboxIndex !== null ? filteredImages[lightboxIndex] : null;
+    lightboxIndex === null ? null : filteredImages[lightboxIndex] ?? null;
 
   return (
     <div>
-      {/* Category Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-12">
-        {categories.map((cat) => {
-          const isActive = activeCategory === cat.value;
+      <div className="mb-8 flex flex-wrap gap-2" aria-label="Filter photos">
+        {categories.map((category) => {
+          const active = activeCategory === category.value;
           return (
             <button
-              key={cat.value}
+              key={category.value}
               type="button"
               onClick={() => {
-                setActiveCategory(cat.value);
+                setActiveCategory(category.value);
                 setLightboxIndex(null);
               }}
-              className={`min-h-11 px-5 py-2.5 rounded-radius-full text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-accent text-accent-ink shadow-[var(--shadow-sm)]"
-                  : "bg-surface border border-border text-ink-muted hover:text-ink hover:border-accent/40"
+              className={`inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-base font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                active
+                  ? "border-ink bg-ink text-bg"
+                  : "border-border bg-surface text-ink hover:border-ink/40"
               }`}
-              aria-pressed={isActive}
+              aria-pressed={active}
             >
-              {cat.label}
+              {category.label}
             </button>
           );
         })}
       </div>
 
-      {/* Gallery Grid */}
       {filteredImages.length === 0 ? (
-        <div className="text-center py-16 text-ink-muted bg-surface rounded-radius-lg border border-border">
-          No images found in this category yet.
-        </div>
+        <p className="py-12 text-base text-ink-muted">
+          No photos are available in this category.
+        </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredImages.map((img, index) => (
-            <div
-              key={`${img.src}-${index}`}
-              className="group relative rounded-radius-md overflow-hidden bg-surface border border-border cursor-pointer transition-all hover:shadow-[var(--shadow-md)]"
-              onClick={() => openLightbox(index)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openLightbox(index);
-                }
-              }}
-              tabIndex={0}
-              role="button"
+        <div className="gallery-masonry">
+          {filteredImages.map((image, index) => (
+            <button
+              key={`${image.src}-${index}`}
+              type="button"
+              onClick={() => setLightboxIndex(index)}
+              className="gallery-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-[24px] bg-surface text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:mb-5"
+              aria-label={`Open photo: ${image.alt}`}
+              data-reveal={index % 2 === 0 ? "left" : "right"}
+              data-delay={(index % 3) + 1}
             >
-              <div className="overflow-hidden aspect-[4/3] relative">
+              <div className={`relative overflow-hidden ${imageRatios[index % imageRatios.length]}`}>
                 <PlaceholderImage
-                  src={img.src}
-                  alt={img.alt}
-                  width={img.width || 800}
-                  height={img.height || 600}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
-                {/* Hover overlay hint */}
-                <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-white bg-ink/60 px-3 py-1.5 rounded-radius-full backdrop-blur-sm">
-                    Enlarge Photo
-                  </span>
-                </div>
               </div>
-
-              <div className="p-4 bg-surface">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-accent block">
-                  {img.category}
-                </span>
-                <p className="text-sm font-medium text-ink truncate mt-1">
-                  {img.alt}
-                </p>
-              </div>
-            </div>
+              <span className="block px-4 py-3 text-base leading-snug text-ink">
+                {image.alt}
+              </span>
+            </button>
           ))}
         </div>
       )}
 
-      {/* Accessible Lightbox Modal */}
-      {currentImage && lightboxIndex !== null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image preview"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 backdrop-blur-md p-4 sm:p-6"
-          onClick={closeLightbox}
-        >
-          {/* Close button */}
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 z-50 flex min-h-11 min-w-11 items-center justify-center rounded-radius-full bg-white/10 p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-            aria-label="Close lightbox"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Prev button */}
-          {filteredImages.length > 1 && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                showPrev();
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-50 text-white/80 hover:text-white p-3 rounded-radius-full bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label="Previous image"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Next button */}
-          {filteredImages.length > 1 && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                showNext();
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-50 text-white/80 hover:text-white p-3 rounded-radius-full bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label="Next image"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Modal Content */}
+      <Dialog
+        open={currentImage !== null}
+        onClose={closeLightbox}
+        title="Our Work"
+        className="sm:max-w-5xl"
+      >
+        {currentImage && lightboxIndex !== null && (
           <div
-            className="relative max-w-4xl max-h-[85vh] flex flex-col items-center justify-center p-2"
-            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(event) => {
+              touchStartX.current = event.changedTouches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(event) => {
+              const start = touchStartX.current;
+              const end = event.changedTouches[0]?.clientX;
+              if (start !== null && end !== undefined && Math.abs(start - end) > 40) {
+                if (end < start) showNext();
+                else showPrevious();
+              }
+              touchStartX.current = null;
+            }}
           >
-            <div className="relative w-full max-h-[70vh] flex items-center justify-center overflow-hidden rounded-radius-md shadow-2xl">
+            <div className="relative flex min-h-[min(60dvh,34rem)] items-center justify-center overflow-hidden rounded-2xl bg-ink">
               <PlaceholderImage
                 src={currentImage.src}
                 alt={currentImage.alt}
                 width={currentImage.width || 1200}
-                height={currentImage.height || 800}
-                className="max-h-[70vh] w-auto max-w-full object-contain rounded-radius-md"
+                height={currentImage.height || 900}
+                sizes="(min-width: 1024px) 80vw, 100vw"
+                className="max-h-[65dvh] w-full object-contain"
               />
+              {filteredImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={showPrevious}
+                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    aria-label="Previous photo"
+                  >
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M19 12H5m6 6-6-6 6-6" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showNext}
+                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    aria-label="Next photo"
+                  >
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M5 12h14m-6-6 6 6-6 6" />
+                    </svg>
+                  </button>
+                </>
+              )}
             </div>
-
-            <div className="mt-4 text-center text-white px-4">
-              <span className="text-xs uppercase tracking-widest text-accent font-semibold">
-                {currentImage.category} • {lightboxIndex + 1} of {filteredImages.length}
-              </span>
-              <p className="mt-1 text-sm sm:text-base font-medium text-white/90">
-                {currentImage.alt}
-              </p>
-            </div>
+            <p className="mt-4 text-base leading-relaxed text-ink">
+              {currentImage.alt}
+            </p>
+            <p className="mt-1 text-sm text-ink-muted">
+              {lightboxIndex + 1} of {filteredImages.length}
+            </p>
           </div>
-        </div>
-      )}
+        )}
+      </Dialog>
     </div>
   );
 }

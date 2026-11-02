@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { AdminEventSummary } from "@/lib/admin/data";
 import { updateEventStatusAction } from "@/lib/admin/event-actions";
 import { formatINRDecimal } from "@/lib/format";
@@ -14,9 +15,30 @@ interface EventsViewClientProps {
 const statuses = ["all", "planning", "finalized", "completed", "cancelled"] as const;
 
 export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
+  const searchParams = useSearchParams();
   const [events, setEvents] = useState(initialEvents);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [quickAction, setQuickAction] = useState<string | null>(() => {
+    const action = searchParams.get("quick");
+    return ["payment", "expense", "guest", "share"].includes(action ?? "")
+      ? action
+      : null;
+  });
+
+  useEffect(() => {
+    const handleQuickAction = (event: Event) => {
+      const action = (event as CustomEvent<string>).detail;
+      if (["payment", "expense", "guest", "share"].includes(action)) {
+        setQuickAction(action);
+      }
+    };
+    window.addEventListener("admin:quick-action", handleQuickAction);
+    return () => window.removeEventListener("admin:quick-action", handleQuickAction);
+  }, []);
+
+  const eventHref = (eventId: string) =>
+    `/admin/events/${eventId}${quickAction ? `?quick=${quickAction}` : ""}`;
 
   const filteredEvents = events.filter((event) => {
     const matchesStatus = filterStatus === "all" || event.status === filterStatus;
@@ -28,6 +50,21 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
       );
     return matchesStatus && matchesSearch;
   });
+  const groupedEvents = filteredEvents.reduce<Record<string, AdminEventSummary[]>>(
+    (groups, event) => {
+      const [year, month] = event.date.split("-").map(Number);
+      const monthLabel = year && month
+        ? new Intl.DateTimeFormat("en-IN", {
+            month: "long",
+            year: "numeric",
+            timeZone: "UTC",
+          }).format(new Date(Date.UTC(year, month - 1, 1)))
+        : "Date not set";
+      (groups[monthLabel] ??= []).push(event);
+      return groups;
+    },
+    {}
+  );
 
   const handleStatusChange = async (
     eventId: string,
@@ -55,7 +92,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-base font-semibold uppercase tracking-wider text-accent">
+        <p className="text-sm font-semibold text-accent">
           Planning &amp; staging
         </p>
         <h1 className="mt-1 text-3xl font-heading font-bold text-ink">
@@ -64,6 +101,11 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
         <p className="mt-2 text-base text-ink-muted">
           Search and manage your events, plans and vendors.
         </p>
+        {quickAction && (
+          <p role="status" className="mt-4 rounded-xl border border-border bg-surface p-4 text-base text-ink">
+            Choose an event to continue with {quickAction === "share" ? "sharing" : `the ${quickAction}`} action.
+          </p>
+        )}
       </header>
 
       <label className="block">
@@ -96,7 +138,10 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
       </div>
 
       <div className="space-y-3 lg:hidden">
-        {filteredEvents.map((event) => {
+        {Object.entries(groupedEvents).map(([month, monthEvents]) => (
+          <section key={month} aria-label={month} className="space-y-3">
+          <h2 className="pt-2 font-heading text-lg font-semibold text-ink">{month}</h2>
+          {monthEvents.map((event) => {
           const balanceDue = Math.max(
             0,
             Math.round((event.budget_total ?? 0) * 100) -
@@ -107,11 +152,11 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
             <Card key={event.id} className="space-y-4 p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-base font-semibold uppercase tracking-wider text-accent">
+                  <p className="text-sm font-semibold text-accent">
                     {event.type}
                   </p>
                   <Link
-                    href={`/admin/events/${event.id}`}
+                    href={eventHref(event.id)}
                     className="mt-1 block break-words text-xl font-heading font-bold text-ink focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     {event.name}
@@ -156,7 +201,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                   <option value="cancelled">Cancelled</option>
                 </select>
                 <Link
-                  href={`/admin/events/${event.id}`}
+                  href={eventHref(event.id)}
                   className="inline-flex min-h-11 items-center justify-center rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink"
                 >
                   Open event
@@ -164,7 +209,9 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
               </div>
             </Card>
           );
-        })}
+          })}
+          </section>
+        ))}
         {filteredEvents.length === 0 && (
           <EmptyState
             title={search ? "No matching events" : "No events in this status"}
@@ -187,7 +234,12 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filteredEvents.map((event) => {
+            {Object.entries(groupedEvents).map(([month, monthEvents]) => (
+              <Fragment key={month}>
+              <tr className="bg-bg">
+                <th scope="rowgroup" colSpan={7} className="px-4 py-2 text-sm font-semibold text-ink-muted">{month}</th>
+              </tr>
+              {monthEvents.map((event) => {
               const balanceDue = Math.max(
                 0,
                 Math.round((event.budget_total ?? 0) * 100) -
@@ -196,7 +248,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
               return (
                 <tr key={event.id}>
                   <td className="p-4 font-semibold text-ink">
-                    <Link href={`/admin/events/${event.id}`} className="hover:text-accent">
+                    <Link href={eventHref(event.id)} className="hover:text-accent">
                       {event.name}
                     </Link>
                   </td>
@@ -229,7 +281,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                   </td>
                   <td className="p-4">
                     <Link
-                      href={`/admin/events/${event.id}`}
+                      href={eventHref(event.id)}
                       className="inline-flex min-h-11 items-center rounded-radius-md px-4 font-semibold text-accent hover:bg-accent-light"
                     >
                       Open
@@ -237,7 +289,9 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                   </td>
                 </tr>
               );
-            })}
+              })}
+              </Fragment>
+            ))}
           </tbody>
         </table>
         {filteredEvents.length === 0 && (
