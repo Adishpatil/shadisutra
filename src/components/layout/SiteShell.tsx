@@ -92,7 +92,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       <Navbar />
 
-      <main id="main-content" className="flex-1">
+      <main id="main-content" className="flex-1 pb-20">
         {children}
         <StickyContactButtons />
       </main>

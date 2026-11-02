@@ -135,6 +135,55 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+html {
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+.section-ornament {
+  display: block;
+  width: 4rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), rgba(128, 96, 0, 0.15));
+  border-radius: var(--radius-full);
+}
+
+.section-ornament-light {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2));
+}
+
+select,
+option,
+input,
+textarea,
+button {
+  font: inherit;
+}
+
+select,
+option,
+input,
+textarea {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+select option {
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.75rem 0.875rem;
+}
+
+main {
+  scroll-margin-top: 5rem;
 }
 
 /* ============================================================

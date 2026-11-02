@@ -158,17 +158,17 @@ export function Footer() {
               {hasSiteValue(site.address) && (
                 <li>{site.address}</li>
               )}
+              {hasSiteValue(site.hours) && (
+                <li>{site.hours}</li>
+              )}
               <li>
                 <Link
                   href="/login"
-                  className="inline-flex min-h-11 items-center text-base text-white/60 transition-colors hover:text-white"
+                  className="inline-flex min-h-11 items-center text-xs uppercase tracking-[0.14em] text-white/60 transition-colors hover:text-white"
                 >
                   Admin
                 </Link>
               </li>
-              {hasSiteValue(site.hours) && (
-                <li>{site.hours}</li>
-              )}
             </ul>
           </div>}
         </div>
