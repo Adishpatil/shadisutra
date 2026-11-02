@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatNumber } from "@/lib/format";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type {
   AdminEventSummary,
   AdminFunction,
@@ -52,9 +52,11 @@ interface EventDetailClientProps {
   initialShareLink: AdminEventShareLink | null;
   initialClientShareLink: AdminEventClientShareLink | null;
   initialExpenses: AdminExpenseRecord[];
+  publicOrigin: string | null;
 }
 
-type TabType = "overview" | "plan" | "budget" | "designs" | "guests";
+type TabType = "overview" | "plan" | "budget" | "designs" | "guests" | "share";
+type QuickAction = "payment" | "expense" | "guest" | "share";
 const eventTypes = ["wedding", "birthday", "function"] as const;
 const itemCategories = ["lighting", "flowers", "decor", "instruments", "other"] as const;
 const itemStatuses = ["not_started", "in_progress", "done"] as const;
@@ -79,9 +81,26 @@ export function EventDetailClient({
   initialShareLink,
   initialClientShareLink,
   initialExpenses,
+  publicOrigin,
 }: EventDetailClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const requestedAction = searchParams.get("quick");
+  const initialQuickAction: QuickAction | null =
+    requestedAction === "payment" ||
+    requestedAction === "expense" ||
+    requestedAction === "guest" ||
+    requestedAction === "share"
+      ? requestedAction
+      : null;
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (initialQuickAction === "payment" || initialQuickAction === "expense") return "budget";
+    if (initialQuickAction === "guest") return "guests";
+    if (initialQuickAction === "share") return "share";
+    return "overview";
+  });
+  const [quickAction, setQuickAction] = useState<QuickAction | null>(initialQuickAction);
   const [eventData, setEventData] = useState(event);
   const [functions, setFunctions] = useState(initialFunctions);
   const [itemsByFunction, setItemsByFunction] = useState(initialItemsByFunction);
@@ -90,7 +109,7 @@ export function EventDetailClient({
 
   // Modals state
   const [showEditEventModal, setShowEditEventModal] = useState(false);
-  const [showShareSheet, setShowShareSheet] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(initialQuickAction === "share");
   const [showAddFunction, setShowAddFunction] = useState(false);
   const [editingFunction, setEditingFunction] = useState<AdminFunction | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -98,6 +117,30 @@ export function EventDetailClient({
   const [addItemTargetFunctionId, setAddItemTargetFunctionId] = useState<string>(
     functions[0]?.id || ""
   );
+
+  useEffect(() => {
+    if (searchParams.has("quick")) {
+      router.replace(pathname, { scroll: false });
+    }
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const handleQuickAction = (event: Event) => {
+      const action = (event as CustomEvent<QuickAction>).detail;
+      if (!["payment", "expense", "guest", "share"].includes(action)) return;
+      setQuickAction(action);
+      setActiveTab(
+        action === "payment" || action === "expense"
+          ? "budget"
+          : action === "guest"
+            ? "guests"
+            : "share"
+      );
+      if (action === "share") setShowShareSheet(true);
+    };
+    window.addEventListener("admin:quick-action", handleQuickAction);
+    return () => window.removeEventListener("admin:quick-action", handleQuickAction);
+  }, []);
 
   // Status Change
   const handleStatusChange = async (
@@ -370,7 +413,7 @@ export function EventDetailClient({
               onClick={() => setShowEditEventModal(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-border text-sm font-medium text-ink hover:border-accent hover:text-accent transition-colors min-h-[44px]"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               Edit Event Details
@@ -395,13 +438,13 @@ export function EventDetailClient({
                 {status}
               </Badge>
               <span className="inline-flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 {formatDate(eventData.date)}
               </span>
               <span className="inline-flex items-center gap-1 truncate">
-                <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -438,7 +481,7 @@ export function EventDetailClient({
               className="inline-flex min-h-11 items-center gap-2 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink"
               title="Manage event share link"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
               <span>Share</span>
@@ -470,11 +513,12 @@ export function EventDetailClient({
         onClose={() => setShowShareSheet(false)}
       >
         <div className="space-y-5">
-          <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} />
+          <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} publicOrigin={publicOrigin} />
           <ClientShareLinkPanel
             eventId={event.id}
             initialLink={initialClientShareLink}
             initialPaymentsVisible={event.show_payments_to_customer ?? false}
+            publicOrigin={publicOrigin}
           />
         </div>
       </Sheet>
@@ -485,13 +529,17 @@ export function EventDetailClient({
       <Tabs
         label="Event sections"
         value={activeTab}
-        onChange={setActiveTab}
+        onChange={(tab) => {
+          setActiveTab(tab);
+          if (tab !== activeTab) setQuickAction(null);
+        }}
         items={[
           { value: "overview", label: "Overview" },
           { value: "plan", label: "Plan" },
           { value: "budget", label: "Money" },
           { value: "designs", label: "Designs" },
           { value: "guests", label: "Guests" },
+          { value: "share", label: "Share" },
         ]}
       />
 
@@ -525,7 +573,7 @@ export function EventDetailClient({
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <label htmlFor="filter-function-items" className="text-xs font-semibold text-ink-muted uppercase">
+              <label htmlFor="filter-function-items" className="text-sm font-semibold text-ink-muted ">
                 Filter:
               </label>
               <select
@@ -605,7 +653,7 @@ export function EventDetailClient({
                           <div className="flex flex-wrap items-center gap-3 text-base text-ink-muted">
                             {item.vendor && (
                               <span className="inline-flex items-center gap-1 font-medium text-ink">
-                                <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                                 {item.vendor}
@@ -627,7 +675,7 @@ export function EventDetailClient({
                           <button
                             type="button"
                             onClick={() => handleItemStatusCycle(item, item.parentFunctionId)}
-                            className={`px-3 py-1 rounded-radius-full text-sm font-semibold border transition-all hover:scale-105 min-h-[44px] ${statusBadgeClass}`}
+                            className={`px-3 py-1 rounded-radius-full text-sm font-semibold border transition-colors hover:brightness-95 min-h-[44px] ${statusBadgeClass}`}
                             title="Click to toggle status: Not Started → In Progress → Done"
                           >
                             {statusLabel}
@@ -639,7 +687,7 @@ export function EventDetailClient({
                             className="min-h-[44px] min-w-[44px] p-2 rounded-radius-sm border border-border text-ink-muted hover:text-accent hover:border-accent transition-colors"
                             title="Edit Item"
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
                           </button>
@@ -650,7 +698,7 @@ export function EventDetailClient({
                             className="min-h-[44px] min-w-[44px] p-2 rounded-radius-sm border border-border text-ink-muted hover:text-danger hover:border-danger transition-colors"
                             title="Delete Item"
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -721,7 +769,7 @@ export function EventDetailClient({
                     </span>
                   </div>
                   <p className="text-xs text-ink-muted flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     {func.date}
@@ -783,6 +831,7 @@ export function EventDetailClient({
           expenses={initialExpenses}
           functions={functions}
           itemsByFunction={itemsByFunction}
+          quickAction={quickAction === "payment" || quickAction === "expense" ? quickAction : null}
         />
       )}
 
@@ -807,7 +856,20 @@ export function EventDetailClient({
           eventId={event.id}
           eventName={event.name}
           initialGuests={initialGuests}
+          openAddOnMount={quickAction === "guest"}
         />
+      )}
+
+      {activeTab === "share" && (
+        <div className="grid gap-4 xl:grid-cols-2">
+          <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} publicOrigin={publicOrigin} />
+          <ClientShareLinkPanel
+            eventId={event.id}
+            initialLink={initialClientShareLink}
+            initialPaymentsVisible={event.show_payments_to_customer ?? false}
+            publicOrigin={publicOrigin}
+          />
+        </div>
       )}
 
       {/* ------------------------------------------------------------- */}
@@ -817,11 +879,11 @@ export function EventDetailClient({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 "
           onClick={() => setShowEditEventModal(false)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-heading font-bold text-ink">
@@ -829,7 +891,7 @@ export function EventDetailClient({
             </h3>
             <form onSubmit={handleEditEventSubmit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Event Name <span className="text-danger">*</span>
                 </label>
                 <input
@@ -843,7 +905,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Type
                   </label>
                   <select
@@ -857,7 +919,7 @@ export function EventDetailClient({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Date <span className="text-danger">*</span>
                   </label>
                   <input
@@ -871,7 +933,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Venue <span className="text-danger">*</span>
                 </label>
                 <input
@@ -885,7 +947,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Client Name
                   </label>
                   <input
@@ -897,7 +959,7 @@ export function EventDetailClient({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Client Phone
                   </label>
                   <input
@@ -938,11 +1000,11 @@ export function EventDetailClient({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 "
           onClick={() => setShowAddFunction(false)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-heading font-bold text-ink">
@@ -950,7 +1012,7 @@ export function EventDetailClient({
             </h3>
             <form onSubmit={handleAddFunctionSubmit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Function Name <span className="text-danger">*</span>
                 </label>
                 <input
@@ -964,7 +1026,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Date <span className="text-danger">*</span>
                   </label>
                   <input
@@ -984,7 +1046,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Notes
                 </label>
                 <textarea
@@ -1022,11 +1084,11 @@ export function EventDetailClient({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 "
           onClick={() => setEditingFunction(null)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-heading font-bold text-ink">
@@ -1034,7 +1096,7 @@ export function EventDetailClient({
             </h3>
             <form onSubmit={handleEditFunctionSubmit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Function Name <span className="text-danger">*</span>
                 </label>
                 <input
@@ -1048,7 +1110,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Date <span className="text-danger">*</span>
                   </label>
                   <input
@@ -1069,7 +1131,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Notes
                 </label>
                 <textarea
@@ -1107,11 +1169,11 @@ export function EventDetailClient({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 "
           onClick={() => setShowAddItem(false)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-heading font-bold text-ink">
@@ -1119,7 +1181,7 @@ export function EventDetailClient({
             </h3>
             <form onSubmit={handleAddItemSubmit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Assign to Function <span className="text-danger">*</span>
                 </label>
                 <select
@@ -1137,7 +1199,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Category <span className="text-danger">*</span>
                   </label>
                   <select
@@ -1154,7 +1216,7 @@ export function EventDetailClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Initial Status
                   </label>
                   <select
@@ -1170,7 +1232,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Item Title <span className="text-danger">*</span>
                 </label>
                 <input
@@ -1184,7 +1246,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Vendor
                   </label>
                   <input
@@ -1196,7 +1258,7 @@ export function EventDetailClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Estimated Cost (₹)
                   </label>
                   <input
@@ -1212,7 +1274,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Notes
                 </label>
                 <textarea
@@ -1250,11 +1312,11 @@ export function EventDetailClient({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 "
           onClick={() => setEditingItem(null)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-2xl p-6 space-y-4"
+            className="w-full max-w-md bg-surface rounded-radius-lg border border-border shadow-[var(--shadow-sm)] p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-heading font-bold text-ink">
@@ -1263,7 +1325,7 @@ export function EventDetailClient({
             <form onSubmit={handleEditItemSubmit} className="space-y-4" noValidate>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Category
                   </label>
                   <select
@@ -1280,7 +1342,7 @@ export function EventDetailClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Status
                   </label>
                   <select
@@ -1296,7 +1358,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Item Title <span className="text-danger">*</span>
                 </label>
                 <input
@@ -1310,7 +1372,7 @@ export function EventDetailClient({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Vendor
                   </label>
                   <input
@@ -1322,7 +1384,7 @@ export function EventDetailClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="block text-xs font-semibold  text-ink mb-1">
                     Estimated Cost (₹)
                   </label>
                   <input
@@ -1338,7 +1400,7 @@ export function EventDetailClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="block text-xs font-semibold  text-ink mb-1">
                   Notes
                 </label>
                 <textarea

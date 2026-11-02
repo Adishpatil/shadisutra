@@ -77,7 +77,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     pathname?.startsWith("/admin") ||
     pathname === "/login" ||
     pathname?.startsWith("/e/") ||
-    pathname?.startsWith("/c/");
+    pathname?.startsWith("/c/") ||
+    pathname?.startsWith("/scan/");
 
   if (isDashboardRoute) {
     return <>{children}</>;
@@ -92,7 +93,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       <Navbar />
 
-      <main id="main-content" className="flex-1 pb-20">
+      <main id="main-content" className="flex-1 pb-24 lg:pb-0">
         {children}
         <StickyContactButtons />
       </main>

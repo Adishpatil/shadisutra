@@ -6,6 +6,7 @@ import { getAdminEventShareLink } from "@/lib/events/share-actions";
 import { getAdminEventClientShareLink } from "@/lib/events/client-share-actions";
 import { getEventMoneyRecords } from "@/lib/admin/event-money-data";
 import { EventDetailClient } from "@/components/admin/EventDetailClient";
+import { getCanonicalUrl } from "@/config/seo";
 
 export default async function AdminEventDetailPage({
   params,
@@ -38,6 +39,8 @@ export default async function AdminEventDetailPage({
   if (!event) {
     notFound();
   }
+  const canonicalHome = getCanonicalUrl("/");
+  const publicOrigin = canonicalHome ? new URL(canonicalHome).origin : null;
 
   return (
     <div>
@@ -54,6 +57,7 @@ export default async function AdminEventDetailPage({
         initialShareLink={shareLink}
         initialClientShareLink={clientShareLink}
         initialExpenses={expenses}
+        publicOrigin={publicOrigin}
       />
     </div>
   );

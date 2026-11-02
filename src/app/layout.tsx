@@ -1,11 +1,32 @@
 import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { headers } from "next/headers";
-import { cormorant, dmSans } from "@/lib/fonts";
+import { Bricolage_Grotesque, Fraunces, Inter } from "next/font/google";
 import { site } from "@/config/site";
 import { getCanonicalUrl, localBusinessJsonLd } from "@/config/seo";
 import { SiteShell } from "@/components/layout/SiteShell";
 import "./globals.css";
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["600"],
+  variable: "--font-bricolage",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
 
 const siteUrl = process.env.SITE_URL?.trim();
 const socialImage = getCanonicalUrl("/brand/logo.webp") ?? "/brand/logo.webp";
@@ -59,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${cormorant.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${inter.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-[100dvh] flex flex-col bg-bg text-ink font-body">
         {businessJsonLd && (

@@ -28,6 +28,7 @@ interface EventMoneyTabProps {
   expenses: AdminExpenseRecord[];
   functions: AdminFunction[];
   itemsByFunction: Record<string, AdminItem[]>;
+  quickAction?: "payment" | "expense" | null;
 }
 
 function money(paise: number): string {
@@ -145,6 +146,7 @@ export function EventMoneyTab({
   expenses,
   functions,
   itemsByFunction,
+  quickAction = null,
 }: EventMoneyTabProps) {
   const router = useRouter();
   const [localExpenses, setLocalExpenses] = useState<{
@@ -153,11 +155,12 @@ export function EventMoneyTab({
   } | null>(null);
   const expenseRows = localExpenses?.source === expenses ? localExpenses.rows : expenses;
   const [editing, setEditing] = useState<AdminExpenseRecord | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(quickAction === "expense");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
   const [error, setError] = useState<string | null>(null);
+
   const summary = calculateEventMoney(
     Math.round(agreedTotal * 100),
     payments.reduce((sum, payment) => sum + Math.round(Number(payment.amount) * 100), 0),
@@ -235,7 +238,7 @@ export function EventMoneyTab({
 
   const cards = [
     ["Agreed total", summary.agreedTotal],
-    ["Received from client", summary.received],
+    ["Payments recorded", summary.received],
     ["Total expenses", summary.totalExpenses],
     ["Paid to vendors", summary.paidToVendors],
     ["Owed to vendors", summary.owedToVendors],
@@ -243,7 +246,7 @@ export function EventMoneyTab({
   ] as const;
 
   return (
-    <div className="space-y-8">
+    <div className="event-money space-y-8 pb-16 md:pb-0">
       {error && <p role="alert" className="rounded-radius-md bg-danger-light p-3 text-base text-danger">{error}</p>}
       <section aria-label="Calculated event money summary" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map(([label, amount]) => (
@@ -269,7 +272,15 @@ export function EventMoneyTab({
 
       <section aria-labelledby="money-in-title">
         <h2 id="money-in-title" className="mb-3 font-heading text-2xl font-bold">Money in · Payments from client</h2>
-        <BudgetPaymentsTab eventId={eventId} initialAgreedTotal={agreedTotal} initialPayments={payments} items={itemCosts} auditLogs={auditLogs} showSummary={false} />
+        <BudgetPaymentsTab
+          eventId={eventId}
+          initialAgreedTotal={agreedTotal}
+          initialPayments={payments}
+          items={itemCosts}
+          auditLogs={auditLogs}
+          showSummary={false}
+          openAddOnMount={quickAction === "payment"}
+        />
       </section>
 
       <section aria-labelledby="money-out-title" className="space-y-4">
@@ -280,7 +291,7 @@ export function EventMoneyTab({
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={() => void exportExcel()}>Export to Excel</Button>
-            <Button type="button" variant="primary" onClick={() => { setEditing(null); setShowForm(true); }}>Add expense</Button>
+            <Button type="button" variant="primary" onClick={() => { setEditing(null); setShowForm(true); }} className="expense-add-fixed">Add expense</Button>
           </div>
         </div>
 
@@ -311,7 +322,7 @@ export function EventMoneyTab({
                       <span className="rounded-radius-full bg-accent-light px-3 py-1 text-sm font-semibold capitalize">{expense.status.replace("_", " ")}</span>
                     </div>
                     <p className="mt-1 text-sm text-ink-muted">{formatDate(expense.expense_date)} · {expense.category} · {expense.vendor || "No vendor"}</p>
-                    <p className="mt-2 text-base">Total {money(expense.amount + expense.tax_amount)} · Paid {money(expense.amount_paid)} · Owed {money(expense.amount + expense.tax_amount - expense.amount_paid)}</p>
+                    <p className="mt-2 text-base">Total {money(expense.amount + expense.tax_amount)} / Paid {money(expense.amount_paid)} / Owed {money(expense.amount + expense.tax_amount - expense.amount_paid)}</p>
                     {expense.payment_mode && <p className="mt-1 text-sm text-ink-muted">Mode: {expense.payment_mode}</p>}
                     {expense.notes && <p className="mt-2 break-words text-sm text-ink-muted">{expense.notes}</p>}
                     {expense.receipt_url && <a href={expense.receipt_url} target="_blank" rel="noreferrer noopener" className="mt-2 inline-flex min-h-11 items-center font-semibold text-accent underline">View receipt</a>}

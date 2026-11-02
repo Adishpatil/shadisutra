@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createEventAction } from "@/lib/admin/event-actions";
+import { Sheet } from "@/components/ui/AdminPrimitives";
 
 interface CreateEventModalProps {
   onClose: () => void;
@@ -33,36 +34,10 @@ export function CreateEventModal({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Create New Event"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg bg-surface rounded-radius-lg border border-border shadow-2xl p-6 sm:p-8 overflow-y-auto max-h-[90dvh]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between pb-4 border-b border-border">
-          <div>
-            <h2 className="text-xl font-heading font-bold text-ink">
-              Create New Event
-            </h2>
-            <p className="text-xs text-ink-muted mt-0.5">
-              Add a new wedding, birthday, or corporate celebration.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded-radius-sm text-ink-muted hover:text-ink min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="Close modal"
-          >
-            ✕
-          </button>
-        </div>
-
+    <Sheet open title="Create new event" onClose={onClose} className="sm:max-w-2xl">
+        <p className="mb-5 text-base text-ink-muted">
+          Add a wedding, birthday, or function.
+        </p>
         {error && (
           <div
             role="alert"
@@ -72,12 +47,12 @@ export function CreateEventModal({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Event Name */}
           <div>
             <label
               htmlFor="event-name"
-              className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+              className="mb-1 block text-sm font-semibold text-ink"
             >
               Event Name <span className="text-danger">*</span>
             </label>
@@ -96,7 +71,7 @@ export function CreateEventModal({
             <div>
               <label
                 htmlFor="event-type"
-                className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+                className="mb-1 block text-sm font-semibold text-ink"
               >
                 Event Type <span className="text-danger">*</span>
               </label>
@@ -115,7 +90,7 @@ export function CreateEventModal({
             <div>
               <label
                 htmlFor="event-date"
-                className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+                className="mb-1 block text-sm font-semibold text-ink"
               >
                 Target Date <span className="text-danger">*</span>
               </label>
@@ -133,7 +108,7 @@ export function CreateEventModal({
           <div>
             <label
               htmlFor="event-venue"
-              className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+              className="mb-1 block text-sm font-semibold text-ink"
             >
               Venue / Location <span className="text-danger">*</span>
             </label>
@@ -151,7 +126,7 @@ export function CreateEventModal({
             <div>
               <label
                 htmlFor="event-client-name"
-                className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+                className="mb-1 block text-sm font-semibold text-ink"
               >
                 Client Name
               </label>
@@ -166,7 +141,7 @@ export function CreateEventModal({
             <div>
               <label
                 htmlFor="event-client-phone"
-                className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+                className="mb-1 block text-sm font-semibold text-ink"
               >
                 Client Phone
               </label>
@@ -185,7 +160,7 @@ export function CreateEventModal({
           <div>
             <label
               htmlFor="event-budget"
-              className="block text-xs font-semibold uppercase tracking-wider text-ink mb-1"
+              className="mb-1 block text-sm font-semibold text-ink"
             >
               Estimated Agreed Budget (₹)
             </label>
@@ -201,7 +176,7 @@ export function CreateEventModal({
             />
           </div>
 
-          <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 border-t border-border bg-surface px-6 py-3 flex items-center justify-end gap-3">
+          <div className="sticky bottom-0 -mx-5 -mb-5 mt-4 border-t border-border bg-surface px-5 py-3 flex items-center justify-end gap-3 sm:-mx-7 sm:-mb-7 sm:px-7">
             <button
               type="button"
               onClick={onClose}
@@ -218,7 +193,6 @@ export function CreateEventModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 }

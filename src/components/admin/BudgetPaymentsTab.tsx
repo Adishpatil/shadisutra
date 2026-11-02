@@ -16,6 +16,7 @@ import {
   deletePaymentAction,
 } from "@/lib/admin/payment-actions";
 import { formatINRDecimal, formatDateTime } from "@/lib/format";
+import { Sheet } from "@/components/ui/AdminPrimitives";
 
 interface BudgetPaymentsTabProps {
   eventId: string;
@@ -24,6 +25,7 @@ interface BudgetPaymentsTabProps {
   items: ItemCostSummary[];
   auditLogs: AuditLogItem[];
   showSummary?: boolean;
+  openAddOnMount?: boolean;
 }
 
 export function BudgetPaymentsTab({
@@ -33,13 +35,14 @@ export function BudgetPaymentsTab({
   items,
   auditLogs,
   showSummary = true,
+  openAddOnMount = false,
 }: BudgetPaymentsTabProps) {
   const router = useRouter();
   const [agreedTotal, setAgreedTotal] = useState(initialAgreedTotal);
   const payments = initialPayments;
 
   // Modals state
-  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(openAddOnMount);
   const [showEditAgreedModal, setShowEditAgreedModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
   const [editAgreedInput, setEditAgreedInput] = useState(String(agreedTotal));
@@ -122,7 +125,7 @@ export function BudgetPaymentsTab({
         {/* Agreed Total */}
         <div className="bg-surface p-5 sm:p-6 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            <span className="text-sm font-semibold text-ink-muted">
               Agreed Contract Total
             </span>
             <button
@@ -150,7 +153,7 @@ export function BudgetPaymentsTab({
         {/* Total Paid (Calculated) */}
         <div className="bg-surface p-5 sm:p-6 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            <span className="text-sm font-semibold text-ink-muted">
               Total Payments Received
             </span>
             <span className="text-xs font-bold text-success bg-success-light px-2 py-0.5 rounded-radius-full">
@@ -170,7 +173,7 @@ export function BudgetPaymentsTab({
         {/* Remaining Due (Calculated) */}
         <div className="bg-surface p-5 sm:p-6 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            <span className="text-sm font-semibold text-ink-muted">
               Remaining Balance Due
             </span>
             <span
@@ -196,7 +199,7 @@ export function BudgetPaymentsTab({
         {/* % Paid (Calculated Progress) */}
         <div className="bg-surface p-5 sm:p-6 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            <span className="text-sm font-semibold text-ink-muted">
               Payment Realization
             </span>
             <span className="text-xs font-bold text-accent font-mono">
@@ -204,18 +207,18 @@ export function BudgetPaymentsTab({
             </span>
           </div>
           <div className="mt-3 space-y-2">
-            <div className="w-full h-3 rounded-radius-full bg-bg border border-border overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 ${
-                  budget.percentagePaid >= 100
-                    ? "bg-success"
-                    : budget.percentagePaid >= 50
-                    ? "bg-accent"
-                    : "bg-warning"
-                }`}
-                style={{ width: `${Math.min(100, budget.percentagePaid)}%` }}
-              />
-            </div>
+            <progress
+              className={`admin-progress w-full ${
+                budget.percentagePaid >= 100
+                  ? "is-complete"
+                  : budget.percentagePaid >= 50
+                    ? "is-half"
+                    : "is-start"
+              }`}
+              max={100}
+              value={Math.min(100, budget.percentagePaid)}
+              aria-label={`Payment progress ${budget.percentagePaid}%`}
+            />
             <span className="text-[11px] text-ink-muted block">
               {budget.percentagePaid >= 100
                 ? "100% of agreed budget received"
@@ -235,7 +238,7 @@ export function BudgetPaymentsTab({
             <h3 className="font-heading font-bold text-lg text-ink">
               Vendor Category Costs (From Tracking Items)
             </h3>
-            <span className="text-xs font-bold font-mono text-ink">
+            <span className="text-sm font-semibold text-ink">
               Total Expenses:               {formatINRDecimal(budget.totalItemCosts)}
             </span>
           </div>
@@ -243,7 +246,7 @@ export function BudgetPaymentsTab({
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
             {Object.entries(budget.categoryBreakdown).map(([cat, cost]) => (
               <div key={cat} className="p-3 bg-bg rounded-radius-md border border-border">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted block capitalize">
+                <span className="text-sm font-semibold text-ink-muted block capitalize">
                   {cat}
                 </span>
                 <span className="text-sm font-bold font-mono text-ink mt-1 block">
@@ -270,9 +273,6 @@ export function BudgetPaymentsTab({
         {/* Right: Quick Action Banner */}
         <div className="hidden lg:col-span-4 bg-accent-light/40 p-6 rounded-radius-lg border border-accent/30 lg:flex flex-col justify-between gap-4">
           <div>
-            <span className="text-xs uppercase font-bold text-accent tracking-wider block">
-              Quick Action
-            </span>
             <h3 className="font-heading font-bold text-lg text-ink mt-1">
               Record Client Payment
             </h3>
@@ -329,7 +329,7 @@ export function BudgetPaymentsTab({
         <div className="hidden lg:block overflow-x-auto bg-surface border border-border rounded-radius-lg shadow-[var(--shadow-sm)]">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-border bg-bg/50 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+              <tr className="border-b border-border bg-bg/50 text-sm font-semibold text-ink-muted">
                 <th className="py-3 px-4">Date Paid</th>
                 <th className="py-3 px-4">Amount</th>
                 <th className="py-3 px-4">Mode / Channel</th>
@@ -393,7 +393,7 @@ export function BudgetPaymentsTab({
               </div>
               <div className="text-xs text-ink-muted flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   {p.paid_on}
@@ -415,7 +415,7 @@ export function BudgetPaymentsTab({
               </div>
               {p.note && (
                 <p className="text-xs text-ink-muted pt-1 border-t border-border flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   {p.note}
@@ -447,7 +447,7 @@ export function BudgetPaymentsTab({
           {auditLogs.map((log) => (
             <div key={log.id} className="py-2.5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-accent font-semibold uppercase">
+                <span className="font-mono text-accent font-semibold">
                   {log.action}
                 </span>
                 <span className="text-ink-muted">on table {log.table_name}</span>
@@ -482,32 +482,15 @@ export function BudgetPaymentsTab({
       {/* MODAL: Quick Add Payment                                      */}
       {/* ------------------------------------------------------------- */}
       {showAddPaymentModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
-          onClick={() => setShowAddPaymentModal(false)}
+        <Sheet
+          open={showAddPaymentModal}
+          title={editingPayment ? "Edit client payment" : "Record client payment"}
+          onClose={() => {
+            setShowAddPaymentModal(false);
+            setEditingPayment(null);
+          }}
+          className="sm:max-w-lg"
         >
-          <div
-            className="max-h-[90dvh] w-full max-w-md overflow-y-auto bg-surface rounded-radius-lg border border-border shadow-2xl p-5 sm:p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <h3 className="text-lg font-heading font-bold text-ink">
-                {editingPayment ? "Edit Client Payment" : "Record Client Payment"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddPaymentModal(false);
-                  setEditingPayment(null);
-                }}
-                className="text-ink-muted hover:text-ink min-h-[44px] min-w-[44px] flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-
             {error && (
               <div className="p-3 bg-danger-light text-danger text-xs font-medium rounded-radius-md border border-danger/30">
                 {error}
@@ -516,7 +499,7 @@ export function BudgetPaymentsTab({
 
             <form onSubmit={handleAddPaymentSubmit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="mb-1 block text-sm font-semibold text-ink">
                   Amount Received (₹) <span className="text-danger">*</span>
                 </label>
                 <input
@@ -534,7 +517,7 @@ export function BudgetPaymentsTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="mb-1 block text-sm font-semibold text-ink">
                     Date Received <span className="text-danger">*</span>
                   </label>
                   <input
@@ -547,7 +530,7 @@ export function BudgetPaymentsTab({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                  <label className="mb-1 block text-sm font-semibold text-ink">
                     Payment Mode
                   </label>
                   <select
@@ -565,7 +548,7 @@ export function BudgetPaymentsTab({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="mb-1 block text-sm font-semibold text-ink">
                   Note / Tranche Description
                 </label>
                 <input
@@ -597,34 +580,21 @@ export function BudgetPaymentsTab({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Sheet>
       )}
 
       {/* ------------------------------------------------------------- */}
       {/* MODAL: Edit Contracted Agreed Budget                          */}
       {/* ------------------------------------------------------------- */}
       {showEditAgreedModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
-          onClick={() => setShowEditAgreedModal(false)}
-        >
-          <div
-            className="max-h-[90dvh] w-full max-w-sm overflow-y-auto bg-surface rounded-radius-lg border border-border shadow-2xl p-5 sm:p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-heading font-bold text-ink">
-              Edit Contracted Budget
-            </h3>
+        <Sheet open={showEditAgreedModal} title="Edit agreed total" onClose={() => setShowEditAgreedModal(false)} className="sm:max-w-md">
             <p className="text-xs text-ink-muted">
               Update the agreed overall total price for this event.
             </p>
             {error && <p role="alert" className="text-sm text-danger">{error}</p>}
             <form onSubmit={handleEditAgreedSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-ink mb-1">
+                <label className="mb-1 block text-sm font-semibold text-ink">
                   Agreed Total Amount (₹)
                 </label>
                 <input
@@ -655,8 +625,7 @@ export function BudgetPaymentsTab({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Sheet>
       )}
     </div>
   );

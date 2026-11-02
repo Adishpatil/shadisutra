@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import QRCode from "qrcode";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   generateEventClientLink,
@@ -17,6 +16,7 @@ interface ClientShareLinkPanelProps {
   eventId: string;
   initialLink: AdminEventClientShareLink | null;
   initialPaymentsVisible: boolean;
+  publicOrigin: string | null;
 }
 
 const subscribeToOrigin = () => () => {};
@@ -27,6 +27,7 @@ export function ClientShareLinkPanel({
   eventId,
   initialLink,
   initialPaymentsVisible,
+  publicOrigin,
 }: ClientShareLinkPanelProps) {
   const [link, setLink] = useState(initialLink);
   const [expiryDate, setExpiryDate] = useState("");
@@ -36,18 +37,56 @@ export function ClientShareLinkPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
   const origin = useSyncExternalStore(subscribeToOrigin, getBrowserOrigin, getServerOrigin);
-  const url = link?.token && origin ? new URL(`/c/${link.token}`, origin).toString() : null;
+  const linkOrigin = publicOrigin || origin;
+  const url = link?.token && linkOrigin
+    ? new URL(`/c/${link.token}`, `${linkOrigin}/`).toString()
+    : null;
+  const qrTarget = link?.token && linkOrigin
+    ? new URL(`/scan/client/${link.token}`, `${linkOrigin}/`).toString()
+    : null;
+  const qrUsesLocalOrigin = (() => {
+    if (!qrTarget) return false;
+    const hostname = new URL(qrTarget).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1" ||
+      hostname === "[::1]" || hostname.endsWith(".local");
+  })();
 
   useEffect(() => {
-    if (!url) return;
+    if (!qrTarget) return;
     let active = true;
-    QRCode.toDataURL(url, { errorCorrectionLevel: "H", width: 280, margin: 2 })
-      .then((value) => { if (active) setQr({ url, dataUrl: value }); })
+    import("qrcode").then(({ default: QRCode }) =>
+      QRCode.toDataURL(qrTarget, { errorCorrectionLevel: "H", width: 420, margin: 4 })
+    )
+      .then((value) => { if (active) setQr({ url: qrTarget, dataUrl: value }); })
       .catch(() => { if (active) setError("The client QR code could not be generated."); });
     return () => { active = false; };
-  }, [url]);
-  const qrCode = qr?.url === url ? qr.dataUrl : null;
+  }, [qrTarget]);
+  const qrCode = qr?.url === qrTarget ? qr.dataUrl : null;
+
+  useEffect(() => {
+    if (!link?.token) return;
+
+    let timeout: number;
+    const checkExpiry = () => {
+      const remaining = new Date(link.expiresAt).getTime() - Date.now();
+      if (remaining <= 0) {
+        setExpired(true);
+        return;
+      }
+      timeout = window.setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
+    };
+    timeout = window.setTimeout(
+      checkExpiry,
+      Math.min(
+        Math.max(0, new Date(link.expiresAt).getTime() - Date.now()),
+        2_147_483_647
+      )
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [link?.expiresAt, link?.token]);
 
   const handleGenerate = async (formData: FormData) => {
     const date = String(formData.get("expiryDate") ?? "");
@@ -72,6 +111,7 @@ export function ClientShareLinkPanel({
         return;
       }
       setLink({ token: result.token, expiresAt: result.expiresAt, revokedAt: null, hasPin: result.hasPin });
+      setExpired(false);
       setMessage("Client link generated. Any previous client link is revoked.");
     } catch {
       setError("Could not create the client link.");
@@ -156,6 +196,29 @@ export function ClientShareLinkPanel({
         <p className="mt-1 text-sm text-ink-muted">Private read-only event details for the paying client. This link is separate from the guest link. Regenerating retains the current PIN unless you change it below.</p>
       </div>
 
+      {link && (
+        <p
+          role="status"
+          className={`w-fit rounded-full px-3 py-1 text-sm font-semibold ${
+            link.revokedAt
+              ? "bg-danger-light text-danger"
+              : expired
+                ? "bg-warning-light text-warning"
+                : link.token
+                  ? "bg-success-light text-success"
+                  : "bg-bg text-ink-muted"
+          }`}
+        >
+          {link.revokedAt
+            ? "Revoked"
+            : expired
+              ? "Expired"
+              : link.token
+                ? "Active"
+                : "Not generated"}
+        </p>
+      )}
+
       <form action={handleGenerate} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div>
           <label htmlFor="client-expiry-date" className="mb-1 block text-base font-semibold">Link expires</label>
@@ -195,13 +258,26 @@ export function ClientShareLinkPanel({
             <label htmlFor="client-share-url" className="sr-only">Client link</label>
             <input id="client-share-url" readOnly value={url} className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-sm text-ink" />
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={copyLink} className="min-h-11 rounded-radius-md border border-border px-4 text-sm font-semibold">Copy client link</button>
-              {qrCode && <a href={qrCode} download={`event-${eventId}-client-qr.png`} className="inline-flex min-h-11 items-center rounded-radius-md border border-border px-4 text-sm font-semibold">Download Client QR PNG</a>}
-              <button type="button" onClick={handleRevoke} disabled={pending} className="min-h-11 rounded-radius-md border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50">Revoke client link</button>
+              <button type="button" onClick={copyLink} className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold">Copy client link</button>
+              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold">Open link</a>
+              {qrCode && <a href={qrCode} download={`event-${eventId}-client-qr.png`} className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold">Download QR</a>}
+              <button type="button" onClick={handleRevoke} disabled={pending} className="min-h-11 rounded-full border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50">Revoke client link</button>
             </div>
           </div>
-          {qrCode && <div className="w-fit rounded-radius-md border border-border bg-white p-3"><Image src={qrCode} width={220} height={220} alt="QR code for the client event link" unoptimized /></div>}
+          {qrCode && (
+            <div className="space-y-2">
+              <div className="w-fit rounded-2xl border border-border bg-white p-4 shadow-[var(--shadow-sm)]">
+                <Image src={qrCode} width={320} height={320} alt="QR code for the client event link" unoptimized />
+              </div>
+              <p className="max-w-80 text-center text-sm text-ink-muted">Scan to open the private client link</p>
+            </div>
+          )}
         </div>
+      )}
+      {qrUsesLocalOrigin && (
+        <p role="alert" className="rounded-xl border border-warning/30 bg-warning-light p-3 text-sm text-warning">
+          This QR uses a local address and won&apos;t open on another device. Set the public site URL in deployment settings, then reload this page.
+        </p>
       )}
     </section>
   );

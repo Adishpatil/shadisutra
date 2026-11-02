@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  useEffect,
   type ButtonHTMLAttributes,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
+import { Sheet as SharedSheet } from "@/components/ui/Dialog";
 
 type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
 
@@ -15,16 +15,16 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   const variants: Record<ButtonVariant, string> = {
-    primary: "bg-accent text-accent-ink hover:bg-accent-hover",
-    secondary: "border border-border bg-surface text-ink hover:border-accent",
-    quiet: "text-ink-muted hover:bg-accent-light hover:text-ink",
+    primary: "bg-ink text-white hover:bg-ink/85",
+    secondary: "border border-border bg-surface text-ink hover:border-ink/40",
+    quiet: "text-ink-muted hover:bg-bg hover:text-ink",
     danger: "border border-danger/30 bg-danger-light text-danger hover:border-danger",
   };
 
   return (
     <button
       {...props}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-radius-md px-4 py-2 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     />
   );
 }
@@ -37,7 +37,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={`rounded-radius-lg bg-surface p-4 shadow-[var(--shadow-sm)] sm:p-6 ${className}`}>
+    <section className={`rounded-2xl border border-border bg-surface p-4 shadow-[var(--shadow-sm)] sm:p-6 ${className}`}>
       {children}
     </section>
   );
@@ -82,39 +82,15 @@ export function Sheet({
   children: ReactNode;
   className?: string;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="admin-sheet-title"
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/50 p-0 backdrop-blur-sm sm:p-4"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
+    <SharedSheet
+      open={open}
+      title={title}
+      onClose={onClose}
+      className={`admin-sheet-panel max-w-2xl ${className}`}
     >
-      <section className={`admin-sheet-panel flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden bg-surface shadow-xl sm:rounded-radius-lg ${className}`}>
-        <header className="flex min-h-16 shrink-0 items-center justify-between border-b border-border px-4 sm:px-6">
-          <h2 id="admin-sheet-title" className="text-xl font-heading font-bold text-ink">
-            {title}
-          </h2>
-          <Button type="button" variant="quiet" onClick={onClose} aria-label="Close sheet" className="w-11 px-0 text-2xl">
-            <span aria-hidden="true">×</span>
-          </Button>
-        </header>
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</div>
-      </section>
-    </div>
+      {children}
+    </SharedSheet>
   );
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
 
@@ -11,19 +12,58 @@ export function StickyContactButtons() {
   const pathname = usePathname();
   const hasPhone = hasSiteValue(site.phone);
   const hasWhatsApp = hasSiteValue(site.whatsapp);
+  const [nearContent, setNearContent] = useState(true);
+
+  useEffect(() => {
+    const content = Array.from(document.querySelectorAll<HTMLElement>(
+      "main p, main h1, main h2, main h3, main li, main img, main a[href], main button, main input, main select, main textarea, footer p, footer a[href], footer button"
+    )).filter((element) => !element.closest(".sticky-contact-buttons"));
+    let frame = 0;
+    const updateDockVisibility = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const dockRect = {
+          left: window.innerWidth - 140,
+          right: window.innerWidth,
+          top: window.innerHeight - 92,
+          bottom: window.innerHeight,
+        };
+        setNearContent(
+          content.some((element) => {
+            const bounds = element.getBoundingClientRect();
+            return (
+              bounds.right > dockRect.left &&
+              bounds.left < dockRect.right &&
+              bounds.bottom > dockRect.top &&
+              bounds.top < dockRect.bottom
+            );
+          })
+        );
+      });
+    };
+    updateDockVisibility();
+    window.addEventListener("scroll", updateDockVisibility, { passive: true });
+    window.addEventListener("resize", updateDockVisibility);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateDockVisibility);
+      window.removeEventListener("resize", updateDockVisibility);
+    };
+  }, [pathname]);
 
   if (pathname?.startsWith("/admin")) return null;
-  if (!hasPhone && !hasWhatsApp) return null;
+  if ((!hasPhone && !hasWhatsApp) || nearContent) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-end px-4 pb-[calc(1rem+var(--safe-bottom))] lg:hidden">
+    <div className="sticky-contact-buttons pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-end px-4 pb-[calc(1rem+var(--safe-bottom))] lg:hidden">
       <div className="pointer-events-auto flex items-center gap-3">
         {hasWhatsApp && (
           <a
             href={siteLinks.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[var(--shadow-lg)] transition-transform hover:scale-105"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-bg shadow-[var(--shadow-lg)] transition-transform hover:scale-105"
             aria-label="Chat on WhatsApp"
           >
             <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -34,7 +74,7 @@ export function StickyContactButtons() {
         {hasPhone && (
           <a
             href={siteLinks.phoneUrl}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[var(--shadow-lg)] transition-transform hover:scale-105"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-bg shadow-[var(--shadow-lg)] transition-transform hover:scale-105"
             aria-label={`Call ${site.name}`}
           >
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">

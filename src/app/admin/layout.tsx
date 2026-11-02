@@ -48,7 +48,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         Skip to content
       </a>
       <AdminNav />
-      <main id="main-content" className="min-h-screen flex-1 px-4 pb-[calc(9rem+var(--safe-bottom))] pt-[calc(5rem+var(--safe-top))] sm:px-6 md:ml-60 md:px-8 md:pb-10 md:pt-20 lg:px-10">
+      <main id="main-content" className="min-h-screen flex-1 px-4 pb-[calc(9rem+var(--safe-bottom))] pt-[calc(5rem+var(--safe-top))] sm:px-6 md:ml-16 md:px-8 md:pb-10 md:pt-20 lg:ml-60 lg:px-10">
         <div className="mx-auto w-full max-w-7xl">
           {children}
         </div>

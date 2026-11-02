@@ -37,13 +37,13 @@ export default function LoginPage() {
     <a href="#main-content" className="skip-to-content">
       Skip to content
     </a>
-    <main id="main-content" className="min-h-[90dvh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-24">
-      <div className="w-full max-w-md bg-surface p-8 sm:p-10 rounded-radius-lg border border-border shadow-[var(--shadow-md)]">
+    <main id="main-content" className="flex min-h-[100dvh] items-center justify-center bg-bg px-5 py-24 sm:px-8">
+      <div className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-10">
         {/* Brand header */}
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center font-heading text-3xl font-bold text-accent tracking-tight"
+            className="inline-flex min-h-11 items-center font-heading text-2xl font-semibold tracking-tight text-ink"
           >
             {site.name}
           </Link>
@@ -52,7 +52,7 @@ export default function LoginPage() {
               ? "Set up authenticator"
               : state?.requiresMfa
                 ? "Two-factor authentication"
-                : "Admin Login"}
+                : "                Sign in"}
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-ink-muted leading-relaxed">
             {state?.requiresEnrollment
@@ -115,7 +115,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={mfaPending || mfaCode.length !== 6}
-              className="w-full mt-2 inline-flex items-center justify-center px-6 py-3.5 bg-accent text-accent-ink font-semibold rounded-radius-full hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] disabled:opacity-50 min-h-[44px]"
+              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
             >
               {mfaPending
                 ? "Verifying..."
@@ -185,7 +185,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full mt-2 inline-flex items-center justify-center px-6 py-3.5 bg-accent text-accent-ink font-semibold rounded-radius-full hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] disabled:opacity-50 min-h-[44px]"
+              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
             >
               {isPending ? "Signing in..." : "Sign In"}
             </button>

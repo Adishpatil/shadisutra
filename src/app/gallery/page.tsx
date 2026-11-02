@@ -11,26 +11,22 @@ export const metadata = pageMetadata(
 export default function GalleryPage() {
   const images = getGalleryImages("all");
 
+  if (images.length === 0) return null;
+
   return (
-    <div className="pt-24 pb-20">
-      {/* Header */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center py-12 sm:py-16">
-        <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-          Our Work
-        </span>
-        <h1 className="mt-3 text-4xl sm:text-5xl font-heading font-bold text-ink">
+    <div className="page-shell">
+      <section className="mx-auto max-w-7xl px-5 pb-10 pt-32 sm:px-8 sm:pb-12 lg:px-10">
+        <h1 className="break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">
           Our Work
         </h1>
-        <p className="mt-6 text-lg sm:text-xl text-ink-muted leading-relaxed max-w-3xl mx-auto">
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
           A look at celebrations we have styled. Filter by event type.
         </p>
       </section>
 
-      {/* Gallery with filter and lightbox */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto my-8">
+      <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8 lg:px-10">
         <GalleryView initialImages={images} />
       </section>
-
     </div>
   );
 }
