@@ -115,9 +115,13 @@ begin
     'scrypt$' || repeat('A', 22) || '$' || repeat('A', 86),
     now() + interval '1 day'
   );
-  receipt_name := test_event::text || '/' || test_expense::text || '/phase8-receipt.png';
-  insert into storage.objects (bucket_id, name)
-  values ('event-files', receipt_name);
+  select name into receipt_name
+  from storage.objects
+  where bucket_id = 'event-files'
+  limit 1;
+  if receipt_name is null then
+    raise exception 'Upload a test file to the private event-files bucket through the Storage API, then rerun this test.';
+  end if;
 
   foreach as_role in array array['anon', 'authenticated'] loop
     foreach table_name in array array['event_expenses', 'event_client_links', 'event_share_links'] loop
@@ -213,7 +217,6 @@ begin
 
   delete from public.event_client_links where token = client_token;
   delete from public.event_share_links where token = guest_token;
-  delete from storage.objects where bucket_id = 'event-files' and name = receipt_name;
   delete from public.events where id = test_event;
 end;
 $$;
