@@ -8,6 +8,8 @@ import {
   revokeEventShareLink,
   type AdminEventShareLink,
 } from "@/lib/events/share-actions";
+import { dateTimeKolkataToIso, formatDateTimeKolkata } from "@/lib/date-time";
+import { TimePicker } from "@/components/ui/TimePicker";
 
 interface EventShareLinkPanelProps {
   eventId: string;
@@ -18,19 +20,13 @@ const subscribeToOrigin = () => () => {};
 const getBrowserOrigin = () => window.location.origin;
 const getServerOrigin = () => "";
 
-function defaultExpiration(): string {
-  const date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-  return date.toISOString().slice(0, 16);
-}
-
 export function EventShareLinkPanel({
   eventId,
   initialLink,
 }: EventShareLinkPanelProps) {
   const [shareLink, setShareLink] = useState(initialLink);
-  const [expiration, setExpiration] = useState(defaultExpiration);
-  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [expirationDate, setExpirationDate] = useState("");
+  const [qr, setQr] = useState<{ url: string; dataUrl: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -52,7 +48,7 @@ export function EventShareLinkPanel({
       width: 280,
       margin: 2,
     }).then((dataUrl) => {
-      if (active) setQrCode(dataUrl);
+      if (active) setQr({ url, dataUrl });
     }).catch(() => {
       if (active) setError("The QR code could not be generated.");
     });
@@ -61,10 +57,16 @@ export function EventShareLinkPanel({
       active = false;
     };
   }, [url]);
+  const qrCode = qr?.url === url ? qr.dataUrl : null;
 
-  const handleGenerate = async () => {
-    const expirationDate = new Date(expiration);
-    if (!expiration || !Number.isFinite(expirationDate.getTime())) {
+  const handleGenerate = async (formData: FormData) => {
+    const date = String(formData.get("expiryDate") ?? "");
+    const time = String(formData.get("expiryTime") ?? "");
+    const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00Z`) : null;
+    const expiration = parsedDate?.toISOString().slice(0, 10) === date
+      ? dateTimeKolkataToIso(date, time)
+      : null;
+    if (!expiration || new Date(expiration).getTime() <= Date.now()) {
       setError("Choose a valid future expiration date.");
       return;
     }
@@ -75,7 +77,7 @@ export function EventShareLinkPanel({
     try {
       const result = await generateEventShareLink(
         eventId,
-        expirationDate.toISOString()
+        expiration
       );
       if (!result.success) {
         setError(result.error);
@@ -96,6 +98,7 @@ export function EventShareLinkPanel({
   };
 
   const handleRevoke = async () => {
+    if (!confirm("Revoke the Guest link? The Client link will remain active.")) return;
     setPending(true);
     setError(null);
     setMessage(null);
@@ -136,40 +139,35 @@ export function EventShareLinkPanel({
     >
       <div>
         <h2 id="event-share-title" className="font-heading text-xl font-bold text-ink">
-          Public event link
+          Guest link
         </h2>
         <p className="mt-1 text-sm text-ink-muted">
-          Share only the event details, schedule, functions, and finalized designs.
+          Share the public event details, schedule, and functions with guests.
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+      <form action={handleGenerate} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div className="flex-1">
           <label
             htmlFor="share-link-expiration"
-            className="mb-1.5 block text-sm font-semibold text-ink"
+            className="mb-1.5 block text-base font-semibold text-ink"
           >
             Link expires
           </label>
           <input
             id="share-link-expiration"
-            type="datetime-local"
+            type="date"
             required
-            min={defaultExpiration()}
-            value={expiration}
-            onChange={(event) => setExpiration(event.target.value)}
+            value={expirationDate}
+            onChange={(event) => setExpirationDate(event.target.value)}
             className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={pending || !expiration}
-          className="min-h-11 rounded-radius-md bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink hover:bg-accent-hover disabled:opacity-50"
-        >
-          {pending ? "Saving..." : shareLink ? "Regenerate link" : "Generate link"}
+        <TimePicker name="expiryTime" label="Expiry time (IST)" defaultValue="23:59" />
+        <button type="submit" disabled={pending || !expirationDate} className="min-h-11 rounded-radius-md bg-accent px-5 py-2.5 text-base font-semibold text-accent-ink hover:bg-accent-hover disabled:opacity-50">
+          {pending ? "Saving..." : shareLink?.token ? "Regenerate Guest link" : "Generate Guest link"}
         </button>
-      </div>
+      </form>
 
       {error && (
         <p role="alert" className="text-sm font-medium text-danger">
@@ -188,16 +186,11 @@ export function EventShareLinkPanel({
             <p className="text-sm text-ink">
               Expires{" "}
               <time dateTime={shareLink.expiresAt}>
-                {new Date(shareLink.expiresAt).toLocaleString("en-GB", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                  timeZone: "UTC",
-                })}{" "}
-                UTC
+                {formatDateTimeKolkata(shareLink.expiresAt)} IST
               </time>
             </p>
             <label htmlFor="event-share-url" className="sr-only">
-              Public event link
+              Guest link
             </label>
             <input
               id="event-share-url"
@@ -211,15 +204,15 @@ export function EventShareLinkPanel({
                 onClick={handleCopy}
                 className="min-h-11 rounded-radius-md border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
               >
-                Copy link
+                Copy Guest link
               </button>
               {qrCode && (
                 <a
                   href={qrCode}
-                  download={`event-${eventId}-qr.png`}
+                  download={`event-${eventId}-guest-qr.png`}
                   className="inline-flex min-h-11 items-center rounded-radius-md border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
                 >
-                  Download QR PNG
+                  Download Guest QR PNG
                 </a>
               )}
               <button
@@ -228,7 +221,7 @@ export function EventShareLinkPanel({
                 disabled={pending}
                 className="min-h-11 rounded-radius-md border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
               >
-                Revoke link
+                Revoke Guest link
               </button>
             </div>
           </div>
@@ -238,7 +231,7 @@ export function EventShareLinkPanel({
                 src={qrCode}
                 width={220}
                 height={220}
-                alt="QR code for the expiring public event link"
+                alt="QR code for the expiring Guest event link"
                 unoptimized
               />
             </div>

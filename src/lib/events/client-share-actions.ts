@@ -64,6 +64,14 @@ export async function generateEventClientLink(
     return { success: false, error: "Choose a future expiry and a 4-6 digit PIN, or leave it blank." };
   }
   const supabase = await createClient();
+  const { data: current, error: currentError } = await supabase
+    .from("event_client_links")
+    .select("pin_hash")
+    .eq("event_id", parsed.data.eventId)
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (currentError) return { success: false, error: "Could not load the current client link." };
   const { error: revokeError } = await supabase
     .from("event_client_links")
     .update({ revoked_at: new Date().toISOString() })
@@ -72,7 +80,9 @@ export async function generateEventClientLink(
   if (revokeError) return { success: false, error: "Could not replace the client link." };
 
   const token = randomBytes(24).toString("base64url");
-  const pinHash = parsed.data.pin ? await hashClientPin(parsed.data.pin) : null;
+  const pinHash = parsed.data.pin
+    ? await hashClientPin(parsed.data.pin)
+    : current?.pin_hash ?? null;
   const { error } = await supabase.from("event_client_links").insert({
     event_id: parsed.data.eventId,
     token,

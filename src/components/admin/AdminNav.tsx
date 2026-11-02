@@ -28,6 +28,15 @@ const navItems = [
     ),
   },
   {
+    href: "/admin/money",
+    label: "Money",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M12 8c-2.21 0-4 1.12-4 2.5s1.79 2.5 4 2.5 4 1.12 4 2.5-1.79 2.5-4 2.5m0-10V5m0 12v2m9-7a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
     href: "/admin/enquiries",
     label: "Enquiries",
     icon: (
@@ -38,10 +47,13 @@ const navItems = [
   },
 ] as const;
 
+const mobileNavItems = navItems.filter((item) => item.href !== "/admin/money");
+
 function pageTitle(pathname: string) {
   if (pathname === "/admin") return "Dashboard";
   if (pathname.startsWith("/admin/events/")) return "Event details";
   if (pathname.startsWith("/admin/events")) return "Events";
+  if (pathname.startsWith("/admin/money")) return "Money overview";
   if (pathname.startsWith("/admin/enquiries")) return "Enquiries";
   return "Admin";
 }
@@ -115,7 +127,7 @@ export function AdminNav() {
         className="fixed inset-x-0 bottom-0 z-50 flex h-[calc(3.5rem+var(--safe-bottom))] items-stretch border-t border-border bg-surface/95 pb-[var(--safe-bottom)] backdrop-blur md:hidden"
         aria-label="Admin tabs"
       >
-        {navItems.map((item) => {
+        {mobileNavItems.map((item) => {
           const active = isItemActive(item.href);
           return (
             <Link
@@ -152,6 +164,9 @@ export function AdminNav() {
         <div className="space-y-3">
           <Link href="/admin/events" onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center rounded-radius-md px-4 text-base font-semibold text-ink hover:bg-bg">
             All events
+          </Link>
+          <Link href="/admin/money" onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center rounded-radius-md px-4 text-base font-semibold text-ink hover:bg-bg">
+            Money overview
           </Link>
           <Link href="/admin/enquiries" onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center rounded-radius-md px-4 text-base font-semibold text-ink hover:bg-bg">
             Website enquiries

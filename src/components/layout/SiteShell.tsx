@@ -76,7 +76,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const isDashboardRoute =
     pathname?.startsWith("/admin") ||
     pathname === "/login" ||
-    pathname?.startsWith("/e/");
+    pathname?.startsWith("/e/") ||
+    pathname?.startsWith("/c/");
 
   if (isDashboardRoute) {
     return <>{children}</>;

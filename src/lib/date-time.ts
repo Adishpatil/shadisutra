@@ -4,7 +4,7 @@ export function formatDate(date: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
   if (!match) return date;
   const value = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  if (Number.isNaN(value.getTime())) return date;
+  if (Number.isNaN(value.getTime()) || value.toISOString().slice(0, 10) !== date) return date;
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
     month: "short",
@@ -74,7 +74,10 @@ export function timeInKolkata(value: string): string | null {
 }
 
 export function dateTimeKolkataToIso(date: string, time: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !parseTime24Hour(time)) return null;
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!dateMatch || !parseTime24Hour(time)) return null;
+  const dateValue = new Date(Date.UTC(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3])));
+  if (Number.isNaN(dateValue.getTime()) || dateValue.toISOString().slice(0, 10) !== date) return null;
   const parsed = new Date(`${date}T${time.slice(0, 5)}:00+05:30`);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }

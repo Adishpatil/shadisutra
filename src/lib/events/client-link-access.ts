@@ -1,11 +1,17 @@
 import "server-only";
 
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { scrypt } from "node:crypto";
-import { promisify } from "node:util";
+import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
-const scryptAsync = promisify(scrypt);
 const CLIENT_SESSION_SECONDS = 15 * 60;
+
+function deriveKey(pin: string, salt: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scrypt(pin, salt, 64, (error, key) => {
+      if (error) reject(error);
+      else resolve(key);
+    });
+  });
+}
 
 function secret(): string {
   const value = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -18,8 +24,8 @@ function signingKey(): Buffer {
 }
 
 export async function hashClientPin(pin: string): Promise<string> {
-  const salt = Buffer.from(await import("node:crypto").then(({ randomBytes }) => randomBytes(16)));
-  const derived = (await scryptAsync(pin, salt, 64)) as Buffer;
+  const salt = randomBytes(16);
+  const derived = await deriveKey(pin, salt);
   return `scrypt$${salt.toString("base64url")}$${derived.toString("base64url")}`;
 }
 
@@ -28,7 +34,7 @@ export async function verifyClientPin(pin: string, pinHash: string): Promise<boo
   if (!match) return false;
   const salt = Buffer.from(match[1], "base64url");
   const expected = Buffer.from(match[2], "base64url");
-  const actual = (await scryptAsync(pin, salt, 64)) as Buffer;
+  const actual = await deriveKey(pin, salt);
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 

@@ -33,6 +33,7 @@ revoke all privileges on table public.event_client_links
   from public, anon, authenticated;
 grant select, insert, update, delete on table public.event_client_links
   to authenticated;
+grant select on table public.event_client_links to service_role;
 
 create table public.event_expenses (
   id uuid primary key default gen_random_uuid(),

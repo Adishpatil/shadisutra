@@ -10,6 +10,7 @@ export interface AdminEventSummary {
   client_name: string | null;
   client_phone: string | null;
   status: "planning" | "finalized" | "completed" | "cancelled";
+  show_payments_to_customer?: boolean;
   total_functions?: number;
   total_items?: number;
   pending_items?: number;
@@ -155,6 +156,7 @@ export async function getAdminEvents(): Promise<AdminEventSummary[]> {
       client_name: event.client_name,
       client_phone: event.client_phone,
       status: event.status,
+      show_payments_to_customer: event.show_payments_to_customer,
       total_functions: functionCounts.get(event.id) ?? 0,
       total_items: itemTotals?.total ?? 0,
       pending_items: itemTotals?.pending ?? 0,

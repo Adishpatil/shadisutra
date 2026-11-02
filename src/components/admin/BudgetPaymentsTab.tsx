@@ -23,6 +23,7 @@ interface BudgetPaymentsTabProps {
   initialPayments: PaymentRecord[];
   items: ItemCostSummary[];
   auditLogs: AuditLogItem[];
+  showSummary?: boolean;
 }
 
 export function BudgetPaymentsTab({
@@ -31,6 +32,7 @@ export function BudgetPaymentsTab({
   initialPayments,
   items,
   auditLogs,
+  showSummary = true,
 }: BudgetPaymentsTabProps) {
   const router = useRouter();
   const [agreedTotal, setAgreedTotal] = useState(initialAgreedTotal);
@@ -110,6 +112,8 @@ export function BudgetPaymentsTab({
           {error}
         </p>
       )}
+      {showSummary && (
+      <>
       {/* ------------------------------------------------------------- */}
       {/* 1. Calculated KPI Summary Cards                               */}
       {/* Paid, remaining, % are calculated and NEVER typed             */}
@@ -286,6 +290,8 @@ export function BudgetPaymentsTab({
           </button>
         </div>
       </div>
+      </>
+      )}
 
       {/* ------------------------------------------------------------- */}
       {/* 3. Payments Received History Table & Mobile Cards             */}
@@ -295,13 +301,28 @@ export function BudgetPaymentsTab({
           <h3 className="font-heading font-bold text-lg text-ink">
             Payment Receipts History ({payments.length})
           </h3>
-          <button
-            type="button"
-            onClick={() => showPaymentForm(null)}
-            className="payment-add-fixed min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
-          >
-            + Add Payment
-          </button>
+          <div className="flex flex-wrap justify-end gap-2">
+            {!showSummary && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditAgreedInput(agreedTotal.toFixed(2));
+                  setError(null);
+                  setShowEditAgreedModal(true);
+                }}
+                className="min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+              >
+                Edit agreed total
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => showPaymentForm(null)}
+              className="payment-add-fixed min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+            >
+              + Add Payment
+            </button>
+          </div>
         </div>
 
         {/* Desktop Table */}

@@ -11,6 +11,7 @@ import {
 describe("date and time formatting", () => {
   it("formats date-only values without shifting the calendar date", () => {
     expect(formatDate("2026-11-15")).toBe("15 Nov 2026");
+    expect(formatDate("2026-02-31")).toBe("2026-02-31");
   });
 
   it("round-trips 12-hour time through a 24-hour database value", () => {
@@ -26,6 +27,7 @@ describe("date and time formatting", () => {
     expect(toTime24Hour(13, 0, "AM")).toBeNull();
     expect(parseTime24Hour("24:00")).toBeNull();
     expect(dateTimeKolkataToIso("2026-11-15", "18:30")).toBe("2026-11-15T13:00:00.000Z");
+    expect(dateTimeKolkataToIso("2026-02-31", "18:30")).toBeNull();
     expect(formatDateTimeKolkata("2026-11-15T13:00:00.000Z")).toBe("15 Nov 2026, 6:30 pm");
   });
 });

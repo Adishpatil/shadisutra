@@ -67,7 +67,7 @@ export async function getPublicSharedEvent(
   if (
     eventResult.error ||
     functionsResult.error ||
-    timelineResult.error ||
+    timelineResult.error
   ) {
     throw new Error("Could not load event share details.");
   }

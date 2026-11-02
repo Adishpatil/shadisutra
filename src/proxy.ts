@@ -52,7 +52,11 @@ function applySecurityHeaders(
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
     pathname === "/e" ||
-    pathname.startsWith("/e/");
+    pathname.startsWith("/e/") ||
+    pathname === "/c" ||
+    pathname.startsWith("/c/") ||
+    pathname === "/api/c" ||
+    pathname.startsWith("/api/c/");
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");

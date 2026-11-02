@@ -22,17 +22,20 @@ import {
   deleteEventAction,
 } from "@/lib/admin/event-actions";
 
-import { BudgetPaymentsTab } from "@/components/admin/BudgetPaymentsTab";
+import { EventMoneyTab } from "@/components/admin/EventMoneyTab";
 import { GuestListTab } from "@/components/admin/GuestListTab";
 import { DesignsTab } from "@/components/admin/DesignsTab";
 import { TimelineTab } from "@/components/admin/TimelineTab";
 import { EventShareLinkPanel } from "@/components/admin/EventShareLinkPanel";
+import { ClientShareLinkPanel } from "@/components/admin/ClientShareLinkPanel";
 import { Badge, Sheet, Tabs } from "@/components/ui/AdminPrimitives";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { formatDate, formatTime12Hour } from "@/lib/date-time";
 import type { PaymentRecord } from "@/lib/admin/budget-calculations";
 import type { AuditLogItem } from "@/lib/admin/data";
 import type { AdminEventShareLink } from "@/lib/events/share-actions";
+import type { AdminEventClientShareLink } from "@/lib/events/client-share-actions";
+import type { AdminExpenseRecord } from "@/lib/admin/event-money-data";
 import type { GuestRecord } from "@/lib/guests/data";
 import type { EventDesignRecord, EventTimelineEntry } from "@/lib/admin/designs-timeline-data";
 
@@ -47,6 +50,8 @@ interface EventDetailClientProps {
   initialDesigns?: EventDesignRecord[];
   initialTimeline?: EventTimelineEntry[];
   initialShareLink: AdminEventShareLink | null;
+  initialClientShareLink: AdminEventClientShareLink | null;
+  initialExpenses: AdminExpenseRecord[];
 }
 
 type TabType = "overview" | "plan" | "budget" | "designs" | "guests";
@@ -72,6 +77,8 @@ export function EventDetailClient({
   initialDesigns = [],
   initialTimeline = [],
   initialShareLink,
+  initialClientShareLink,
+  initialExpenses,
 }: EventDetailClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -462,7 +469,14 @@ export function EventDetailClient({
         title="Share event"
         onClose={() => setShowShareSheet(false)}
       >
-        <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} />
+        <div className="space-y-5">
+          <EventShareLinkPanel eventId={event.id} initialLink={initialShareLink} />
+          <ClientShareLinkPanel
+            eventId={event.id}
+            initialLink={initialClientShareLink}
+            initialPaymentsVisible={event.show_payments_to_customer ?? false}
+          />
+        </div>
       </Sheet>
 
       {/* ------------------------------------------------------------- */}
@@ -759,12 +773,16 @@ export function EventDetailClient({
       {/* OTHER TABS                                                    */}
       {/* ------------------------------------------------------------- */}
       {activeTab === "budget" && (
-        <BudgetPaymentsTab
+        <EventMoneyTab
           eventId={event.id}
-          initialAgreedTotal={initialBudgetTotal || event.budget_total || 0}
-          initialPayments={initialPayments}
-          items={Object.values(itemsByFunction).flat()}
+          eventDate={eventData.date}
+          agreedTotal={initialBudgetTotal || event.budget_total || 0}
+          payments={initialPayments}
+          itemCosts={Object.values(itemsByFunction).flat()}
           auditLogs={auditLogs}
+          expenses={initialExpenses}
+          functions={functions}
+          itemsByFunction={itemsByFunction}
         />
       )}
 
