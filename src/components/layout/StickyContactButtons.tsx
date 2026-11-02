@@ -17,15 +17,14 @@ export function StickyContactButtons() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-40 flex flex-col gap-3 lg:hidden"
-      style={{ paddingBottom: "var(--safe-bottom)" }}
+      className="mx-auto flex w-full max-w-7xl justify-end gap-3 px-5 py-4 sm:px-8 lg:hidden"
     >
       {hasWhatsApp && (
         <a
           href={siteLinks.whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center w-14 h-14 rounded-radius-full bg-[#25D366] text-white shadow-[var(--shadow-lg)] hover:scale-105 transition-transform"
+          className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-[#25D366] text-white shadow-[var(--shadow-lg)] transition-transform hover:scale-105"
           aria-label="Chat on WhatsApp"
         >
           <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -36,7 +35,7 @@ export function StickyContactButtons() {
       {hasPhone && (
         <a
           href={siteLinks.phoneUrl}
-          className="flex items-center justify-center w-14 h-14 rounded-radius-full bg-accent text-accent-ink shadow-[var(--shadow-lg)] hover:scale-105 transition-transform"
+          className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-accent text-accent-ink shadow-[var(--shadow-lg)] transition-transform hover:scale-105"
           aria-label={`Call ${site.name}`}
         >
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">

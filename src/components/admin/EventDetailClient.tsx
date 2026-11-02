@@ -28,6 +28,8 @@ import { DesignsTab } from "@/components/admin/DesignsTab";
 import { TimelineTab } from "@/components/admin/TimelineTab";
 import { EventShareLinkPanel } from "@/components/admin/EventShareLinkPanel";
 import { Badge, Sheet, Tabs } from "@/components/ui/AdminPrimitives";
+import { TimePicker } from "@/components/ui/TimePicker";
+import { formatDate, formatTime12Hour } from "@/lib/date-time";
 import type { PaymentRecord } from "@/lib/admin/budget-calculations";
 import type { AuditLogItem } from "@/lib/admin/data";
 import type { AdminEventShareLink } from "@/lib/events/share-actions";
@@ -389,7 +391,7 @@ export function EventDetailClient({
                 <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                {eventData.date}
+                {formatDate(eventData.date)}
               </span>
               <span className="inline-flex items-center gap-1 truncate">
                 <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -701,7 +703,7 @@ export function EventDetailClient({
                       {func.name}
                     </h3>
                     <span className="text-xs font-mono text-accent font-semibold px-2 py-0.5 rounded-radius-sm bg-accent/10 border border-accent/20">
-                      {func.start_time || "TBD"}
+                      {func.start_time ? formatTime12Hour(func.start_time) : "TBD"}
                     </span>
                   </div>
                   <p className="text-xs text-ink-muted flex items-center gap-1.5">
@@ -956,13 +958,9 @@ export function EventDetailClient({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
+                  <TimePicker
                     name="startTime"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    label="Start time"
                   />
                 </div>
               </div>
@@ -1044,14 +1042,10 @@ export function EventDetailClient({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-ink mb-1">
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
+                  <TimePicker
                     name="startTime"
-                    defaultValue={editingFunction.start_time || ""}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    label="Start time"
+                    defaultValue={editingFunction.start_time}
                   />
                 </div>
               </div>

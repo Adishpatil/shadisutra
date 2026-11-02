@@ -95,6 +95,38 @@ for (const filename of files) {
     height: output.info.height,
     bytes: output.data.byteLength,
   });
+
+  if (prefix.category === "hero") {
+    let mobileOutput;
+    for (let quality = 82; quality >= 42; quality -= 5) {
+      mobileOutput = await sharp(sourcePath)
+        .rotate()
+        .resize(1080, 1350, {
+          fit: "cover",
+          position: sharp.strategy.attention,
+        })
+        .webp({ quality, effort: 6 })
+        .toBuffer({ resolveWithObject: true });
+      if (mobileOutput.data.byteLength < maxBytes) break;
+    }
+
+    if (!mobileOutput || mobileOutput.data.byteLength >= maxBytes) {
+      throw new Error(`Could not optimize mobile crop for ${filename} below 300 KB.`);
+    }
+
+    const mobileOutputPath = path.join(
+      outputFolder,
+      `${path.basename(outputName, ".webp")}-mobile.webp`
+    );
+    await sharp(mobileOutput.data).toFile(mobileOutputPath);
+    outputs.push({
+      source: `${filename} (mobile crop)`,
+      destination: path.relative(repositoryRoot, mobileOutputPath),
+      width: mobileOutput.info.width,
+      height: mobileOutput.info.height,
+      bytes: mobileOutput.data.byteLength,
+    });
+  }
 }
 
 for (const relativePath of stalePlaceholderPaths) {

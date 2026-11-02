@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { site } from "@/config/site";
 import { getPublicSharedEvent } from "@/lib/events/public-share";
+import { formatDate, formatDateTimeKolkata, formatTime12Hour } from "@/lib/date-time";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -66,10 +67,7 @@ export default async function SharedEventPage({
               <dt className="font-semibold">Date</dt>
               <dd>
                 <time dateTime={event.date}>
-                  {new Date(`${event.date}T00:00:00`).toLocaleDateString(
-                    "en-IN",
-                    { dateStyle: "long" }
-                  )}
+                  {formatDate(event.date)}
                 </time>
               </dd>
             </div>
@@ -91,12 +89,9 @@ export default async function SharedEventPage({
                   <h3 className="font-semibold">{eventFunction.name}</h3>
                   <p className="mt-1 text-base text-ink-muted">
                     <time dateTime={`${eventFunction.date}${eventFunction.start_time ? `T${eventFunction.start_time}` : ""}`}>
-                      {new Date(`${eventFunction.date}T00:00:00`).toLocaleDateString(
-                        "en-IN",
-                        { dateStyle: "medium" }
-                      )}
+                      {formatDate(eventFunction.date)}
                       {eventFunction.start_time
-                        ? ` · ${eventFunction.start_time.slice(0, 5)}`
+                        ? ` · ${formatTime12Hour(eventFunction.start_time)}`
                         : ""}
                     </time>
                   </p>
@@ -125,10 +120,7 @@ export default async function SharedEventPage({
                     dateTime={entry.starts_at}
                     className="text-base font-semibold text-accent"
                   >
-                    {new Date(entry.starts_at).toLocaleString("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {formatDateTimeKolkata(entry.starts_at)}
                   </time>
                   <p className="mt-1 break-words text-base">{entry.title}</p>
                 </li>
@@ -141,33 +133,6 @@ export default async function SharedEventPage({
           )}
         </section>
 
-        {event.designs.length > 0 && (
-          <section aria-labelledby="designs-title">
-            <h2 id="designs-title" className="font-heading text-2xl font-bold">
-              Finalized designs
-            </h2>
-            <ul className="mt-3 space-y-3">
-              {event.designs.map((design, index) => (
-                <li
-                  key={`${design.title}-${design.version}-${index}`}
-                  className="flex flex-col justify-between gap-3 rounded-radius-md border border-border bg-surface p-4 sm:flex-row sm:items-center"
-                >
-                  <p className="font-medium">
-                    {design.title} · Version {design.version}
-                  </p>
-                  <a
-                    href={design.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center rounded-radius-md border border-accent px-4 text-base font-semibold text-accent hover:bg-accent hover:text-accent-ink focus:outline-none focus:ring-2 focus:ring-accent"
-                  >
-                    View design
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
       </article>
     </main>
     </>

@@ -240,6 +240,27 @@ textarea {
   font-size: 1rem; /* 16px — prevents iOS zoom */
 }
 
+select,
+option {
+  color: var(--ink);
+  color-scheme: light;
+  background-color: var(--surface);
+}
+
+select {
+  border-color: var(--border-strong);
+}
+
+option {
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+}
+
+option:checked {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+
 /* ============================================================
    Placeholder image component styles
    ============================================================ */
@@ -308,6 +329,54 @@ textarea {
   color: #fff;
 }
 
+[role="menu"],
+[role="listbox"],
+[data-popover],
+[data-dropdown-panel] {
+  z-index: 60;
+  max-height: min(24rem, calc(100dvh - 2rem));
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+
+[role="menu"] > *,
+[role="listbox"] > *,
+[role="option"],
+[role="menuitem"] {
+  min-height: 44px;
+}
+
+[role="option"]:hover,
+[role="menuitem"]:hover,
+[role="option"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="option"][aria-selected="true"],
+[role="menuitem"][aria-current="true"] {
+  background-color: var(--accent-light);
+  color: var(--ink);
+}
+
+.admin-sheet-panel {
+  z-index: 70;
+  max-height: min(92dvh, calc(100dvh - 2rem));
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+[role="dialog"][aria-modal="true"] {
+  z-index: 70;
+}
+
+#mobile-menu {
+  max-height: 100dvh;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+}
+
 .section-ornament {
   display: block;
   position: relative;
@@ -330,6 +399,45 @@ textarea {
 
 .section-ornament-light::after {
   background: var(--ink);
+}
+
+@media (max-width: 639px) {
+  .home-reveal h2 {
+    font-size: clamp(1.75rem, 7vw, 2rem);
+  }
+
+  .home-reveal h3 {
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+  }
+
+  .home-reveal .section-ornament {
+    display: none;
+  }
+
+  .home-event-scroll {
+    scrollbar-width: none;
+  }
+
+  .home-event-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-service-number {
+    display: none;
+  }
+
+  .home-process-item > p:last-child {
+    margin-top: 0.25rem;
+  }
+
+  .home-gallery-grid > a:nth-child(n + 5) {
+    display: none;
+  }
+
+  .home-gallery-grid > a:first-child {
+    grid-column: auto;
+    aspect-ratio: 4 / 3;
+  }
 }
 
 #admin-shell button,

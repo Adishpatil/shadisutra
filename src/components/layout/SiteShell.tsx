@@ -93,10 +93,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       <main id="main-content" className="flex-1">
         {children}
+        <StickyContactButtons />
       </main>
 
       <Footer />
-      <StickyContactButtons />
     </>
   );
 }

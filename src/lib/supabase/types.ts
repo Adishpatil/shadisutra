@@ -480,6 +480,132 @@ export interface Database {
           }
         ];
       };
+      event_client_links: {
+        Row: {
+          id: string;
+          event_id: string;
+          token: string;
+          pin_hash: string | null;
+          expires_at: string;
+          revoked_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          token: string;
+          pin_hash?: string | null;
+          expires_at: string;
+          revoked_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          token?: string;
+          pin_hash?: string | null;
+          expires_at?: string;
+          revoked_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_client_links_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      event_expenses: {
+        Row: {
+          id: string;
+          event_id: string;
+          function_id: string | null;
+          item_id: string | null;
+          category: "lighting" | "flowers" | "decor" | "instruments" | "venue" | "food" | "staff" | "travel" | "other";
+          expense_date: string;
+          vendor: string;
+          description: string;
+          quantity: number;
+          unit_cost: number;
+          amount: number;
+          tax_amount: number;
+          status: "unpaid" | "part_paid" | "paid";
+          amount_paid: number;
+          payment_mode: string | null;
+          notes: string | null;
+          receipt_path: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          function_id?: string | null;
+          item_id?: string | null;
+          category: "lighting" | "flowers" | "decor" | "instruments" | "venue" | "food" | "staff" | "travel" | "other";
+          expense_date: string;
+          vendor?: string;
+          description: string;
+          quantity?: number;
+          unit_cost: number;
+          amount?: number;
+          tax_amount?: number;
+          status?: "unpaid" | "part_paid" | "paid";
+          amount_paid?: number;
+          payment_mode?: string | null;
+          notes?: string | null;
+          receipt_path?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          function_id?: string | null;
+          item_id?: string | null;
+          category?: "lighting" | "flowers" | "decor" | "instruments" | "venue" | "food" | "staff" | "travel" | "other";
+          expense_date?: string;
+          vendor?: string;
+          description?: string;
+          quantity?: number;
+          unit_cost?: number;
+          amount?: number;
+          tax_amount?: number;
+          status?: "unpaid" | "part_paid" | "paid";
+          amount_paid?: number;
+          payment_mode?: string | null;
+          notes?: string | null;
+          receipt_path?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_expenses_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_expenses_function_id_fkey";
+            columns: ["function_id"];
+            isOneToOne: false;
+            referencedRelation: "event_functions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_expenses_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "event_items";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       event_share_rate_limits: {
         Row: {
           key_hash: string;

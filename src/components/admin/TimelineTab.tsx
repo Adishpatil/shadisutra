@@ -8,6 +8,8 @@ import {
   deleteTimelineEntryAction,
   updateTimelineEntryAction,
 } from "@/lib/admin/timeline-actions";
+import { dateTimeKolkataToIso, formatDateTimeKolkata, timeInKolkata } from "@/lib/date-time";
+import { TimePicker } from "@/components/ui/TimePicker";
 
 interface TimelineTabProps {
   eventId: string;
@@ -35,8 +37,8 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const localDateTime = new Date(`${eventDate}T${String(formData.get("starts_at"))}`);
-    if (!Number.isFinite(localDateTime.getTime())) {
+    const startsAt = dateTimeKolkataToIso(eventDate, String(formData.get("starts_at") ?? ""));
+    if (!startsAt) {
       alert("Choose a valid timeline date and time.");
       return;
     }
@@ -44,7 +46,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
     const input = {
       eventId,
       functionId: functionValue || null,
-      startsAt: localDateTime.toISOString(),
+      startsAt,
       title: String(formData.get("title") ?? ""),
       notes: String(formData.get("notes") ?? ""),
     };
@@ -137,10 +139,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-xs font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-radius-sm">
-                        {new Date(item.starts_at).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatDateTimeKolkata(item.starts_at)}
                       </span>
                       {linkedFunction && (
                         <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
@@ -234,19 +233,11 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-ink mb-1">
-                  Start Time (e.g. 18:30) *
-                </label>
-                <input
+                <TimePicker
                   name="starts_at"
-                  type="time"
+                  label="Start time *"
                   required
-                  defaultValue={
-                    editingEntry
-                      ? new Date(editingEntry.starts_at).toTimeString().slice(0, 5)
-                      : "18:00"
-                  }
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  defaultValue={editingEntry ? timeInKolkata(editingEntry.starts_at) : "18:00"}
                 />
               </div>
 

@@ -3,6 +3,8 @@
  * Uses explicit "en-IN" locale to prevent SSR/CSR hydration mismatches
  * (the server OS locale may differ from the browser's default).
  */
+import { formatDateTimeKolkata } from "@/lib/date-time";
+
 
 const INR = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
@@ -31,8 +33,5 @@ export function formatINRDecimal(value: number): string {
 /** Format a Date as locale-safe string for display (always en-IN) */
 export function formatDateTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleString("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatDateTimeKolkata(d.toISOString());
 }

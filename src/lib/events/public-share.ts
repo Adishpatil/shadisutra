@@ -3,7 +3,6 @@ import "server-only";
 import { z } from "zod";
 import { consumeRateLimit, rateLimitKey } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
-import { getDesignFileKind } from "../admin/design-storage";
 
 export const eventShareTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
 
@@ -19,12 +18,6 @@ export interface PublicSharedEvent {
   timeline: Array<{
     starts_at: string;
     title: string;
-  }>;
-  designs: Array<{
-    id: string;
-    title: string;
-    version: number;
-    url: string;
   }>;
 }
 
@@ -53,7 +46,7 @@ export async function getPublicSharedEvent(
   if (shareError) throw new Error("Could not validate event share link.");
   if (!shareLink) return null;
 
-  const [eventResult, functionsResult, timelineResult, designsResult] =
+  const [eventResult, functionsResult, timelineResult] =
     await Promise.all([
       supabase
         .from("events")
@@ -70,34 +63,15 @@ export async function getPublicSharedEvent(
         .select("starts_at,title")
         .eq("event_id", shareLink.event_id)
         .order("starts_at", { ascending: true }),
-      supabase
-        .from("designs")
-        .select("id,title,file_path,version,event_id")
-        .eq("event_id", shareLink.event_id)
-        .eq("is_finalized", true)
-        .order("created_at", { ascending: false }),
     ]);
   if (
     eventResult.error ||
     functionsResult.error ||
     timelineResult.error ||
-    designsResult.error
   ) {
     throw new Error("Could not load event share details.");
   }
   if (!eventResult.data) return null;
-
-  const designs = designsResult.data.map((design) => {
-      if (!getDesignFileKind(design.file_path, shareLink.event_id, design.id)) {
-        throw new Error("Invalid finalized design path.");
-      }
-      return {
-        id: design.id,
-        title: design.title,
-        version: design.version,
-        url: `/api/e/${tokenResult.data}/designs/${design.id}`,
-      };
-    });
 
   return {
     name: eventResult.data.name,
@@ -105,6 +79,5 @@ export async function getPublicSharedEvent(
     venue: eventResult.data.venue,
     functions: functionsResult.data,
     timeline: timelineResult.data,
-    designs,
   };
 }

@@ -1,6 +1,10 @@
+import { existsSync } from "node:fs";
+import { cwd } from "node:process";
+import path from "node:path";
 import Image from "next/image";
 import Link from "next/link";
 import galleryImages from "@/data/gallery.json";
+import { heroImages } from "@/data/hero";
 import { site } from "@/config/site";
 import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
@@ -72,21 +76,39 @@ const process = [
 ] as const;
 
 export default function HomePage() {
-  const heroAlt = "White floral stage set against dark curtains with a matching dance-floor monogram";
+  const heroImage = heroImages[0];
+  const mobileHeroPath = path.join(
+    cwd(),
+    "public",
+    heroImage.mobileSrc.replace(/^\//, "")
+  );
+  const hasMobileHero = existsSync(mobileHeroPath);
   const mosaicImages = galleryImages;
 
   return (
     <>
-      <section className="home-hero relative isolate flex h-[50svh] min-h-[22rem] max-h-[26rem] items-center overflow-hidden sm:h-[60vh] sm:max-h-[36rem]">
+      <section className="home-hero relative isolate flex h-[125vw] min-h-[30rem] max-h-[34rem] items-center overflow-hidden sm:h-[60vh] sm:min-h-[22rem] sm:max-h-[36rem]">
         <div className="absolute inset-0 -z-20">
-          <PlaceholderImage
-            src="/images/hero/hero-1.webp"
-            alt={heroAlt}
-            fill
-            priority
-            sizes="100vw"
-            className="h-full w-full object-cover"
-          />
+          <picture className="absolute inset-0 block">
+            {hasMobileHero && (
+              <source
+                media="(max-width: 767px)"
+                srcSet={heroImage.mobileSrc}
+                type="image/webp"
+              />
+            )}
+            <Image
+              src={heroImage.src}
+              alt={heroImage.alt}
+              fill
+              priority
+              sizes="100vw"
+              style={{
+                objectPosition: `${heroImage.focalPoint.x}% ${heroImage.focalPoint.y}%`,
+              }}
+              className="h-full w-full object-cover"
+            />
+          </picture>
         </div>
         <div className="home-hero-scrim absolute inset-0 -z-10" aria-hidden="true" />
 
@@ -95,7 +117,7 @@ export default function HomePage() {
             <p className="mb-4 text-base font-semibold uppercase tracking-[0.18em] text-white/90">
               {site.name}
             </p>
-            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] text-white sm:text-5xl md:text-6xl">
+            <h1 className="max-w-2xl text-[clamp(2rem,8vw,3rem)] font-semibold leading-[1.08] text-white sm:text-5xl md:text-6xl">
               Celebrations, beautifully woven.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-white sm:text-lg">
@@ -121,7 +143,7 @@ export default function HomePage() {
       </section>
 
       <section
-        className="home-reveal mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+        className="home-reveal mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12"
         aria-labelledby="event-types-heading"
       >
         <div className="mb-9 max-w-2xl">
@@ -134,7 +156,7 @@ export default function HomePage() {
           <span className="section-ornament mt-5" aria-hidden="true" />
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="home-event-scroll -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
           {eventTypes.map((event) => {
             const image = galleryImages.find(
               (item) => item.category === event.category
@@ -144,7 +166,7 @@ export default function HomePage() {
               <Link
                 key={event.title}
                 href={event.href}
-                className="group overflow-hidden border border-border bg-surface transition-colors hover:border-accent focus-visible:outline-offset-4"
+                className="group w-[82%] shrink-0 snap-start overflow-hidden border border-border bg-surface transition-colors hover:border-accent focus-visible:outline-offset-4 sm:w-auto sm:shrink"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-accent-light">
                   <PlaceholderImage
@@ -169,7 +191,7 @@ export default function HomePage() {
         className="home-reveal home-dark-section bg-ink text-white"
         aria-labelledby="services-heading"
       >
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12">
           <div className="mb-10 max-w-2xl">
               <h2 id="services-heading" className="mt-3 text-3xl text-white sm:text-4xl">
               What We Handle
@@ -183,7 +205,7 @@ export default function HomePage() {
                 key={service.title}
                 className="border-t border-white/20 py-6 sm:px-5 sm:first:pl-0 lg:border-l lg:border-t-0 lg:py-2 lg:first:border-l-0"
               >
-                <p className="font-heading text-4xl text-accent-light">
+                <p className="home-service-number font-heading text-4xl text-accent-light">
                   {String(index + 1).padStart(2, "0")}
                 </p>
                 <h3 className="mt-4 text-xl text-white">{service.title}</h3>
@@ -197,7 +219,7 @@ export default function HomePage() {
       </section>
 
       <section
-        className="home-reveal mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+        className="home-reveal home-gallery mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12"
         aria-labelledby="gallery-heading"
       >
         <div className="mb-9 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -214,11 +236,12 @@ export default function HomePage() {
             href="/gallery"
             className="inline-flex min-h-11 items-center text-base font-semibold text-accent underline decoration-border-strong underline-offset-4 hover:decoration-accent"
           >
-            Explore the gallery
+            <span className="sm:hidden">View gallery</span>
+            <span className="hidden sm:inline">Explore the gallery</span>
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        <div className="home-gallery-grid grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {mosaicImages.map((image, index) => (
             <Link
               key={image.src}
@@ -256,7 +279,7 @@ export default function HomePage() {
         className="home-reveal border-y border-border bg-surface"
         aria-labelledby="process-heading"
       >
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12">
           <div className="mb-10 max-w-2xl">
             <p className="text-base font-semibold uppercase tracking-[0.16em] text-accent">
               How we work
@@ -269,7 +292,7 @@ export default function HomePage() {
 
           <ol className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
             {process.map((item) => (
-              <li key={item.step} className="border-t border-border pt-5">
+              <li key={item.step} className="home-process-item border-t border-border pt-4 sm:pt-5">
                 <p className="font-heading text-3xl text-accent">{item.step}</p>
                 <h3 className="mt-3 text-2xl">{item.title}</h3>
                 <p className="mt-2 text-base leading-relaxed text-ink-muted">
@@ -281,7 +304,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="home-reveal px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+      <section className="home-reveal px-5 py-12 sm:px-8 sm:py-20 lg:px-12">
         <div className="mx-auto max-w-4xl border border-border bg-accent-light/40 px-6 py-10 text-center sm:px-12 sm:py-14">
           <h2 className="mt-3 text-3xl sm:text-4xl">
             Planning a celebration?
