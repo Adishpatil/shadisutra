@@ -11,6 +11,8 @@ interface PlaceholderImageProps {
   height?: number;
   /** Optional real image src — if the file exists, show it instead of the placeholder */
   src?: string;
+  /** Whether the public file is present at the current deployment. */
+  available?: boolean;
   /** Additional CSS classes */
   className?: string;
   /** Fill mode (ignores width/height, fills parent container) */
@@ -33,6 +35,7 @@ export function PlaceholderImage({
   width = 800,
   height,
   src,
+  available = true,
   className = "",
   fill = false,
   priority = false,
@@ -41,7 +44,7 @@ export function PlaceholderImage({
   const computedHeight = height ?? (aspectRatio ? Math.round(width / aspectRatio) : width);
 
   // If a real src is provided, use next/image
-  if (src) {
+  if (src && available) {
     if (fill) {
       return (
         <Image

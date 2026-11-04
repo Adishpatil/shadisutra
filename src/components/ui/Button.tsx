@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, HTMLAttributes } from "react";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "accent";
+  variant?: "primary" | "secondary" | "brand";
 };
 
 const buttonStyles = {
@@ -9,8 +9,8 @@ const buttonStyles = {
     "bg-ink text-bg hover:bg-ink/85 focus-visible:outline-ink",
   secondary:
     "border border-ink/25 bg-transparent text-ink hover:bg-ink/5 focus-visible:outline-ink",
-  accent:
-    "bg-accent text-accent-ink hover:bg-accent-hover focus-visible:outline-accent",
+  brand:
+    "bg-brand-strong text-bg hover:bg-brand hover:text-ink focus-visible:outline-ink",
 } as const;
 
 export function Button({

@@ -34,7 +34,7 @@ export default async function ContactPage({
               href={siteLinks.whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-6 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-6 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               WhatsApp
             </a>
@@ -42,7 +42,7 @@ export default async function ContactPage({
           {hasSiteValue(site.phone) && (
             <a
               href={siteLinks.phoneUrl}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-ink/25 px-6 text-base font-semibold text-ink transition-colors hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-ink/25 px-6 text-base font-semibold text-ink transition-colors hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               Call {site.phone}
             </a>

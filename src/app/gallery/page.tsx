@@ -1,5 +1,8 @@
+import { existsSync } from "node:fs";
+import { cwd } from "node:process";
+import path from "node:path";
 import { pageMetadata } from "@/config/seo";
-import { getGalleryImages } from "@/lib/gallery";
+import { galleryImages, imageSlots, type ImageSlot } from "@/data/images";
 import { GalleryView } from "@/components/sections/GalleryView";
 
 export const metadata = pageMetadata(
@@ -9,7 +12,17 @@ export const metadata = pageMetadata(
 );
 
 export default function GalleryPage() {
-  const images = getGalleryImages("all");
+  const images = galleryImages;
+  const availableImages: Record<ImageSlot, boolean> = {
+    hero: imageExists(imageSlots.hero.src),
+    about: imageExists(imageSlots.about.src),
+    galleryWedding3: imageExists(imageSlots.galleryWedding3.src),
+    galleryWedding4: imageExists(imageSlots.galleryWedding4.src),
+    galleryWedding6: imageExists(imageSlots.galleryWedding6.src),
+    galleryBirthday4: imageExists(imageSlots.galleryBirthday4.src),
+    galleryBirthday5: imageExists(imageSlots.galleryBirthday5.src),
+    galleryFunction2: imageExists(imageSlots.galleryFunction2.src),
+  };
 
   if (images.length === 0) return null;
 
@@ -25,8 +38,12 @@ export default function GalleryPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8 lg:px-10">
-        <GalleryView initialImages={images} />
+        <GalleryView initialImages={images} availableImages={availableImages} />
       </section>
     </div>
   );
+}
+
+function imageExists(source: string) {
+  return existsSync(path.join(cwd(), "public", source.replace(/^\//, "")));
 }

@@ -1,7 +1,7 @@
 export const site = {
   name: "Shadi Sutra",
   tagline: "Where every celebration is woven with care.",
-  accentColor: "#806000",
+  brandColor: "#F42902",
   phone: "+91-7249078353",
   whatsapp: "+91-7249078353",
   email: "shadisutra@gmail.com",

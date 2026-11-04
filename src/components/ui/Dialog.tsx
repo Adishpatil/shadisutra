@@ -112,7 +112,7 @@ export function Dialog({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             aria-label="Close dialog"
           >
             <svg

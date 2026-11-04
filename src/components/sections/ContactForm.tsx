@@ -79,7 +79,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           placeholder="Your name"
           aria-describedby={state?.errors?.name ? "name-error" : undefined}
           aria-invalid={Boolean(state?.errors?.name)}
-          className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${
+          className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-ink ${
             state?.errors?.name ? "border-danger" : "border-border"
           }`}
         />
@@ -108,7 +108,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           placeholder="Your phone number"
           aria-describedby={state?.errors?.phone ? "phone-error" : undefined}
           aria-invalid={Boolean(state?.errors?.phone)}
-          className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${
+          className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-ink ${
             state?.errors?.phone ? "border-danger" : "border-border"
           }`}
         />
@@ -160,7 +160,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
             name="eventDate"
             defaultValue={initialDate}
             aria-describedby="date-help"
-            className="w-full px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-ink"
           />
           <span id="date-help" className="sr-only">
             Tentative or confirmed date for the event
@@ -185,7 +185,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           placeholder="Share your date, venue and ideas"
           aria-describedby={state?.errors?.message ? "message-error" : undefined}
           aria-invalid={Boolean(state?.errors?.message)}
-          className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent ${
+          className={`w-full px-4 py-3 rounded-radius-md border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-ink ${
             state?.errors?.message ? "border-danger" : "border-border"
           }`}
         />
@@ -200,7 +200,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-8 py-3.5 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-8 py-3.5 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? "Sending Your Enquiry..." : "Send Event Enquiry"}
       </button>

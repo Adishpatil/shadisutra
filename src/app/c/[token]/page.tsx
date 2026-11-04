@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { clientSessionCookieName, hasValidClientSession } from "@/lib/events/client-link-access";
 import { getActiveClientLink, getClientShareView } from "@/lib/events/client-share";
 import { formatDate, formatDateTimeKolkata, formatTime12Hour } from "@/lib/date-time";
 import { formatINRDecimal } from "@/lib/format";
+import { CardFrame } from "@/components/ui/CardFrame";
+import { LinkGateway } from "@/components/ui/LinkGateway";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,41 +26,80 @@ function formatTimelineTime(value: string) {
 }
 
 function ClientGate({ token, pinRequired, invalid }: { token: string; pinRequired: boolean; invalid: boolean }) {
+  const unavailable = invalid && !pinRequired;
+
   return (
     <>
-    <a href="#main-content" className="skip-to-content">
-      Skip to content
-    </a>
-    <main id="main-content" className="flex min-h-[100dvh] items-center justify-center bg-bg px-4 py-10">
-      <section className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-8">
-        <h1 className="text-3xl font-semibold text-ink">Private client link</h1>
-        <p className="mt-3 text-base text-ink-muted">
-          {pinRequired ? "Enter the PIN shared by your event organizer." : "Continue to view your private event details."}
-        </p>
-        {invalid && <p role="alert" className="mt-4 rounded-xl bg-danger-light p-3 text-base text-danger">{genericMessage}</p>}
-        <form method="post" action={`/api/c/${token}/session`} className="mt-6 space-y-4">
-          {pinRequired && (
-            <div>
-              <label htmlFor="client-pin" className="mb-1 block text-base font-semibold text-ink">Client PIN</label>
-              <input
-                autoComplete="one-time-code"
-                id="client-pin"
-                name="pin"
-                inputMode="numeric"
-                pattern="[0-9]{4,6}"
-                minLength={4}
-                maxLength={6}
-                required
-                className="min-h-12 w-full rounded-xl border border-border-strong bg-surface px-3 text-base text-ink"
-              />
-            </div>
+      <a href="#main-content" className="skip-to-content">
+        Skip to content
+      </a>
+      <main id="main-content" className="min-h-[100dvh] bg-bg">
+        <header className="flex justify-end bg-brand px-5 pb-4 pt-6 sm:px-8">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-lime px-5 text-base font-semibold text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          >
+            Visit Shadi Sutra
+          </Link>
+        </header>
+        <section className="bg-brand px-4 pb-12 sm:px-8 sm:pb-16">
+          <div className="invitation-card-shell mx-auto max-w-xl">
+            <article className="ticket-card invitation-card">
+              <CardFrame className="min-h-72 px-6 pb-8 pt-24 text-center sm:px-12">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-strong">
+                  Private client invitation
+                </p>
+                <h1 className="mt-2 font-heading text-3xl font-semibold text-ink sm:text-4xl">
+                  Your event details
+                </h1>
+                <p className="mt-4 text-base leading-relaxed text-ink-muted">
+                  {unavailable
+                    ? "This client link may have expired or been updated. Contact Shadi Sutra for help."
+                    : "Enter the details shared by your event organizer to continue."}
+                </p>
+              </CardFrame>
+            </article>
+          </div>
+          {!unavailable && (
+            <form
+              method="post"
+              action={`/api/c/${token}/session`}
+              className="mx-auto mt-5 w-full max-w-xl rounded-2xl border border-border bg-surface p-5 sm:p-6"
+            >
+              {invalid && (
+                <p role="alert" className="mb-4 rounded-xl bg-danger-light p-3 text-base text-danger">
+                  {genericMessage}
+                </p>
+              )}
+              {pinRequired && (
+                <div>
+                  <label htmlFor="client-pin" className="mb-1 block text-base font-semibold text-ink">
+                    Client PIN
+                  </label>
+                  <input
+                    autoComplete="one-time-code"
+                    id="client-pin"
+                    name="pin"
+                    inputMode="numeric"
+                    pattern="[0-9]{4,6}"
+                    minLength={4}
+                    maxLength={6}
+                    required
+                    className="min-h-12 w-full rounded-xl border border-border-strong bg-surface px-3 text-base text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  />
+                </div>
+              )}
+              <button
+                type="submit"
+                className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg transition-colors hover:bg-brand hover:text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              >
+                {pinRequired ? "Continue" : "View event details"}
+              </button>
+            </form>
           )}
-          <button type="submit" className="min-h-12 w-full rounded-full bg-ink px-5 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-            {pinRequired ? "Continue" : "View event details"}
-          </button>
-        </form>
-      </section>
-    </main>
+        </section>
+        <LinkGateway />
+      </main>
     </>
   );
 }
@@ -90,16 +132,36 @@ export default async function ClientEventPage({
     <a href="#main-content" className="skip-to-content">
       Skip to content
     </a>
-    <main id="main-content" className="min-h-[100dvh] bg-bg px-4 py-6 text-ink sm:px-6 sm:py-10">
-      <article className="mx-auto w-full max-w-3xl space-y-8">
-        <header className="space-y-3 border-b border-border pb-6">
-          <p className="text-sm text-ink-muted">Client event details</p>
-          <h1 className="break-words text-[clamp(2rem,7vw,3rem)] font-semibold leading-tight tracking-[-0.035em]">{view.event.name}</h1>
-          <dl className="grid gap-3 text-base sm:grid-cols-2">
-            <div><dt className="font-semibold">Date</dt><dd><time dateTime={view.event.date}>{formatDate(view.event.date)}</time></dd></div>
-            <div><dt className="font-semibold">Venue</dt><dd className="break-words">{view.event.venue}</dd></div>
-          </dl>
-        </header>
+    <main id="main-content" className="min-h-[100dvh] bg-bg text-ink">
+      <header className="flex justify-end bg-brand px-5 pb-4 pt-6 sm:px-8">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-lime px-5 text-base font-semibold text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        >
+          Visit Shadi Sutra
+        </Link>
+      </header>
+      <section className="invitation-stage bg-brand px-4 pb-10 sm:px-6 sm:pb-14">
+        <div className="invitation-card-shell mx-auto w-full max-w-3xl">
+          <article className="ticket-card invitation-card">
+            <CardFrame className="min-h-80 px-5 pb-10 pt-28 text-center sm:min-h-96 sm:px-16 sm:pt-32">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-strong">
+                Private client event
+              </p>
+              <h1 className="mt-3 break-words font-heading text-[clamp(2.5rem,9vw,5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink">
+                {view.event.name}
+              </h1>
+              <div className="mt-5 space-y-1 font-display-serif text-base italic leading-relaxed text-ink-muted sm:text-lg">
+                <p>
+                  <time dateTime={view.event.date}>{formatDate(view.event.date)}</time>
+                </p>
+                <p className="break-words">{view.event.venue}</p>
+              </div>
+            </CardFrame>
+          </article>
+        </div>
+      </section>
+      <article className="mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-6 sm:py-14">
 
         <section aria-labelledby="client-functions-title">
           <h2 id="client-functions-title" className="font-heading text-2xl font-bold">Functions</h2>
@@ -209,6 +271,7 @@ export default async function ClientEventPage({
           </section>
         )}
       </article>
+      <LinkGateway />
     </main>
     </>
   );

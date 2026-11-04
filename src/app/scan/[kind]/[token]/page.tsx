@@ -52,14 +52,14 @@ export default async function ScanLandingPage({
           {eventHref && (
             <Link
               href={eventHref}
-              className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               {eventLabel}
             </Link>
           )}
           <Link
             href="/"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/25 px-5 text-base font-semibold text-ink hover:bg-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/25 px-5 text-base font-semibold text-ink hover:bg-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Visit Shadi Sutra
           </Link>

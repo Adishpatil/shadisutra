@@ -24,7 +24,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     />
   );
 }
@@ -56,7 +56,7 @@ export function Badge({
 }) {
   const variants: Record<BadgeVariant, string> = {
     neutral: "bg-bg text-ink-muted",
-    accent: "bg-accent-light text-accent",
+    accent: "bg-brand-soft text-brand-strong",
     success: "bg-success-light text-success",
     warning: "bg-warning-light text-warning",
     danger: "bg-danger-light text-danger",
@@ -152,7 +152,7 @@ export function Tabs<T extends string>({
           className={`min-h-11 shrink-0 snap-start rounded-radius-full px-4 text-base font-semibold transition-colors ${
             value === item.value
               ? "bg-ink text-white"
-              : "text-ink-muted hover:bg-accent-light hover:text-ink"
+              : "text-ink-muted hover:bg-brand-soft hover:text-ink"
           }`}
         >
           {item.label}

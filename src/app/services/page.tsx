@@ -93,7 +93,7 @@ export default function ServicesPage() {
                     </div>
                     <Link
                       href={`/services/${service.slug}`}
-                      className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-full border border-ink/25 px-5 text-base font-semibold text-ink transition-colors hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-full border border-ink/25 px-5 text-base font-semibold text-ink transition-colors hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     >
                       View details
                     </Link>

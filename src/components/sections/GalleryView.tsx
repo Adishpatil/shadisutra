@@ -1,13 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { GalleryImage, GalleryCategory } from "@/lib/types";
+import type { GalleryCategory } from "@/lib/types";
+import { galleryImages, type ImageSlot } from "@/data/images";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { Dialog } from "@/components/ui/Dialog";
 import { useReveal } from "@/components/ui/useReveal";
 
+type GallerySlotImage = (typeof galleryImages)[number];
+
 interface GalleryViewProps {
-  initialImages: GalleryImage[];
+  initialImages: readonly GallerySlotImage[];
+  availableImages: Record<ImageSlot, boolean>;
 }
 
 const categories: { label: string; value: GalleryCategory }[] = [
@@ -19,7 +23,7 @@ const categories: { label: string; value: GalleryCategory }[] = [
 
 const imageRatios = ["aspect-[4/5]", "aspect-[4/3]", "aspect-square"];
 
-export function GalleryView({ initialImages }: GalleryViewProps) {
+export function GalleryView({ initialImages, availableImages }: GalleryViewProps) {
   useReveal();
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -77,7 +81,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
                 setActiveCategory(category.value);
                 setLightboxIndex(null);
               }}
-              className={`inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-base font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+              className={`inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-base font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                 active
                   ? "border-ink bg-ink text-bg"
                   : "border-border bg-surface text-ink hover:border-ink/40"
@@ -101,7 +105,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
               key={`${image.src}-${index}`}
               type="button"
               onClick={() => setLightboxIndex(index)}
-              className="gallery-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-[24px] bg-surface text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:mb-5"
+              className="gallery-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-[24px] bg-surface text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:mb-5"
               aria-label={`Open photo: ${image.alt}`}
               data-reveal={index % 2 === 0 ? "left" : "right"}
               data-delay={(index % 3) + 1}
@@ -110,6 +114,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
                 <PlaceholderImage
                   src={image.src}
                   alt={image.alt}
+                  available={availableImages[image.imageSlot]}
                   fill
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
@@ -148,6 +153,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
               <PlaceholderImage
                 src={currentImage.src}
                 alt={currentImage.alt}
+                available={availableImages[currentImage.imageSlot]}
                 width={currentImage.width || 1200}
                 height={currentImage.height || 900}
                 sizes="(min-width: 1024px) 80vw, 100vw"
@@ -158,7 +164,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
                   <button
                     type="button"
                     onClick={showPrevious}
-                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Previous photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -168,7 +174,7 @@ export function GalleryView({ initialImages }: GalleryViewProps) {
                   <button
                     type="button"
                     onClick={showNext}
-                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Next photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

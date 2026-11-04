@@ -11,7 +11,8 @@
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
     "backup": "tsx scripts/backup.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:images": "node scripts/check-images.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -18,7 +18,7 @@ export default async function AdminMoneyOverviewPage() {
           <div className="space-y-3 md:hidden">
             {rows.map((event) => (
               <article key={event.eventId} className="rounded-radius-lg border border-border bg-surface p-4 shadow-[var(--shadow-sm)]">
-                <Link href={`/admin/events/${event.eventId}`} className="text-lg font-bold text-accent underline">{event.eventName}</Link>
+                <Link href={`/admin/events/${event.eventId}`} className="text-lg font-bold text-brand-strong underline">{event.eventName}</Link>
                 <p className="mt-1 text-sm text-ink-muted">{formatDate(event.eventDate)}</p>
                 <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
                   <div><dt className="text-ink-muted">Agreed</dt><dd className="font-semibold">{formatINRDecimal(event.agreedTotal / 100)}</dd></div>
@@ -37,7 +37,7 @@ export default async function AdminMoneyOverviewPage() {
               <tbody>
                 {rows.map((event) => (
                   <tr key={event.eventId} className="border-b border-border last:border-0">
-                    <th scope="row" className="px-4 py-3 font-semibold"><Link href={`/admin/events/${event.eventId}`} className="text-accent underline">{event.eventName}</Link></th>
+                    <th scope="row" className="px-4 py-3 font-semibold"><Link href={`/admin/events/${event.eventId}`} className="text-brand-strong underline">{event.eventName}</Link></th>
                     <td className="whitespace-nowrap px-4 py-3">{formatDate(event.eventDate)}</td>
                     <td className="whitespace-nowrap px-4 py-3">{formatINRDecimal(event.agreedTotal / 100)}</td>
                     <td className="whitespace-nowrap px-4 py-3">{formatINRDecimal(event.received / 100)}</td>

@@ -44,7 +44,7 @@ export function ClientShareLinkPanel({
     ? new URL(`/c/${link.token}`, `${linkOrigin}/`).toString()
     : null;
   const qrTarget = link?.token && linkOrigin
-    ? new URL(`/scan/client/${link.token}`, `${linkOrigin}/`).toString()
+    ? new URL(`/c/${link.token}`, `${linkOrigin}/`).toString()
     : null;
   const qrUsesLocalOrigin = (() => {
     if (!qrTarget) return false;
@@ -227,7 +227,7 @@ export function ClientShareLinkPanel({
         <div>
         <TimePicker name="expiryTime" label="Expiry time (IST)" defaultValue="23:59" />
         </div>
-        <button type="submit" disabled={pending} className="min-h-11 rounded-radius-md bg-accent px-5 text-base font-semibold text-accent-ink hover:bg-accent-hover disabled:opacity-50">
+        <button type="submit" disabled={pending} className="min-h-11 rounded-radius-md bg-brand-strong px-5 text-base font-semibold text-bg hover:bg-brand disabled:opacity-50">
           {pending ? "Saving..." : link?.token ? "Regenerate client link" : "Generate client link"}
         </button>
       </form>
@@ -239,7 +239,7 @@ export function ClientShareLinkPanel({
             <input id="client-link-pin" name="newPin" type="password" inputMode="numeric" pattern="[0-9]{4,6}" minLength={4} maxLength={6} autoComplete="new-password" value={pin} onChange={(event) => setPin(event.target.value)} placeholder={link.hasPin ? "Enter new 4-6 digit PIN" : "Optional 4-6 digit PIN"} className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-base" />
             <p className="mt-1 text-sm text-ink-muted">{link.hasPin ? "A PIN is currently set. Leave blank to remove it." : "PINs are stored as scrypt hashes only."}</p>
           </div>
-          <button type="submit" disabled={pending} className="min-h-11 rounded-radius-md border border-border px-5 text-base font-semibold text-ink hover:border-accent disabled:opacity-50">Save PIN</button>
+          <button type="submit" disabled={pending} className="min-h-11 rounded-radius-md border border-border px-5 text-base font-semibold text-ink hover:border-brand-strong disabled:opacity-50">Save PIN</button>
         </form>
       )}
 

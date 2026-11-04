@@ -145,7 +145,7 @@ export function AdminNav() {
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             View website
           </Link>
@@ -154,7 +154,7 @@ export function AdminNav() {
             onClick={() => setRailExpanded((expanded) => !expanded)}
             aria-label={railExpanded ? "Collapse navigation" : "Expand navigation"}
             aria-expanded={railExpanded}
-            className="hidden min-h-11 min-w-11 items-center justify-center rounded-full border border-border bg-surface text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex lg:hidden"
+            className="hidden min-h-11 min-w-11 items-center justify-center rounded-full border border-border bg-surface text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink md:inline-flex lg:hidden"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6h16M4 12h16M4 18h16" />
@@ -181,7 +181,7 @@ export function AdminNav() {
           );
         })}
         <button type="button" onClick={() => setQuickAddOpen(true)} aria-label="Open quick add" aria-expanded={quickAddOpen}
-          className="mx-auto my-1 flex h-12 w-12 items-center justify-center self-center rounded-full bg-ink text-white shadow-[var(--shadow-sm)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+          className="mx-auto my-1 flex h-12 w-12 items-center justify-center self-center rounded-full bg-ink text-white shadow-[var(--shadow-sm)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v14m-7-7h14" />
           </svg>

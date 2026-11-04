@@ -1,36 +1,18 @@
-/* Hallmark v2 · editorial public site · theme: client brand · portrait hero · local photography */
-/* Critique: The existing gold identity is reserved for the primary enquiry action. */
-/* waive 7b: The client brief explicitly sets the surface and accent-button ink to #FFFFFF. */
-/* waive 7b: White cards are part of the specified shared admin and public palette. */
 @import "tailwindcss";
 
-/* ============================================================
-   Design Tokens
-   Palette: ivory background, near-black text, and dark gold sampled
-   from the supplied brand logo; white text on this accent exceeds AA.
-   ============================================================ */
-
 :root {
-  /* Core palette */
-  --bg: #FAF7F2;
+  --bg: #FDFDFF;
   --surface: #FFFFFF;
   --ink: #16120E;
-  --ink-muted: #5E564D;
-  --accent: #806000;
-  --accent-hover: #654B00;
-  --accent-ink: #FFFFFF;      /* white text on accent buttons */
-  --accent-light: #F1E7D2;
-  --wine: #4A1A22;
-  --marigold: #FBE7C2;
-  --blush: #F7E3DC;
-  --wash-marigold: rgba(251, 231, 194, 0.62);
-  --wash-blush: rgba(247, 227, 220, 0.7);
-  --wash-blush-soft: rgba(247, 227, 220, 0.62);
-  --wash-accent: rgba(128, 96, 0, 0.2);
-  --border: #E5DFD6;
-  --border-strong: #C9C0B5;
-  --danger: #C0392B;
-  --danger-light: #FDEDEB;
+  --ink-muted: #5C5650;
+  --border: #E8E6E1;
+  --border-strong: #8A8178;
+  --brand: #F42902;
+  --brand-strong: #D92300;
+  --brand-soft: #FFE9E4;
+  --lime: #C6F51C;
+  --danger: #B42318;
+  --danger-light: #FEE4E2;
   --success: #217449;
   --success-light: #EAFBF1;
   --warning: #9B4A00;
@@ -38,8 +20,8 @@
   --hero-overlay: rgba(22, 18, 14, 0.55);
   --hero-overlay-bottom: rgba(22, 18, 14, 0.28);
   --hero-overlay-top: rgba(22, 18, 14, 0.12);
-  --footer-link: rgba(250, 247, 242, 0.8);
-  --footer-muted: rgba(250, 247, 242, 0.72);
+  --footer-link: rgba(253, 253, 255, 0.8);
+  --footer-muted: rgba(253, 253, 255, 0.72);
 
   /* Spacing scale */
   --space-xs: 0.25rem;
@@ -90,15 +72,12 @@
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-ink: var(--accent-ink);
-  --color-accent-light: var(--accent-light);
-  --color-wine: var(--wine);
-  --color-marigold: var(--marigold);
-  --color-blush: var(--blush);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-lime: var(--lime);
   --color-danger: var(--danger);
   --color-danger-light: var(--danger-light);
   --color-success: var(--success);
@@ -242,7 +221,7 @@ h3 {
    ============================================================ */
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -264,8 +243,8 @@ h3 {
   min-height: 44px;
   align-items: center;
   padding: var(--space-sm) var(--space-md);
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--ink);
+  color: var(--surface);
   font-weight: 600;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   transform: translateY(-120%);
@@ -303,7 +282,7 @@ h3 {
    ============================================================ */
 
 ::selection {
-  background: var(--accent-light);
+  background: var(--brand-soft);
   color: var(--ink);
 }
 
@@ -334,8 +313,8 @@ option {
 }
 
 option:checked {
-  background-color: var(--accent);
-  color: var(--accent-ink);
+  background-color: var(--brand-strong);
+  color: var(--surface);
 }
 
 /* ============================================================
@@ -343,7 +322,7 @@ option:checked {
    ============================================================ */
 
 .image-placeholder {
-  background: var(--border);
+  background: var(--brand-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -447,7 +426,7 @@ option:checked {
 }
 
 #admin-shell :focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -462,8 +441,8 @@ option:checked {
   }
 
   #admin-shell .money-summary > div:nth-child(3) {
-    border: 2px solid var(--accent);
-    background: var(--accent-light);
+    border: 2px solid var(--brand-strong);
+    background: var(--brand-soft);
   }
 
   #admin-shell .payment-add-fixed,
@@ -562,7 +541,7 @@ option:checked {
 }
 
 .home-enquiry-segment input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--ink);
 }
 
 .home-enquiry-select {
@@ -592,56 +571,37 @@ option:checked {
 }
 
 .home-statement-section {
-  background:
-    radial-gradient(ellipse at 87% 24%, var(--wash-marigold), transparent 44%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .home-intro-section {
-  background:
-    radial-gradient(ellipse at 12% 86%, var(--wash-blush), transparent 46%),
-    var(--marigold);
+  background: var(--surface);
 }
 
 .home-events-section {
-  background:
-    radial-gradient(ellipse at 88% 18%, var(--wash-marigold), transparent 42%),
-    var(--blush);
+  background: var(--brand);
+}
+
+.home-events-section h2 {
+  color: var(--surface);
 }
 
 .home-about-section {
-  background:
-    radial-gradient(ellipse at 10% 12%, var(--wash-blush-soft), transparent 43%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .home-contact-section {
-  background:
-    radial-gradient(ellipse at 90% 12%, var(--wash-accent), transparent 42%),
-    var(--wine);
-  color: var(--bg);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .home-contact-section h2,
 .home-contact-section > div > p {
-  color: var(--bg);
+  color: var(--ink);
 }
 
 .home-contact-section .contact-form {
   color: var(--ink);
-}
-
-.home-floating-photo {
-  animation: home-photo-drift 10s ease-in-out infinite;
-}
-
-@keyframes home-photo-drift {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
 }
 
 .gallery-masonry {
@@ -721,6 +681,7 @@ option:checked {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr) auto;
     min-height: 4.5rem;
     align-items: center;
+    overflow: visible;
     border: 1px solid var(--border);
     border-radius: var(--radius-full);
     background: var(--surface);
@@ -920,13 +881,14 @@ option:checked {
   .dialog-backdrop,
   .dialog-panel,
   .mobile-nav-panel,
-  .mobile-nav-link {
+  .mobile-nav-link,
+  .invitation-card,
+  .card-frame-lines path {
     animation: none;
   }
 
   .service-accordion,
-  [data-reveal],
-  .home-floating-photo {
+  [data-reveal] {
     transition: none;
     animation: none;
   }
@@ -1000,11 +962,11 @@ option:checked {
 }
 
 #admin-shell .admin-progress.is-half::-webkit-progress-value {
-  background-color: var(--accent);
+background-color: var(--brand);
 }
 
 #admin-shell .admin-progress.is-half::-moz-progress-bar {
-  background-color: var(--accent);
+background-color: var(--brand);
 }
 
 #admin-shell .admin-progress.is-start::-webkit-progress-value {
@@ -1042,5 +1004,117 @@ option:checked {
       animation-timeline: view();
       animation-range: entry 0% entry 35%;
     }
+  }
+}
+
+.home-events-section :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--lime);
+}
+
+.invitation-card-shell {
+  border: 3px double var(--surface);
+  padding: 0.5rem;
+}
+
+.ticket-card {
+  clip-path: polygon(
+    16px 0,
+    calc(100% - 16px) 0,
+    100% 16px,
+    100% 43%,
+    calc(100% - 12px) 50%,
+    100% 57%,
+    100% calc(100% - 16px),
+    calc(100% - 16px) 100%,
+    16px 100%,
+    16px calc(100% - 16px),
+    0 57%,
+    12px 50%,
+    0 43%,
+    0 16px
+  );
+}
+
+.invitation-card {
+  border: 1px solid var(--brand-strong);
+  background: var(--surface);
+  animation: invitation-card-rise 760ms var(--ease-out) both;
+}
+
+.card-frame {
+  position: relative;
+  isolation: isolate;
+}
+
+.card-frame-lines {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  color: var(--brand-strong);
+  pointer-events: none;
+}
+
+.card-frame-lines path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.15;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: card-frame-draw 900ms var(--ease-out) forwards;
+}
+
+.card-frame-lines path:nth-child(2) {
+  animation-delay: 120ms;
+  opacity: 0.68;
+  stroke-width: 0.8;
+}
+
+.card-frame-content {
+  position: relative;
+}
+
+.guest-function-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.guest-timeline-entry {
+  transition:
+    opacity 620ms var(--ease-out),
+    transform 620ms var(--ease-out);
+}
+
+.guest-timeline-entry[data-reveal="up"] {
+  transform: translate3d(0, 20px, 0);
+}
+
+.guest-timeline-entry[data-reveal="up"].is-visible {
+  transform: none;
+}
+
+@keyframes card-frame-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes invitation-card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guest-timeline-entry {
+    transition: none;
+    transform: none;
   }
 }

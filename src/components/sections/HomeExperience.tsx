@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import galleryImages from "@/data/gallery.json";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
 import { imageSlots, type ImageSlot } from "@/data/images";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { Button, Card, Pill } from "@/components/ui/Button";
 import { Dialog, Sheet } from "@/components/ui/Dialog";
+import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { useReveal } from "@/components/ui/useReveal";
 
@@ -76,13 +76,11 @@ const services = [
 interface HomeExperienceProps {
   hasMobileHero: boolean;
   availableImages: Record<ImageSlot, boolean>;
-  availableGalleryPhotos: string[];
 }
 
 export function HomeExperience({
   hasMobileHero,
   availableImages,
-  availableGalleryPhotos,
 }: HomeExperienceProps) {
   useReveal();
 
@@ -100,8 +98,9 @@ export function HomeExperience({
   const closeEnquiry = useCallback(() => setEnquiryOpen(false), []);
   const closeDetail = useCallback(() => setDetailEvent(null), []);
   const closeLightbox = useCallback(() => setActivePhoto(null), []);
-  const visibleGalleryImages = galleryImages.filter((image) =>
-    availableGalleryPhotos.includes(image.src)
+  const visibleGalleryImages = galleryImages;
+  const availableGalleryImages = galleryImages.filter(
+    (image) => availableImages[image.imageSlot]
   );
 
   const selectedEvent =
@@ -114,14 +113,9 @@ export function HomeExperience({
       visibleGalleryImages.find((image) => image.category === category)
     )
     .filter((image) => image !== undefined);
-  const aboutImage = visibleGalleryImages.find(
-    (image) => image.category === "weddings"
-  );
-  const birthdayImage = visibleGalleryImages.find(
+  const aboutImage = imageSlots.about;
+  const birthdayImage = availableGalleryImages.find(
     (image) => image.category === "birthdays"
-  );
-  const functionImage = visibleGalleryImages.find(
-    (image) => image.category === "functions"
   );
 
   useEffect(() => {
@@ -197,7 +191,7 @@ export function HomeExperience({
             />
           </picture>
         ) : (
-          <div className="absolute inset-0 -z-20 bg-border/50" aria-hidden="true" />
+          <div className="absolute inset-0 -z-20 bg-brand-soft" aria-hidden="true" />
         )}
         <div className="home-hero-overlay absolute inset-0 -z-10" aria-hidden="true" />
 
@@ -274,7 +268,10 @@ export function HomeExperience({
                   autoComplete="address-level2"
                 />
               </label>
-              <Button type="submit" className="home-enquiry-submit">
+              <Button
+                type="submit"
+                className="home-enquiry-submit hover:bg-brand hover:text-ink"
+              >
                 Plan it
               </Button>
             </form>
@@ -293,17 +290,18 @@ export function HomeExperience({
           >
             We take care of planning,{" "}
             <span className="inline-flex -translate-y-1 align-middle">
-              {visibleGalleryImages.slice(0, 3).map((image) => (
+              {availableGalleryImages.slice(0, 3).map((image) => (
                 <span
                   key={image.src}
                   className="relative -ml-2 inline-block h-9 w-9 overflow-hidden rounded-full border-2 border-bg first:ml-0 sm:h-12 sm:w-12"
                   aria-hidden="true"
                 >
-                  <Image
+                  <PlaceholderImage
                     src={image.src}
                     alt=""
                     width={image.width}
                     height={image.height}
+                    available={availableImages[image.imageSlot]}
                     sizes="48px"
                     className="h-full w-full object-cover"
                   />
@@ -314,21 +312,6 @@ export function HomeExperience({
             present for the moments that matter.
           </p>
         </div>
-        {aboutImage && (
-          <div
-            className="home-floating-photo absolute right-8 top-1/2 hidden h-28 w-20 -translate-y-1/2 overflow-hidden rounded-2xl lg:block"
-            aria-hidden="true"
-          >
-            <Image
-              src={aboutImage.src}
-              alt=""
-              width={aboutImage.width}
-              height={aboutImage.height}
-              sizes="80px"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        )}
       </section>
 
       <section
@@ -355,11 +338,12 @@ export function HomeExperience({
                 data-reveal={index === 1 ? "right" : index === 2 ? "left" : "up"}
                 data-delay={index + 1}
               >
-                <Image
+                <PlaceholderImage
                   src={image.src}
                   alt={image.alt}
                   width={image.width}
                   height={image.height}
+                  available={availableImages[image.imageSlot]}
                   sizes="(min-width: 1024px) 33vw, 60vw"
                   className="h-full w-full object-cover"
                 />
@@ -400,15 +384,16 @@ export function HomeExperience({
               <button
                 type="button"
                 onClick={() => openDetail(event.key)}
-                className="group block w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="group block w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                 aria-label={`More about ${event.title}`}
               >
                 <div className="relative aspect-[4/5] overflow-hidden">
-                  <Image
+                  <PlaceholderImage
                     src={image.src}
                     alt={image.alt}
                     width={image.width}
                     height={image.height}
+                    available={availableImages[image.imageSlot]}
                     sizes="(min-width: 1024px) 33vw, 86vw"
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                   />
@@ -450,7 +435,7 @@ export function HomeExperience({
             </h2>
             <Link
               href="/gallery"
-              className="inline-flex min-h-11 shrink-0 items-center text-base font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex min-h-11 shrink-0 items-center text-base font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               See all
             </Link>
@@ -461,7 +446,7 @@ export function HomeExperience({
                 key={image.src}
                 type="button"
                 onClick={() => setActivePhoto(index)}
-                className={`group relative block min-w-0 overflow-hidden rounded-[24px] border border-border bg-border/50 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`group relative block min-w-0 overflow-hidden rounded-[24px] border border-border bg-border/50 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                   index === 0 || index === 5
                     ? "col-span-2 aspect-[16/10] sm:col-span-2"
                     : "aspect-[4/5]"
@@ -470,11 +455,12 @@ export function HomeExperience({
                 data-reveal={index % 2 === 0 ? "left" : "right"}
                 data-delay={(index % 3) + 1}
               >
-                <Image
+                <PlaceholderImage
                   src={image.src}
                   alt={image.alt}
                   width={image.width}
                   height={image.height}
+                  available={availableImages[image.imageSlot]}
                   sizes="(min-width: 1024px) 33vw, 50vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
@@ -518,7 +504,7 @@ export function HomeExperience({
                       aria-expanded={expanded}
                       aria-controls={panelId}
                       onClick={() => toggleService(service.title)}
-                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-semibold text-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-2xl"
+                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-semibold text-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-2xl"
                     >
                       {service.title}
                       <span aria-hidden="true" className="text-2xl font-normal">
@@ -556,18 +542,19 @@ export function HomeExperience({
               className="relative aspect-[3/2] overflow-hidden rounded-[26px]"
               data-reveal="left"
             >
-            <Image
+            <PlaceholderImage
               src={aboutImage.src}
               alt={aboutImage.alt}
               width={aboutImage.width}
               height={aboutImage.height}
+              available={availableImages.about}
               sizes="(min-width: 1024px) 45vw, 100vw"
               className="h-full w-full object-cover"
             />
             </div>
             {birthdayImage && (
               <div
-                className="home-floating-photo absolute -bottom-3 -right-3 z-10 hidden h-28 w-20 overflow-hidden rounded-2xl border-4 border-bg sm:block"
+                className="absolute -bottom-3 -right-3 z-10 hidden h-28 w-20 overflow-hidden rounded-2xl border-4 border-bg sm:block"
                 aria-hidden="true"
               >
                 <Image
@@ -624,7 +611,7 @@ export function HomeExperience({
                 href={siteLinks.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-bg px-5 py-3 text-base font-semibold text-wine transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-brand hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 WhatsApp
               </a>
@@ -632,7 +619,7 @@ export function HomeExperience({
             {hasSiteValue(site.phone) && (
               <a
                 href={siteLinks.phoneUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-bg/70 px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/40 px-5 py-3 text-base font-semibold text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 Call
               </a>
@@ -643,21 +630,6 @@ export function HomeExperience({
             You can be fully present for the moments that matter.
           </p>
         </div>
-        {functionImage && (
-          <div
-            className="home-floating-photo absolute bottom-12 right-8 hidden h-36 w-24 overflow-hidden rounded-2xl opacity-70 lg:block"
-            aria-hidden="true"
-          >
-            <Image
-              src={functionImage.src}
-              alt=""
-              width={functionImage.width}
-              height={functionImage.height}
-              sizes="96px"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        )}
       </section>
 
       <Sheet
@@ -697,7 +669,7 @@ export function HomeExperience({
           <Link
             href={buildContactHref(eventType, eventDate, venue)}
             onClick={closeEnquiry}
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Continue to enquiry form
           </Link>
@@ -742,11 +714,12 @@ export function HomeExperience({
             }}
           >
             <div className="relative flex min-h-[min(60dvh,34rem)] items-center justify-center overflow-hidden rounded-2xl bg-ink">
-              <Image
+              <PlaceholderImage
                 src={photo.src}
                 alt={photo.alt}
                 width={photo.width}
                 height={photo.height}
+                available={availableImages[photo.imageSlot]}
                 sizes="(min-width: 1024px) 80vw, 100vw"
                 className="max-h-[65dvh] w-full object-contain"
               />
@@ -755,7 +728,7 @@ export function HomeExperience({
                   <button
                     type="button"
                     onClick={() => changePhoto(-1)}
-                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Previous photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -765,7 +738,7 @@ export function HomeExperience({
                   <button
                     type="button"
                     onClick={() => changePhoto(1)}
-                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Next photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

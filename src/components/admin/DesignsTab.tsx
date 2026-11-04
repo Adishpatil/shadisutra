@@ -81,7 +81,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 rounded-radius-lg border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-accent">
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-strong">
             Aesthetics &amp; 3D Renderings
           </span>
           <h3 className="mt-0.5 font-heading text-base font-bold text-ink">
@@ -121,7 +121,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
               setError(null);
               setShowAddModal(true);
             }}
-            className="min-h-[44px] rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink hover:bg-accent-hover"
+            className="min-h-[44px] rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg hover:bg-brand"
           >
             + Add Design
           </button>
@@ -154,7 +154,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
                     href={design.preview_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="min-h-[44px] px-4 text-base font-semibold text-accent"
+                    className="min-h-[44px] px-4 text-base font-semibold text-brand-strong"
                   >
                     Open PDF preview
                   </a>
@@ -196,7 +196,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
                     href={design.preview_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-radius-md border border-border px-3 text-base font-semibold text-accent"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-radius-md border border-border px-3 text-base font-semibold text-brand-strong"
                   >
                     {design.file_kind === "pdf" ? "Open PDF preview" : "Open preview"}
                   </a>
@@ -274,7 +274,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="min-h-[48px] flex-1 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink disabled:opacity-50"
+                  className="min-h-[48px] flex-1 rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg disabled:opacity-50"
                 >
                   {uploading ? "Uploading…" : "Upload draft"}
                 </button>

@@ -135,7 +135,7 @@ export function BudgetPaymentsTab({
                 setError(null);
                 setShowEditAgreedModal(true);
               }}
-              className="min-h-[44px] px-2 text-sm text-accent font-semibold hover:underline"
+              className="min-h-[44px] px-2 text-sm text-brand-strong font-semibold hover:underline"
             >
               Edit
             </button>
@@ -202,7 +202,7 @@ export function BudgetPaymentsTab({
             <span className="text-sm font-semibold text-ink-muted">
               Payment Realization
             </span>
-            <span className="text-xs font-bold text-accent font-mono">
+            <span className="text-xs font-bold text-brand-strong font-mono">
               {budget.percentagePaid}%
             </span>
           </div>
@@ -271,7 +271,7 @@ export function BudgetPaymentsTab({
         </div>
 
         {/* Right: Quick Action Banner */}
-        <div className="hidden lg:col-span-4 bg-accent-light/40 p-6 rounded-radius-lg border border-accent/30 lg:flex flex-col justify-between gap-4">
+        <div className="hidden lg:col-span-4 bg-brand-soft/40 p-6 rounded-radius-lg border border-brand-strong/30 lg:flex flex-col justify-between gap-4">
           <div>
             <h3 className="font-heading font-bold text-lg text-ink mt-1">
               Record Client Payment
@@ -284,7 +284,7 @@ export function BudgetPaymentsTab({
           <button
             type="button"
             onClick={() => showPaymentForm(null)}
-            className="w-full inline-flex items-center justify-center px-4 py-3 bg-accent text-accent-ink rounded-radius-md font-semibold text-base hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] min-h-[48px]"
+            className="w-full inline-flex items-center justify-center px-4 py-3 bg-brand-strong text-bg rounded-radius-md font-semibold text-base hover:bg-brand transition-colors shadow-[var(--shadow-sm)] min-h-[48px]"
           >
             + Quick Add Payment
           </button>
@@ -310,7 +310,7 @@ export function BudgetPaymentsTab({
                   setError(null);
                   setShowEditAgreedModal(true);
                 }}
-                className="min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+                className="min-h-[44px] px-2 text-sm font-semibold text-brand-strong hover:underline"
               >
                 Edit agreed total
               </button>
@@ -318,7 +318,7 @@ export function BudgetPaymentsTab({
             <button
               type="button"
               onClick={() => showPaymentForm(null)}
-              className="payment-add-fixed min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+              className="payment-add-fixed min-h-[44px] px-2 text-sm font-semibold text-brand-strong hover:underline"
             >
               + Add Payment
             </button>
@@ -358,7 +358,7 @@ export function BudgetPaymentsTab({
                     <button
                       type="button"
                       onClick={() => showPaymentForm(p)}
-                      className="mr-3 min-h-[44px] text-sm font-semibold text-accent hover:underline"
+                      className="mr-3 min-h-[44px] text-sm font-semibold text-brand-strong hover:underline"
                     >
                       Edit
                     </button>
@@ -393,7 +393,7 @@ export function BudgetPaymentsTab({
               </div>
               <div className="text-xs text-ink-muted flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5">
-                  <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="w-3.5 h-3.5 text-brand-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   {p.paid_on}
@@ -401,7 +401,7 @@ export function BudgetPaymentsTab({
                 <button
                   type="button"
                   onClick={() => showPaymentForm(p)}
-                  className="min-h-[44px] px-2 text-sm font-semibold text-accent hover:underline"
+                  className="min-h-[44px] px-2 text-sm font-semibold text-brand-strong hover:underline"
                 >
                   Edit
                 </button>
@@ -415,7 +415,7 @@ export function BudgetPaymentsTab({
               </div>
               {p.note && (
                 <p className="text-xs text-ink-muted pt-1 border-t border-border flex items-center gap-1.5">
-                  <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="w-3.5 h-3.5 text-brand-strong shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   {p.note}
@@ -447,7 +447,7 @@ export function BudgetPaymentsTab({
           {auditLogs.map((log) => (
             <div key={log.id} className="py-2.5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-accent font-semibold">
+                <span className="font-mono text-brand-strong font-semibold">
                   {log.action}
                 </span>
                 <span className="text-ink-muted">on table {log.table_name}</span>
@@ -511,7 +511,7 @@ export function BudgetPaymentsTab({
                   step="0.01"
                   defaultValue={editingPayment?.amount.toFixed(2) ?? ""}
                   placeholder="e.g. 250000.00"
-                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base font-mono focus:ring-1 focus:ring-accent"
+                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base font-mono focus:ring-1 focus:ring-ink"
                 />
               </div>
 
@@ -524,7 +524,7 @@ export function BudgetPaymentsTab({
                     type="date"
                     name="paidOn"
                     required
-                    className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent"
+                    className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink"
                     defaultValue={editingPayment?.paid_on ?? new Date().toISOString().split("T")[0]}
                   />
                 </div>
@@ -536,7 +536,7 @@ export function BudgetPaymentsTab({
                   <select
                     name="mode"
                     defaultValue={editingPayment?.mode ?? "bank"}
-                    className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent"
+                    className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink"
                   >
                     <option value="cash">Cash</option>
                     <option value="upi">UPI</option>
@@ -556,7 +556,7 @@ export function BudgetPaymentsTab({
                   name="note"
                   defaultValue={editingPayment?.note ?? ""}
                   placeholder="e.g. Milestone 2: Mandap structure advance"
-                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent"
+                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink"
                 />
               </div>
 
@@ -574,7 +574,7 @@ export function BudgetPaymentsTab({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-base font-semibold hover:bg-accent-hover min-h-[48px] disabled:opacity-50"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-base font-semibold hover:bg-brand min-h-[48px] disabled:opacity-50"
                 >
                   {loading ? "Saving..." : editingPayment ? "Save Changes" : "Save Payment"}
                 </button>
@@ -605,7 +605,7 @@ export function BudgetPaymentsTab({
                   required
                   value={editAgreedInput}
                   onChange={(e) => setEditAgreedInput(e.target.value)}
-                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base font-mono focus:ring-1 focus:ring-accent"
+                  className="w-full min-h-[48px] px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base font-mono focus:ring-1 focus:ring-ink"
                 />
               </div>
               <div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-surface pt-3">
@@ -619,7 +619,7 @@ export function BudgetPaymentsTab({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-base font-semibold min-h-[48px] disabled:opacity-50"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-base font-semibold min-h-[48px] disabled:opacity-50"
                 >
                   {loading ? "Saving..." : "Update Total"}
                 </button>

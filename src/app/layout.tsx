@@ -29,7 +29,7 @@ const fraunces = Fraunces({
 });
 
 const siteUrl = process.env.SITE_URL?.trim();
-const socialImage = getCanonicalUrl("/brand/logo.webp") ?? "/brand/logo.webp";
+const socialImage = getCanonicalUrl("/brand/logo.png") ?? "/brand/logo.png";
 
 export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
@@ -68,7 +68,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: site.accentColor,
+  themeColor: site.brandColor,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
