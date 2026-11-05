@@ -113,7 +113,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
               setEditingEntry(null);
               setShowAddModal(true);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-radius-md bg-brand-strong text-bg hover:bg-brand transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-radius-md bg-brand-strong text-bg hover:bg-brand hover:text-ink transition-colors min-h-[44px]"
           >
             <span>+ Add Timeline Entry</span>
           </button>
@@ -277,7 +277,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   {editingEntry ? "Save Changes" : "Save Entry"}
                 </button>

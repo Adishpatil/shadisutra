@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { existsSync } from "node:fs";
+import { cwd } from "node:process";
+import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { PlanEventSheet } from "@/components/sections/PlanEventSheet";
+import { imageSlots, type ImageSlot } from "@/data/images";
 
 interface ServiceDetail {
   eventType: string;
@@ -11,8 +15,7 @@ interface ServiceDetail {
   pageTitle: string;
   metadataTitle: string;
   description: string;
-  image: string;
-  imageAlt: string;
+  imageSlot: ImageSlot;
   included: string[];
 }
 
@@ -24,9 +27,7 @@ const serviceData: Record<string, ServiceDetail> = {
     metadataTitle: "Wedding Planning & Decor | Shadi Sutra",
     description:
       "Your wedding, planned and styled from the first ceremony to the last dance.",
-    image: "/images/gallery/weddings/weddings-3.webp",
-    imageAlt:
-      "Hanging floral arrangements and brass vessels beneath a tree at an outdoor celebration",
+    imageSlot: "galleryWedding3",
     included: [
       "Planning and day-by-day timeline",
       "Stage, mandap and venue decor",
@@ -43,9 +44,7 @@ const serviceData: Record<string, ServiceDetail> = {
     metadataTitle: "Birthday Party Planning | Shadi Sutra",
     description:
       "Birthday celebrations with a theme your family will love, from first birthdays to milestone years.",
-    image: "/images/gallery/birthdays/birthdays-5.webp",
-    imageAlt:
-      "Floral arrangements lining an event walkway beneath a canopy of warm string lights",
+    imageSlot: "galleryBirthday5",
     included: [
       "Themed decor",
       "Lighting and setup",
@@ -60,9 +59,7 @@ const serviceData: Record<string, ServiceDetail> = {
     metadataTitle: "Event & Function Management | Shadi Sutra",
     description:
       "Family gatherings and special occasions, managed from setup to farewell.",
-    image: "/images/gallery/functions/functions-3.webp",
-    imageAlt:
-      "Round banquet tables arranged across a rooftop lawn during event setup",
+    imageSlot: "serviceFunction",
     included: [],
   },
 };
@@ -100,6 +97,7 @@ export default async function ServiceDetailPage({
   const service = serviceData[slug];
 
   if (!service) notFound();
+  const image = imageSlots[service.imageSlot];
 
   return (
     <div className="page-shell">
@@ -142,10 +140,12 @@ export default async function ServiceDetailPage({
         <div className="mt-10 grid items-start gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="relative overflow-hidden rounded-[24px] lg:sticky lg:top-28 lg:col-span-6">
             <PlaceholderImage
-              src={service.image}
-              alt={service.imageAlt}
+              src={image.src}
+              alt={image.alt}
               width={1200}
               height={1500}
+              available={imageExists(image.src)}
+              focalPoint={image.focalPoint}
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="aspect-[4/5] w-full object-cover"
             />
@@ -173,4 +173,8 @@ export default async function ServiceDetailPage({
       </section>
     </div>
   );
+}
+
+function imageExists(source: string) {
+  return existsSync(path.join(cwd(), "public", source.replace(/^\//, "")));
 }

@@ -219,7 +219,7 @@ export default async function ClientEventPage({
               {view.designs.map((design) => (
                 <li key={design.id} className="flex min-w-[85%] snap-center flex-col justify-between gap-3 rounded-2xl border border-border bg-surface p-4 sm:min-w-[min(24rem,50%)]">
                   <p className="font-medium">{design.title}, Version {design.version}</p>
-                  <a href={design.url} target="_blank" rel="noreferrer noopener" className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/25 px-5 text-base font-semibold text-ink transition-colors hover:bg-ink/5">
+                  <a href={design.url} target="_blank" rel="noreferrer noopener" className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong px-5 text-base font-semibold text-ink transition-colors hover:bg-ink/5">
                     View design
                   </a>
                 </li>

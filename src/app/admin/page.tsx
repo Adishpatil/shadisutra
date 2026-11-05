@@ -49,7 +49,7 @@ export default async function AdminDashboardPage() {
       label: "Upcoming events",
       value: String(upcomingEvents.length),
       note: "Events still to come",
-      variant: "brand" as const,
+      variant: "accent" as const,
       href: "/admin/events",
     },
     {
@@ -81,7 +81,7 @@ export default async function AdminDashboardPage() {
         <h1 className="font-heading text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Dashboard</h1>
         <Link
           href="/admin/events?quick=share"
-          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
         >
           Create or manage share links
         </Link>
@@ -91,7 +91,7 @@ export default async function AdminDashboardPage() {
           <Link
             key={metric.label}
             href={metric.href}
-            className="block min-w-0 rounded-radius-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="block min-w-0 rounded-radius-lg focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
           <Card className="h-full min-w-0 p-4 transition-shadow hover:shadow-[var(--shadow-md)] sm:p-5">
             <p className="text-base font-semibold text-ink-muted">{metric.label}</p>
@@ -116,7 +116,7 @@ export default async function AdminDashboardPage() {
               <Link
                 key={event.id}
                 href={`/admin/events/${event.id}`}
-                className="min-w-56 rounded-2xl border border-border bg-surface p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="min-w-56 rounded-2xl border border-border bg-surface p-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 <span className="block text-sm font-semibold text-ink-muted">{event.date}</span>
                 <span className="mt-1 block font-heading text-lg font-semibold text-ink">{event.name}</span>
@@ -219,7 +219,7 @@ export default async function AdminDashboardPage() {
                 <Card key={event.id} className="p-4 sm:p-5">
                   <Link
                     href={`/admin/events/${event.id}`}
-                    className="block rounded-radius-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
+                    className="block rounded-radius-md focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ink"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">

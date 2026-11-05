@@ -197,11 +197,11 @@ export function EventShareLinkPanel({
             required
             value={expirationDate}
             onChange={(event) => setExpirationDate(event.target.value)}
-            className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink focus:outline-none focus:ring-2 focus:ring-ink"
+            className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
           />
         </div>
         <TimePicker name="expiryTime" label="Expiry time (IST)" defaultValue="23:59" />
-        <button type="submit" disabled={pending || !expirationDate} className="min-h-11 rounded-radius-md bg-brand-strong px-5 py-2.5 text-base font-semibold text-bg hover:bg-brand disabled:opacity-50">
+        <button type="submit" disabled={pending || !expirationDate} className="min-h-11 rounded-radius-md bg-brand-strong px-5 py-2.5 text-base font-semibold text-bg hover:bg-brand hover:text-ink disabled:opacity-50">
           {pending ? "Saving..." : shareLink?.token ? "Regenerate Guest link" : "Generate Guest link"}
         </button>
       </form>
@@ -287,7 +287,7 @@ export function EventShareLinkPanel({
                 type="button"
                 onClick={handleRevoke}
                 disabled={pending}
-                className="min-h-11 rounded-full border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
+                className="min-h-11 rounded-full border border-danger px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
               >
                 Revoke Guest link
               </button>
@@ -310,7 +310,7 @@ export function EventShareLinkPanel({
         </div>
       )}
       {qrUsesLocalOrigin && (
-        <p role="alert" className="rounded-xl border border-warning/30 bg-warning-light p-3 text-sm text-warning">
+        <p role="alert" className="rounded-xl border border-warning bg-warning-light p-3 text-sm text-warning">
           This QR uses a local address and won&apos;t open on another device. Set the public site URL in deployment settings, then reload this page.
         </p>
       )}

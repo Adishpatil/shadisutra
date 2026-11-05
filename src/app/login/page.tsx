@@ -68,7 +68,7 @@ export default function LoginPage() {
           <div
             role="alert"
             id="login-error"
-            className="mb-6 p-4 rounded-radius-md bg-danger-light border border-danger/30 text-danger text-sm font-medium"
+            className="mb-6 p-4 rounded-radius-md bg-danger-light border border-danger text-danger text-sm font-medium"
           >
             {mfaError || state?.error}
           </div>
@@ -108,14 +108,14 @@ export default function LoginPage() {
                 aria-describedby={mfaError || state?.error ? "login-error" : undefined}
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
-                className="w-full text-center tracking-widest text-xl font-mono px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-ink"
+                className="w-full text-center tracking-widest text-xl font-mono px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
               />
             </div>
 
             <button
               type="submit"
               disabled={mfaPending || mfaCode.length !== 6}
-              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50"
+              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50"
             >
               {mfaPending
                 ? "Verifying..."
@@ -147,7 +147,7 @@ export default function LoginPage() {
                 autoComplete="username"
                 placeholder="Administrator username"
                 aria-describedby={state?.error ? "login-error" : undefined}
-                className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-ink"
+                className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
               />
             </div>
 
@@ -168,7 +168,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   placeholder="••••••••••••"
                   aria-describedby={state?.error ? "login-error" : undefined}
-                  className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-2 focus:ring-ink"
+                  className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-[3px] focus:ring-ink"
                 />
                 <button
                   type="button"
@@ -185,7 +185,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50"
+              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50"
             >
               {isPending ? "Signing in..." : "Sign In"}
             </button>

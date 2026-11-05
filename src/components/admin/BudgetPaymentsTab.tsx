@@ -111,7 +111,7 @@ export function BudgetPaymentsTab({
   return (
     <div className="space-y-8">
       {error && !showAddPaymentModal && !showEditAgreedModal && (
-        <p role="alert" className="rounded-radius-md border border-danger/30 bg-danger-light p-3 text-sm text-danger">
+        <p role="alert" className="rounded-radius-md border border-danger bg-danger-light p-3 text-sm text-danger">
           {error}
         </p>
       )}
@@ -202,7 +202,7 @@ export function BudgetPaymentsTab({
             <span className="text-sm font-semibold text-ink-muted">
               Payment Realization
             </span>
-            <span className="text-xs font-bold text-brand-strong font-mono">
+            <span className={`text-xs font-bold font-mono ${budget.percentagePaid >= 100 ? "text-success" : "text-warning"}`}>
               {budget.percentagePaid}%
             </span>
           </div>
@@ -284,7 +284,7 @@ export function BudgetPaymentsTab({
           <button
             type="button"
             onClick={() => showPaymentForm(null)}
-            className="w-full inline-flex items-center justify-center px-4 py-3 bg-brand-strong text-bg rounded-radius-md font-semibold text-base hover:bg-brand transition-colors shadow-[var(--shadow-sm)] min-h-[48px]"
+            className="w-full inline-flex items-center justify-center px-4 py-3 bg-brand-strong text-bg rounded-radius-md font-semibold text-base hover:bg-brand hover:text-ink transition-colors shadow-[var(--shadow-sm)] min-h-[48px]"
           >
             + Quick Add Payment
           </button>
@@ -473,7 +473,7 @@ export function BudgetPaymentsTab({
       </div>
 
       {budget.isOverpaid && (
-        <p role="status" className="rounded-radius-md border border-warning/40 bg-warning-light p-3 text-sm font-semibold text-warning">
+        <p role="status" className="rounded-radius-md border border-warning bg-warning-light p-3 text-sm font-semibold text-warning">
           Payments exceed the agreed total. This is a warning only; no payment was blocked.
         </p>
       )}
@@ -492,7 +492,7 @@ export function BudgetPaymentsTab({
           className="sm:max-w-lg"
         >
             {error && (
-              <div className="p-3 bg-danger-light text-danger text-xs font-medium rounded-radius-md border border-danger/30">
+              <div className="p-3 bg-danger-light text-danger text-xs font-medium rounded-radius-md border border-danger">
                 {error}
               </div>
             )}
@@ -574,7 +574,7 @@ export function BudgetPaymentsTab({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-base font-semibold hover:bg-brand min-h-[48px] disabled:opacity-50"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-base font-semibold hover:bg-brand hover:text-ink min-h-[48px] disabled:opacity-50"
                 >
                   {loading ? "Saving..." : editingPayment ? "Save Changes" : "Save Payment"}
                 </button>

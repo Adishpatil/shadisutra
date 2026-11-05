@@ -181,6 +181,17 @@ textarea {
   color: var(--ink);
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not(.border-danger),
+select:not(.border-danger),
+textarea:not(.border-danger) {
+  border-color: var(--border-strong);
+}
+
+button[class~="border-border"],
+a[class~="border-border"] {
+  border-color: var(--border-strong);
+}
+
 select option {
   background: var(--surface);
   color: var(--ink);
@@ -303,10 +314,6 @@ option {
   background-color: var(--surface);
 }
 
-select {
-  border-color: var(--border-strong);
-}
-
 option {
   min-height: 44px;
   padding: 0.65rem 0.75rem;
@@ -386,7 +393,7 @@ option:checked {
 [role="menuitem"]:focus-visible,
 [role="option"][aria-selected="true"],
 [role="menuitem"][aria-current="true"] {
-  background-color: var(--accent-light);
+  background-color: var(--brand-soft);
   color: var(--ink);
 }
 
@@ -962,19 +969,19 @@ option:checked {
 }
 
 #admin-shell .admin-progress.is-half::-webkit-progress-value {
-background-color: var(--brand);
+background-color: var(--warning);
 }
 
 #admin-shell .admin-progress.is-half::-moz-progress-bar {
-background-color: var(--brand);
+background-color: var(--warning);
 }
 
 #admin-shell .admin-progress.is-start::-webkit-progress-value {
-  background-color: var(--ink);
+background-color: var(--warning);
 }
 
 #admin-shell .admin-progress.is-start::-moz-progress-bar {
-  background-color: var(--ink);
+background-color: var(--warning);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1008,6 +1015,13 @@ background-color: var(--brand);
 }
 
 .home-events-section :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--lime);
+}
+
+.bg-brand :focus-visible,
+.bg-brand:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 2px;
   box-shadow: 0 0 0 5px var(--lime);
@@ -1116,5 +1130,9 @@ background-color: var(--brand);
   .guest-timeline-entry {
     transition: none;
     transform: none;
+  }
+
+  .card-frame-lines path {
+    stroke-dashoffset: 0;
   }
 }

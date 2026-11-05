@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
-import { imageSlots, type ImageSlot } from "@/data/images";
+import { galleryImages, imageSlots, type ImageSlot } from "@/data/images";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { Button, Card, Pill } from "@/components/ui/Button";
 import { Dialog, Sheet } from "@/components/ui/Dialog";
@@ -187,7 +187,10 @@ export function HomeExperience({
               height={imageSlots.hero.height}
               priority
               sizes="100vw"
-              className="absolute inset-0 h-full w-full object-cover object-[50%_48%]"
+              style={{
+                objectPosition: `${imageSlots.hero.focalPoint.x}% ${imageSlots.hero.focalPoint.y}%`,
+              }}
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </picture>
         ) : (
@@ -213,7 +216,12 @@ export function HomeExperience({
 
           <div className="home-hero-actions">
             <div className="home-mobile-actions">
-              <Button type="button" className="w-full" onClick={() => setEnquiryOpen(true)}>
+              <Button
+                type="button"
+                variant="lime"
+                className="w-full"
+                onClick={() => setEnquiryOpen(true)}
+              >
                 Plan your event
               </Button>
               {hasSiteValue(site.whatsapp) && (
@@ -221,7 +229,7 @@ export function HomeExperience({
                   href={siteLinks.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-bg/75 px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-bg/75 px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-bg"
                 >
                   WhatsApp
                 </a>
@@ -290,7 +298,7 @@ export function HomeExperience({
           >
             We take care of planning,{" "}
             <span className="inline-flex -translate-y-1 align-middle">
-              {availableGalleryImages.slice(0, 3).map((image) => (
+              {availableGalleryImages.slice(0, 1).map((image) => (
                 <span
                   key={image.src}
                   className="relative -ml-2 inline-block h-9 w-9 overflow-hidden rounded-full border-2 border-bg first:ml-0 sm:h-12 sm:w-12"
@@ -302,6 +310,7 @@ export function HomeExperience({
                     width={image.width}
                     height={image.height}
                     available={availableImages[image.imageSlot]}
+                    focalPoint={image.focalPoint}
                     sizes="48px"
                     className="h-full w-full object-cover"
                   />
@@ -344,6 +353,7 @@ export function HomeExperience({
                   width={image.width}
                   height={image.height}
                   available={availableImages[image.imageSlot]}
+                  focalPoint={image.focalPoint}
                   sizes="(min-width: 1024px) 33vw, 60vw"
                   className="h-full w-full object-cover"
                 />
@@ -384,7 +394,7 @@ export function HomeExperience({
               <button
                 type="button"
                 onClick={() => openDetail(event.key)}
-                className="group block w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="group block w-full text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                 aria-label={`More about ${event.title}`}
               >
                 <div className="relative aspect-[4/5] overflow-hidden">
@@ -394,6 +404,7 @@ export function HomeExperience({
                     width={image.width}
                     height={image.height}
                     available={availableImages[image.imageSlot]}
+                    focalPoint={image.focalPoint}
                     sizes="(min-width: 1024px) 33vw, 86vw"
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                   />
@@ -435,7 +446,7 @@ export function HomeExperience({
             </h2>
             <Link
               href="/gallery"
-              className="inline-flex min-h-11 shrink-0 items-center text-base font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="inline-flex min-h-11 shrink-0 items-center text-base font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               See all
             </Link>
@@ -446,7 +457,7 @@ export function HomeExperience({
                 key={image.src}
                 type="button"
                 onClick={() => setActivePhoto(index)}
-                className={`group relative block min-w-0 overflow-hidden rounded-[24px] border border-border bg-border/50 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+                className={`group relative block min-w-0 overflow-hidden rounded-[24px] border border-border bg-border/50 text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                   index === 0 || index === 5
                     ? "col-span-2 aspect-[16/10] sm:col-span-2"
                     : "aspect-[4/5]"
@@ -461,6 +472,7 @@ export function HomeExperience({
                   width={image.width}
                   height={image.height}
                   available={availableImages[image.imageSlot]}
+                  focalPoint={image.focalPoint}
                   sizes="(min-width: 1024px) 33vw, 50vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
@@ -483,7 +495,10 @@ export function HomeExperience({
             className="mb-8 max-w-2xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-bg"
             data-reveal="up"
           >
-            What We Handle
+            What We{" "}
+            <span className="underline decoration-lime decoration-4 underline-offset-8">
+              Handle
+            </span>
           </h2>
           <div className="border-t border-bg/25">
             {services.map((service) => {
@@ -504,7 +519,7 @@ export function HomeExperience({
                       aria-expanded={expanded}
                       aria-controls={panelId}
                       onClick={() => toggleService(service.title)}
-                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-semibold text-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-2xl"
+                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-semibold text-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-2xl"
                     >
                       {service.title}
                       <span aria-hidden="true" className="text-2xl font-normal">
@@ -563,6 +578,9 @@ export function HomeExperience({
                   width={birthdayImage.width}
                   height={birthdayImage.height}
                   sizes="80px"
+                  style={{
+                    objectPosition: `${birthdayImage.focalPoint?.x ?? 50}% ${birthdayImage.focalPoint?.y ?? 50}%`,
+                  }}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -611,7 +629,7 @@ export function HomeExperience({
                 href={siteLinks.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-brand hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-brand hover:text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 WhatsApp
               </a>
@@ -619,7 +637,7 @@ export function HomeExperience({
             {hasSiteValue(site.phone) && (
               <a
                 href={siteLinks.phoneUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/40 px-5 py-3 text-base font-semibold text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong px-5 py-3 text-base font-semibold text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 Call
               </a>
@@ -669,7 +687,7 @@ export function HomeExperience({
           <Link
             href={buildContactHref(eventType, eventDate, venue)}
             onClick={closeEnquiry}
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Continue to enquiry form
           </Link>
@@ -720,6 +738,7 @@ export function HomeExperience({
                 width={photo.width}
                 height={photo.height}
                 available={availableImages[photo.imageSlot]}
+                focalPoint={photo.focalPoint}
                 sizes="(min-width: 1024px) 80vw, 100vw"
                 className="max-h-[65dvh] w-full object-contain"
               />
@@ -728,7 +747,7 @@ export function HomeExperience({
                   <button
                     type="button"
                     onClick={() => changePhoto(-1)}
-                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Previous photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -738,7 +757,7 @@ export function HomeExperience({
                   <button
                     type="button"
                     onClick={() => changePhoto(1)}
-                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Next photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

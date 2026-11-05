@@ -74,7 +74,7 @@ function ExpenseForm({
     onSaved();
   };
 
-  const fields = "min-h-11 w-full rounded-radius-md border border-border-strong bg-surface px-3 text-base text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+  const fields = "min-h-11 w-full rounded-radius-md border border-border-strong bg-surface px-3 text-base text-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink";
   return (
     <form onSubmit={submit} className="space-y-4">
       {error && <p role="alert" className="rounded-radius-md bg-danger-light p-3 text-base text-danger">{error}</p>}
@@ -125,7 +125,7 @@ function ExpenseForm({
         </label>
       </div>
       <label className="block text-sm font-semibold">Notes
-        <textarea name="notes" rows={3} maxLength={5000} defaultValue={expense?.notes ?? ""} className="mt-1 w-full rounded-radius-md border border-border-strong bg-surface p-3 text-base text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink" />
+        <textarea name="notes" rows={3} maxLength={5000} defaultValue={expense?.notes ?? ""} className="mt-1 w-full rounded-radius-md border border-border-strong bg-surface p-3 text-base text-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink" />
       </label>
       {expense?.receipt_url && <a className="inline-flex min-h-11 items-center text-base font-semibold text-brand-strong underline" href={expense.receipt_url} target="_blank" rel="noreferrer noopener">View current receipt</a>}
       <label className="block text-sm font-semibold">Receipt (PNG, JPEG, WebP or PDF; max 10 MB)
@@ -319,7 +319,7 @@ export function EventMoneyTab({
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="break-words font-semibold">{expense.description}</h3>
-                      <span className="rounded-radius-full bg-brand-soft px-3 py-1 text-sm font-semibold capitalize">{expense.status.replace("_", " ")}</span>
+                      <span className={`rounded-radius-full px-3 py-1 text-sm font-semibold capitalize ${expense.status === "paid" ? "bg-success-light text-success" : "bg-warning-light text-warning"}`}>{expense.status.replace("_", " ")}</span>
                     </div>
                     <p className="mt-1 text-sm text-ink-muted">{formatDate(expense.expense_date)} · {expense.category} · {expense.vendor || "No vendor"}</p>
                     <p className="mt-2 text-base">Total {money(expense.amount + expense.tax_amount)} / Paid {money(expense.amount_paid)} / Owed {money(expense.amount + expense.tax_amount - expense.amount_paid)}</p>

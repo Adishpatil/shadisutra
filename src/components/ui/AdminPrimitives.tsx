@@ -16,15 +16,15 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   const variants: Record<ButtonVariant, string> = {
     primary: "bg-ink text-white hover:bg-ink/85",
-    secondary: "border border-border bg-surface text-ink hover:border-ink/40",
+    secondary: "border border-border-strong bg-surface text-ink hover:border-ink",
     quiet: "text-ink-muted hover:bg-bg hover:text-ink",
-    danger: "border border-danger/30 bg-danger-light text-danger hover:border-danger",
+    danger: "border border-danger bg-danger-light text-danger hover:bg-danger hover:text-bg",
   };
 
   return (
     <button
       {...props}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2 text-base font-semibold transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     />
   );
 }

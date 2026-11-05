@@ -342,7 +342,7 @@ export function GuestListTab({
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="guest-add-fixed inline-flex items-center gap-1.5 px-4 py-2 text-base font-semibold rounded-radius-md bg-brand-strong text-bg hover:bg-brand transition-colors min-h-[44px]"
+            className="guest-add-fixed inline-flex items-center gap-1.5 px-4 py-2 text-base font-semibold rounded-radius-md bg-brand-strong text-bg hover:bg-brand hover:text-ink transition-colors min-h-[44px]"
           >
             <span>+ Add guest</span>
           </button>
@@ -373,9 +373,9 @@ export function GuestListTab({
             ) : (
               filteredGuests.map((g) => {
                 const rsvpBadge = {
-                  yes: "bg-success-light text-success border-success/30",
-                  pending: "bg-warning-light text-warning border-warning/30",
-                  no: "bg-danger-light text-danger border-danger/30",
+                  yes: "bg-success-light text-success border-success",
+                  pending: "bg-warning-light text-warning border-warning",
+                  no: "bg-danger-light text-danger border-danger",
                 }[g.rsvp];
 
                 return (
@@ -438,9 +438,9 @@ export function GuestListTab({
         ) : (
           filteredGuests.map((g) => {
             const rsvpBadge = {
-              yes: "bg-success-light text-success border-success/30",
-              pending: "bg-warning-light text-warning border-warning/30",
-              no: "bg-danger-light text-danger border-danger/30",
+              yes: "bg-success-light text-success border-success",
+              pending: "bg-warning-light text-warning border-warning",
+              no: "bg-danger-light text-danger border-danger",
             }[g.rsvp];
 
             return (
@@ -618,7 +618,7 @@ export function GuestListTab({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   {editingGuest ? "Save Changes" : "Save Guest"}
                 </button>
@@ -680,13 +680,13 @@ export function GuestListTab({
                 type="file"
                 accept=".xlsx,.csv"
                 onChange={handleFileChange}
-                className="block w-full min-h-[44px] text-base text-ink file:mr-4 file:min-h-[44px] file:py-2.5 file:px-4 file:rounded-radius-md file:border-0 file:text-sm file:font-semibold file:bg-brand-strong file:text-bg hover:file:bg-brand"
+                className="block w-full min-h-[44px] text-base text-ink file:mr-4 file:min-h-[44px] file:py-2.5 file:px-4 file:rounded-radius-md file:border-0 file:text-sm file:font-semibold file:bg-brand-strong file:text-bg hover:file:bg-brand hover:file:text-ink"
               />
             </div>
 
             {/* Errors breakdown */}
             {importErrors.length > 0 && (
-              <div className="p-3 bg-danger-light border border-danger/30 rounded-radius-md text-xs text-danger space-y-1">
+              <div className="p-3 bg-danger-light border border-danger rounded-radius-md text-xs text-danger space-y-1">
                 <p className="font-bold">Found {importErrors.length} row validation error(s):</p>
                 <ul className="list-disc list-inside max-h-24 overflow-y-auto">
                   {importErrors.map((err, i) => (
@@ -746,7 +746,7 @@ export function GuestListTab({
                 type="button"
                 disabled={importPreview.length === 0 || importing}
                 onClick={handleConfirmImport}
-                className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-xs font-semibold hover:bg-brand disabled:opacity-50 min-h-[44px]"
+                className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-xs font-semibold hover:bg-brand hover:text-ink disabled:opacity-50 min-h-[44px]"
               >
                 {importing ? "Importing..." : `Confirm Import (${importPreview.length} Guests)`}
               </button>

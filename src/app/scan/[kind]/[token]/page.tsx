@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { site } from "@/config/site";
+import { hasSiteValue, site, siteLinks } from "@/config/site";
+import { LinkGateway } from "@/components/ui/LinkGateway";
 
 export const metadata: Metadata = {
   title: `Event link | ${site.name}`,
@@ -28,7 +29,7 @@ export default async function ScanLandingPage({
       <section className="w-full max-w-lg rounded-[28px] border border-border bg-surface p-6 shadow-[var(--shadow-md)] sm:p-10">
         <div className="mb-8 inline-flex rounded-2xl bg-bg p-3">
           <Image
-            src="/brand/logo.webp"
+            src="/brand/logo.png"
             alt={site.name}
             width={172}
             height={58}
@@ -52,19 +53,42 @@ export default async function ScanLandingPage({
           {eventHref && (
             <Link
               href={eventHref}
-              className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               {eventLabel}
             </Link>
           )}
           <Link
             href="/"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/25 px-5 text-base font-semibold text-ink hover:bg-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-border-strong px-5 text-base font-semibold text-ink hover:bg-bg focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Visit Shadi Sutra
           </Link>
         </div>
+        {!isValid && (
+          <div className="mt-4 flex flex-wrap gap-3">
+            {hasSiteValue(site.whatsapp) && (
+              <a
+                href={siteLinks.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong px-5 text-base font-semibold text-ink"
+              >
+                WhatsApp
+              </a>
+            )}
+            {hasSiteValue(site.phone) && (
+              <a
+                href={siteLinks.phoneUrl}
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong px-5 text-base font-semibold text-ink"
+              >
+                Call
+              </a>
+            )}
+          </div>
+        )}
       </section>
+      <LinkGateway />
     </main>
   );
 }

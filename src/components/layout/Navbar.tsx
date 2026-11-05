@@ -136,13 +136,13 @@ export function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className={`flex min-h-11 items-center gap-2 rounded-xl font-heading text-xl font-bold tracking-tight focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg ${
+          className={`flex min-h-11 items-center gap-2 rounded-xl font-heading text-xl font-bold tracking-tight focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-bg ${
             transparentOverHero ? "bg-bg px-2 text-ink" : "text-ink"
           }`}
           aria-label={`${site.name} – Home`}
         >
           <Image
-            src="/brand/logo.webp"
+            src="/brand/logo.png"
             alt={site.name}
             width={112}
             height={74}
@@ -181,7 +181,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setEnquiryOpen(true)}
-            className="ml-4 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-2 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="ml-4 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-2 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Plan Your Event
           </button>
@@ -256,7 +256,7 @@ export function Navbar() {
                 aria-label={`${site.name} - Home`}
               >
                 <Image
-                  src="/brand/logo.webp"
+                  src="/brand/logo.png"
                   alt={site.name}
                   width={112}
                   height={74}
@@ -321,7 +321,7 @@ export function Navbar() {
                   setMobileOpen(false);
                   setEnquiryOpen(true);
                 }}
-                className="flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 Plan Your Event
               </button>
@@ -340,7 +340,7 @@ export function Navbar() {
         <Link
           href="/contact"
             onClick={closeEnquiry}
-          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
         >
           Send Event Enquiry
         </Link>

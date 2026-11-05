@@ -99,20 +99,20 @@ export function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`dialog-panel relative max-h-[92dvh] w-full overflow-y-auto border border-border bg-surface text-ink shadow-[var(--shadow-lg)] focus:outline-none sm:max-w-xl ${
+        className={`dialog-panel relative max-h-[92dvh] w-full overflow-y-auto border border-border-strong bg-surface text-ink shadow-[var(--shadow-lg)] focus:outline-none sm:max-w-xl ${
           variant === "sheet"
             ? "rounded-t-[28px] sm:rounded-[28px]"
             : "my-auto rounded-[28px]"
         } ${className}`}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-surface px-5 py-4 sm:px-7">
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border-strong bg-surface px-5 py-4 sm:px-7">
           <h2 id={titleId} className="text-2xl text-ink">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-strong text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
             aria-label="Close dialog"
           >
             <svg

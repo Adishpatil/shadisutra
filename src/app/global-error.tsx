@@ -17,7 +17,7 @@ export default function GlobalError({
             padding: "2rem",
             textAlign: "center",
             fontFamily: "system-ui, sans-serif",
-            color: "#1C1A17",
+            color: "#16120E",
           }}
         >
           <h1>Something went wrong</h1>

@@ -421,7 +421,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={handleDeleteEvent}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-danger/40 text-sm font-medium text-danger hover:bg-danger-light transition-colors min-h-[44px]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-danger text-sm font-medium text-danger hover:bg-danger-light transition-colors min-h-[44px]"
             >
               Delete Event
             </button>
@@ -594,7 +594,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={() => setShowAddItem(true)}
-              className="inline-flex items-center justify-center px-4 py-2 bg-brand-strong text-bg rounded-radius-md font-semibold text-sm hover:bg-brand transition-colors shadow-[var(--shadow-sm)] min-h-[44px]"
+              className="inline-flex items-center justify-center px-4 py-2 bg-brand-strong text-bg rounded-radius-md font-semibold text-sm hover:bg-brand hover:text-ink transition-colors shadow-[var(--shadow-sm)] min-h-[44px]"
             >
               + Add Item
             </button>
@@ -631,8 +631,8 @@ export function EventDetailClient({
                   {catItems.map((item, idx) => {
                     const statusBadgeClass = {
                       not_started: "bg-ink-muted/10 text-ink-muted border-border",
-                      in_progress: "bg-warning-light text-warning border-warning/30",
-                      done: "bg-success-light text-success border-success/30",
+                      in_progress: "bg-warning-light text-warning border-warning",
+                      done: "bg-success-light text-success border-success",
                     }[item.status];
 
                     const statusLabel = {
@@ -717,7 +717,7 @@ export function EventDetailClient({
               <button
                 type="button"
                 onClick={() => setShowAddItem(true)}
-                className="px-4 py-2 bg-brand-strong text-bg text-xs font-semibold rounded-radius-md hover:bg-brand transition-colors"
+                className="px-4 py-2 bg-brand-strong text-bg text-xs font-semibold rounded-radius-md hover:bg-brand hover:text-ink transition-colors"
               >
                 + Add First Item
               </button>
@@ -747,7 +747,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={() => setShowAddFunction(true)}
-              className="inline-flex items-center justify-center px-4 py-2 bg-brand-strong text-bg text-sm font-semibold rounded-radius-md hover:bg-brand transition-colors min-h-[44px]"
+              className="inline-flex items-center justify-center px-4 py-2 bg-brand-strong text-bg text-sm font-semibold rounded-radius-md hover:bg-brand hover:text-ink transition-colors min-h-[44px]"
             >
               + Add Sub-Function
             </button>
@@ -792,7 +792,7 @@ export function EventDetailClient({
                   <button
                     type="button"
                     onClick={() => handleDeleteFunction(func.id)}
-                    className="px-2.5 py-1 text-danger hover:bg-danger-light font-medium rounded-radius-sm border border-danger/30 transition-colors"
+                    className="px-2.5 py-1 text-danger hover:bg-danger-light font-medium rounded-radius-sm border border-danger transition-colors"
                   >
                     Delete
                   </button>
@@ -807,7 +807,7 @@ export function EventDetailClient({
               <button
                 type="button"
                 onClick={() => setShowAddFunction(true)}
-                className="px-4 py-2 bg-brand-strong text-bg text-xs font-semibold rounded-radius-md hover:bg-brand transition-colors"
+                className="px-4 py-2 bg-brand-strong text-bg text-xs font-semibold rounded-radius-md hover:bg-brand hover:text-ink transition-colors"
               >
                 + Create Sub-Function
               </button>
@@ -983,7 +983,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Changes
                 </button>
@@ -1067,7 +1067,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Function
                 </button>
@@ -1152,7 +1152,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Changes
                 </button>
@@ -1295,7 +1295,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Item
                 </button>
@@ -1421,7 +1421,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Changes
                 </button>

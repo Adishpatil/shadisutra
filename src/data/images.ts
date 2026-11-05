@@ -1,5 +1,5 @@
 // To add a photo, drop its WebP at the listed path with the exact file name,
-// then update its alt text here.
+// then update its alt text here. Existing assets retain their listed extension.
 export const imageSlots = {
   hero: {
     src: "/images/hero/hero-1.webp",
@@ -16,6 +16,7 @@ export const imageSlots = {
     width: 1200,
     height: 800,
     aspectRatio: 3 / 2,
+    focalPoint: { x: 50, y: 50 },
   },
   galleryWedding3: {
     src: "/images/gallery/weddings/weddings-3.webp",
@@ -63,6 +64,14 @@ export const imageSlots = {
     width: 591,
     height: 1280,
     aspectRatio: 591 / 1280,
+    focalPoint: { x: 50, y: 50 },
+  },
+  serviceFunction: {
+    src: "/images/gallery/functions/functions-3.webp",
+    alt: "Round banquet tables arranged across a rooftop lawn during event setup",
+    width: 1000,
+    height: 1250,
+    aspectRatio: 4 / 5,
     focalPoint: { x: 50, y: 50 },
   },
 } as const;

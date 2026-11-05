@@ -14,7 +14,7 @@ export function pageMetadata(
   path: string
 ): Metadata {
   const canonical = getCanonicalUrl(path);
-  const socialImage = getCanonicalUrl("/brand/logo.webp") ?? "/brand/logo.webp";
+  const socialImage = getCanonicalUrl("/brand/logo.png") ?? "/brand/logo.png";
 
   return {
     title: { absolute: title },

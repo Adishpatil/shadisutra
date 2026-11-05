@@ -81,10 +81,10 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
                 setActiveCategory(category.value);
                 setLightboxIndex(null);
               }}
-              className={`inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-base font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+              className={`inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-base font-medium transition-colors focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                 active
                   ? "border-ink bg-ink text-bg"
-                  : "border-border bg-surface text-ink hover:border-ink/40"
+                  : "border-border-strong bg-surface text-ink hover:border-ink"
               }`}
               aria-pressed={active}
             >
@@ -105,7 +105,7 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
               key={`${image.src}-${index}`}
               type="button"
               onClick={() => setLightboxIndex(index)}
-              className="gallery-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-[24px] bg-surface text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:mb-5"
+              className="gallery-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-[24px] bg-surface text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink sm:mb-5"
               aria-label={`Open photo: ${image.alt}`}
               data-reveal={index % 2 === 0 ? "left" : "right"}
               data-delay={(index % 3) + 1}
@@ -115,6 +115,7 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
                   src={image.src}
                   alt={image.alt}
                   available={availableImages[image.imageSlot]}
+                  focalPoint={image.focalPoint}
                   fill
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
@@ -157,6 +158,7 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
                 width={currentImage.width || 1200}
                 height={currentImage.height || 900}
                 sizes="(min-width: 1024px) 80vw, 100vw"
+                focalPoint={currentImage.focalPoint}
                 className="max-h-[65dvh] w-full object-contain"
               />
               {filteredImages.length > 1 && (
@@ -164,7 +166,7 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
                   <button
                     type="button"
                     onClick={showPrevious}
-                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Previous photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -174,7 +176,7 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
                   <button
                     type="button"
                     onClick={showNext}
-                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Next photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

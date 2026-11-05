@@ -22,9 +22,8 @@ export default function GalleryPage() {
     galleryBirthday4: imageExists(imageSlots.galleryBirthday4.src),
     galleryBirthday5: imageExists(imageSlots.galleryBirthday5.src),
     galleryFunction2: imageExists(imageSlots.galleryFunction2.src),
+    serviceFunction: imageExists(imageSlots.serviceFunction.src),
   };
-
-  if (images.length === 0) return null;
 
   return (
     <div className="page-shell">

@@ -1,7 +1,11 @@
+import { existsSync } from "node:fs";
+import { cwd } from "node:process";
+import path from "node:path";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
+import { imageSlots } from "@/data/images";
 
 export const metadata: Metadata = pageMetadata(
   "About Shadi Sutra | Event Management",
@@ -10,6 +14,8 @@ export const metadata: Metadata = pageMetadata(
 );
 
 export default function AboutPage() {
+  const image = imageSlots.galleryWedding3;
+
   return (
     <div className="page-shell">
       <section className="mx-auto max-w-7xl px-5 pb-16 pt-32 sm:px-8 sm:pb-24 lg:px-10">
@@ -19,10 +25,12 @@ export default function AboutPage() {
         <div className="mt-10 grid items-start gap-8 lg:grid-cols-12 lg:gap-14">
           <div className="relative overflow-hidden rounded-[24px] lg:sticky lg:top-28 lg:col-span-6">
             <PlaceholderImage
-              src="/images/gallery/weddings/weddings-3.webp"
-              alt="Hanging floral arrangements, brass vessels and seating beneath an outdoor tree"
+              src={image.src}
+              alt={image.alt}
               width={1200}
               height={800}
+              available={imageExists(image.src)}
+              focalPoint={image.focalPoint}
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="aspect-[3/2] w-full object-cover"
             />
@@ -42,4 +50,8 @@ export default function AboutPage() {
       </section>
     </div>
   );
+}
+
+function imageExists(source: string) {
+  return existsSync(path.join(cwd(), "public", source.replace(/^\//, "")));
 }

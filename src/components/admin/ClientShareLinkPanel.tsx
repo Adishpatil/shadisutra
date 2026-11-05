@@ -227,7 +227,7 @@ export function ClientShareLinkPanel({
         <div>
         <TimePicker name="expiryTime" label="Expiry time (IST)" defaultValue="23:59" />
         </div>
-        <button type="submit" disabled={pending} className="min-h-11 rounded-radius-md bg-brand-strong px-5 text-base font-semibold text-bg hover:bg-brand disabled:opacity-50">
+        <button type="submit" disabled={pending} className="min-h-11 rounded-radius-md bg-brand-strong px-5 text-base font-semibold text-bg hover:bg-brand hover:text-ink disabled:opacity-50">
           {pending ? "Saving..." : link?.token ? "Regenerate client link" : "Generate client link"}
         </button>
       </form>
@@ -244,7 +244,7 @@ export function ClientShareLinkPanel({
       )}
 
       <label className="flex min-h-11 items-center gap-3 text-base font-medium text-ink">
-        <input type="checkbox" checked={paymentsVisible} disabled={pending} onChange={(event) => void handleVisibilityChange(event.target.checked)} className="h-5 w-5 accent-accent" />
+        <input type="checkbox" checked={paymentsVisible} disabled={pending} onChange={(event) => void handleVisibilityChange(event.target.checked)} className="h-5 w-5 accent-brand-strong" />
         Show payment summary and history on client link
       </label>
 
@@ -258,10 +258,10 @@ export function ClientShareLinkPanel({
             <label htmlFor="client-share-url" className="sr-only">Client link</label>
             <input id="client-share-url" readOnly value={url} className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-sm text-ink" />
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={copyLink} className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold">Copy client link</button>
-              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold">Open link</a>
-              {qrCode && <a href={qrCode} download={`event-${eventId}-client-qr.png`} className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold">Download QR</a>}
-              <button type="button" onClick={handleRevoke} disabled={pending} className="min-h-11 rounded-full border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50">Revoke client link</button>
+              <button type="button" onClick={copyLink} className="min-h-11 rounded-full border border-border-strong px-4 text-sm font-semibold">Copy client link</button>
+              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-full border border-border-strong px-4 text-sm font-semibold">Open link</a>
+              {qrCode && <a href={qrCode} download={`event-${eventId}-client-qr.png`} className="inline-flex min-h-11 items-center rounded-full border border-border-strong px-4 text-sm font-semibold">Download QR</a>}
+              <button type="button" onClick={handleRevoke} disabled={pending} className="min-h-11 rounded-full border border-danger px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50">Revoke client link</button>
             </div>
           </div>
           {qrCode && (
@@ -275,7 +275,7 @@ export function ClientShareLinkPanel({
         </div>
       )}
       {qrUsesLocalOrigin && (
-        <p role="alert" className="rounded-xl border border-warning/30 bg-warning-light p-3 text-sm text-warning">
+        <p role="alert" className="rounded-xl border border-warning bg-warning-light p-3 text-sm text-warning">
           This QR uses a local address and won&apos;t open on another device. Set the public site URL in deployment settings, then reload this page.
         </p>
       )}

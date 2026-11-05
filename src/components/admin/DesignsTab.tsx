@@ -121,7 +121,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
               setError(null);
               setShowAddModal(true);
             }}
-            className="min-h-[44px] rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg hover:bg-brand"
+            className="min-h-[44px] rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg hover:bg-brand hover:text-ink"
           >
             + Add Design
           </button>
@@ -129,7 +129,7 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-radius-md border border-danger/30 bg-danger-light p-3 text-sm text-danger">
+        <p role="alert" className="rounded-radius-md border border-danger bg-danger-light p-3 text-sm text-danger">
           {error}
         </p>
       )}
@@ -182,8 +182,8 @@ export function DesignsTab({ eventId, initialDesigns }: DesignsTabProps) {
                     onClick={() => void handleFinalize(design)}
                     className={`min-h-[44px] rounded-radius-md border px-3 text-base font-semibold disabled:opacity-50 ${
                       design.is_finalized
-                        ? "border-warning/40 text-warning hover:bg-warning-light"
-                        : "border-success/40 text-success hover:bg-success-light"
+                        ? "border-warning text-warning hover:bg-warning-light"
+                        : "border-success text-success hover:bg-success-light"
                     }`}
                   >
                     {busyId === design.id

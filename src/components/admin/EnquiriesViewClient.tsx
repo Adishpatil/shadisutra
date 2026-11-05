@@ -36,7 +36,7 @@ export function EnquiriesViewClient({ enquiries }: { enquiries: AdminEnquiry[] }
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search name, phone, type or message"
-          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
         />
       </label>
 
@@ -62,7 +62,7 @@ export function EnquiriesViewClient({ enquiries }: { enquiries: AdminEnquiry[] }
                     Received {formatDateTime(enquiry.created_at)}
                   </p>
                 </div>
-                <Badge variant="brand">{enquiry.event_type}</Badge>
+                <Badge variant="accent">{enquiry.event_type}</Badge>
               </div>
 
               {enquiry.event_date && (

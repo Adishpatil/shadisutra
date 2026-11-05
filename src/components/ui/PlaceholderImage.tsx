@@ -13,6 +13,8 @@ interface PlaceholderImageProps {
   src?: string;
   /** Whether the public file is present at the current deployment. */
   available?: boolean;
+  /** Optional image focal point in percentage coordinates. */
+  focalPoint?: { x: number; y: number };
   /** Additional CSS classes */
   className?: string;
   /** Fill mode (ignores width/height, fills parent container) */
@@ -36,12 +38,16 @@ export function PlaceholderImage({
   height,
   src,
   available = true,
+  focalPoint,
   className = "",
   fill = false,
   priority = false,
   sizes,
 }: PlaceholderImageProps) {
   const computedHeight = height ?? (aspectRatio ? Math.round(width / aspectRatio) : width);
+  const imageStyle = focalPoint
+    ? { objectPosition: `${focalPoint.x}% ${focalPoint.y}%` }
+    : undefined;
 
   // If a real src is provided, use next/image
   if (src && available) {
@@ -53,6 +59,7 @@ export function PlaceholderImage({
           fill
           priority={priority}
           sizes={sizes}
+          style={imageStyle}
           className={`object-cover ${className}`}
         />
       );
@@ -66,6 +73,7 @@ export function PlaceholderImage({
         height={computedHeight}
         priority={priority}
         sizes={sizes}
+        style={imageStyle}
         className={`object-cover ${className}`}
       />
     );
@@ -77,12 +85,8 @@ export function PlaceholderImage({
       <div
         className={`image-placeholder absolute inset-0 ${className}`}
         role="img"
-        aria-label={alt}
-      >
-        <span className="relative z-10 text-center px-4 text-ink-muted text-sm">
-          {alt || "Image placeholder"}
-        </span>
-      </div>
+        aria-label={alt || "Image placeholder"}
+      />
     );
   }
 
@@ -91,11 +95,7 @@ export function PlaceholderImage({
       className={`image-placeholder rounded-radius-md ${className}`}
       style={{ aspectRatio: `${width} / ${computedHeight}` }}
       role="img"
-      aria-label={alt}
-    >
-      <span className="relative z-10 text-center px-4 text-ink-muted text-sm">
-        {alt || "Image placeholder"}
-      </span>
-    </div>
+      aria-label={alt || "Image placeholder"}
+    />
   );
 }

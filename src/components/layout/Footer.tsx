@@ -34,7 +34,7 @@ export function Footer() {
               aria-label={`${site.name} home`}
             >
               <Image
-                src="/brand/logo.webp"
+                src="/brand/logo.png"
                 alt=""
                 width={112}
                 height={74}

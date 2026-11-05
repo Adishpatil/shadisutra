@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { hasSiteValue, site, siteLinks } from "@/config/site";
+import { site } from "@/config/site";
 import { getPublicSharedEvent } from "@/lib/events/public-share";
 import { formatDate, formatDateTimeKolkata, formatTime12Hour } from "@/lib/date-time";
 import { CardFrame } from "@/components/ui/CardFrame";
@@ -45,26 +45,6 @@ function InvalidLink() {
                 </p>
               </CardFrame>
             </article>
-          </div>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            {hasSiteValue(site.whatsapp) && (
-              <a
-                href={siteLinks.whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-base font-semibold text-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
-              >
-                WhatsApp
-              </a>
-            )}
-            {hasSiteValue(site.phone) && (
-              <a
-                href={siteLinks.phoneUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/40 px-5 text-base font-semibold text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
-              >
-                Call
-              </a>
-            )}
           </div>
         </section>
         <LinkGateway />

@@ -115,7 +115,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search events or venues"
-          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
         />
       </label>
 
@@ -157,7 +157,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                   </p>
                   <Link
                     href={eventHref(event.id)}
-                    className="mt-1 block break-words text-xl font-heading font-bold text-ink focus-visible:outline-2 focus-visible:outline-ink"
+                    className="mt-1 block break-words text-xl font-heading font-bold text-ink focus-visible:outline-3 focus-visible:outline-ink"
                   >
                     {event.name}
                   </Link>
@@ -282,7 +282,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                   <td className="p-4">
                     <Link
                       href={eventHref(event.id)}
-                      className="inline-flex min-h-11 items-center rounded-radius-md px-4 font-semibold text-brand-strong hover:bg-brand-soft"
+                      className="inline-flex min-h-11 items-center rounded-radius-md px-4 font-semibold text-brand-strong hover:bg-brand hover:text-ink"
                     >
                       Open
                     </Link>
