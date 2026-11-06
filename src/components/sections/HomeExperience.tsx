@@ -584,7 +584,7 @@ export function HomeExperience({
                       expanded ? "is-expanded" : ""
                     }`}
                   >
-                    <p className="max-w-2xl pb-5 text-base leading-relaxed text-ink">
+                    <p className="max-w-2xl pb-5 text-base leading-relaxed text-bg">
                       {service.description}
                     </p>
                   </div>

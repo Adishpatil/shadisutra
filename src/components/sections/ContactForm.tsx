@@ -120,8 +120,8 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
       </div>
 
       {/* Event Type & Event Date grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 min-w-0">
+        <div className="min-w-0">
           <label
             htmlFor="contact-event-type"
             className="block text-sm font-semibold text-ink mb-1.5"
@@ -147,7 +147,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
           )}
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="contact-event-date"
             className="block text-sm font-semibold text-ink mb-1.5"
@@ -160,7 +160,7 @@ export function ContactForm({ initialService = "wedding" }: ContactFormProps) {
             name="eventDate"
             defaultValue={initialDate}
             aria-describedby="date-help"
-            className="w-full px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
+            className="w-full max-w-full min-w-0 box-border block appearance-none [-webkit-appearance:none] min-h-[48px] text-[16px] px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
           />
           <span id="date-help" className="sr-only">
             Tentative or confirmed date for the event
