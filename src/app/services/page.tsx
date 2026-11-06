@@ -104,26 +104,34 @@ export default function ServicesPage() {
               <div className="lg:col-span-3">
                 <h2
                   id={`service-${service.slug}-heading`}
-                  className="text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight"
+                  className={`text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight ${
+                    onDark ? "text-bg" : "text-ink"
+                  }`}
                 >
                   {service.title}
                 </h2>
               </div>
               <div className="lg:col-span-5">
-                <p className="max-w-xl text-base leading-relaxed sm:text-lg">
+                <p
+                  className={`max-w-xl text-base leading-relaxed sm:text-lg ${
+                    onDark ? "text-bg/90" : "text-ink-muted"
+                  }`}
+                >
                   {service.description}
                 </p>
                 {service.highlights.length > 0 && (
                   <details
                     className={`service-included mt-5 border-y ${
-                      service.tone === "red"
-                        ? "border-ink"
-                        : "border-border-strong"
+                      onDark
+                        ? "border-bg/30 text-bg"
+                        : "border-border-strong text-ink"
                     }`}
                   >
                     <summary
-                      className={`flex min-h-12 cursor-pointer items-center justify-between gap-4 py-3 text-lg font-semibold focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
-                        service.tone === "ink" ? "text-bg" : "text-ink"
+                      className={`flex min-h-12 cursor-pointer items-center justify-between gap-4 py-3 text-lg font-semibold focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 ${
+                        onDark
+                          ? "text-bg focus-visible:outline-bg"
+                          : "text-ink focus-visible:outline-ink"
                       }`}
                     >
                       What is included
@@ -133,13 +141,15 @@ export default function ServicesPage() {
                     </summary>
                     <ul
                       className={`list-disc space-y-2 pb-4 pl-5 text-base leading-relaxed ${
-                        service.tone === "red" || service.tone === "ink"
-                          ? "marker:text-lime"
-                          : "marker:text-brand-strong"
+                        onDark
+                          ? "text-bg marker:text-lime"
+                          : "text-ink marker:text-brand-strong"
                       }`}
                     >
                       {service.highlights.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item} className={onDark ? "text-bg" : "text-ink"}>
+                          {item}
+                        </li>
                       ))}
                     </ul>
                   </details>

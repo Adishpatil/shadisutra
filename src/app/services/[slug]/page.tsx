@@ -172,7 +172,7 @@ export default async function ServiceDetailPage({
           <div className="mx-auto max-w-7xl">
             <h2
               id="included-heading"
-              className="max-w-3xl text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-tight"
+              className="max-w-3xl text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-tight text-bg"
             >
               What is included
             </h2>
@@ -180,7 +180,7 @@ export default async function ServiceDetailPage({
               {service.included.map((item) => (
                 <li
                   key={item}
-                  className="border-t border-bg py-4 text-lg leading-relaxed marker:text-lime"
+                  className="border-t border-bg/40 py-4 text-lg leading-relaxed text-bg marker:text-lime"
                 >
                   {item}
                 </li>
@@ -196,7 +196,7 @@ export default async function ServiceDetailPage({
         aria-label="Plan your event"
       >
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight">
+          <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight text-bg">
             <span className="lime-highlight">{service.categoryName}</span>
           </h2>
           <PlanEventSheet initialService={service.eventType} variant="lime" />

@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
+
+const emptySubscribe = () => () => {};
 
 interface DialogProps {
   open: boolean;
@@ -22,6 +25,11 @@ export function Dialog({
 }: DialogProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -86,7 +94,7 @@ export function Dialog({
 
   if (!open) return null;
 
-  return (
+  const content = (
     <div
       className="dialog-backdrop fixed inset-0 z-[100] flex items-end justify-center bg-ink/55 p-0 sm:items-center sm:p-6"
       onMouseDown={(event) => {
@@ -133,6 +141,10 @@ export function Dialog({
       </div>
     </div>
   );
+
+  return mounted && typeof document !== "undefined"
+    ? createPortal(content, document.body)
+    : content;
 }
 
 export function Sheet(props: Omit<DialogProps, "variant">) {

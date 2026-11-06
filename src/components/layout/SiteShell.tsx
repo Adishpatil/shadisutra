@@ -101,12 +101,12 @@ export function SiteShell({
 
       <Navbar />
 
-      <main id="main-content" className="flex-1 pb-24 lg:pb-0">
+      <main id="main-content" className="flex-1">
         {children}
-        <StickyContactButtons />
       </main>
 
       <Footer currentYear={currentYear} />
+      <StickyContactButtons />
     </>
   );
 }
