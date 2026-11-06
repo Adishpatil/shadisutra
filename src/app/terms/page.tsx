@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/config/seo";
 import { site } from "@/config/site";
+import { Section } from "@/components/ui/Section";
 
 export const metadata: Metadata = pageMetadata(
   "Terms",
@@ -10,12 +11,20 @@ export const metadata: Metadata = pageMetadata(
 
 export default function TermsPage() {
   return (
-    <article className="mx-auto max-w-[70ch] px-5 pb-20 pt-32 sm:px-8">
-      <p className="mb-5 text-base text-ink-muted">
-        Draft for client review
-      </p>
-      <h1 className="break-words text-[clamp(2.75rem,7vw,5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">Terms</h1>
-      <div className="mt-8 space-y-8 text-base leading-8 text-ink-muted">
+    <div>
+      <Section
+        tone="soft"
+        className="px-5 pb-8 pt-32 sm:px-8"
+        aria-labelledby="terms-title"
+      >
+        <div className="mx-auto max-w-[70ch]">
+          <p className="mb-5 text-base text-ink-muted">Draft for client review</p>
+          <h1 id="terms-title" className="break-words text-[clamp(2.75rem,7vw,5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">Terms</h1>
+        </div>
+      </Section>
+      <Section tone="white" className="px-5 pb-20 pt-8 sm:px-8">
+      <article className="mx-auto max-w-[70ch]">
+      <div className="space-y-8 text-base leading-8 text-ink-muted">
         <p>
           This draft is for review by {site.name} before publication. A signed
           event agreement, if any, governs the services, scope, schedule,
@@ -49,6 +58,8 @@ export default function TermsPage() {
           </p>
         </section>
       </div>
-    </article>
+      </article>
+      </Section>
+    </div>
   );
 }

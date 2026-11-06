@@ -1,28 +1,22 @@
-import Image from "next/image";
 import Link from "next/link";
 import { hasSiteValue, site, siteLinks } from "@/config/site";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Section } from "@/components/ui/Section";
 
 export function LinkGateway() {
   return (
-    <section
+    <Section
       aria-labelledby="shadi-sutra-gateway"
-      className="link-gateway bg-ink px-5 py-12 text-bg sm:px-8 sm:py-16"
+      tone="ink"
+      className="link-gateway px-5 py-12 text-bg sm:px-8 sm:py-16"
     >
       <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-        <div className="rounded-xl bg-surface px-4 py-2">
-          <Image
-            src="/brand/logo.png"
-            alt={site.name}
-            width={172}
-            height={58}
-            className="h-12 w-auto object-contain"
-          />
-        </div>
+        <BrandLogo dark />
         <h2
           id="shadi-sutra-gateway"
           className="mt-6 font-display-serif text-2xl font-medium italic text-bg sm:text-3xl"
         >
-          Where every celebration is woven with care.
+          You can be fully present for the moments that matter.
         </h2>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
@@ -51,6 +45,6 @@ export function LinkGateway() {
           )}
         </div>
       </div>
-    </section>
+    </Section>
   );
 }

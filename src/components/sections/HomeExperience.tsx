@@ -1,20 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
-import { galleryImages, imageSlots, type ImageSlot } from "@/data/images";
+import {
+  homeEventImages,
+  imageSlots,
+  introImages,
+  recentImages,
+  type GalleryCategory,
+  type ImageSlot,
+} from "@/data/images";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { Button, Card, Pill } from "@/components/ui/Button";
 import { Dialog, Sheet } from "@/components/ui/Dialog";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { Select, type SelectOption } from "@/components/ui/Select";
+import { Section } from "@/components/ui/Section";
 import { useReveal } from "@/components/ui/useReveal";
 
 type EventType = "wedding" | "birthday" | "function";
-type GalleryCategory = "weddings" | "birthdays" | "functions";
 
 const eventOptions: readonly SelectOption[] = [
   { value: "wedding", label: "Wedding" },
@@ -74,13 +81,18 @@ const services = [
 ] as const;
 
 interface HomeExperienceProps {
-  hasMobileHero: boolean;
   availableImages: Record<ImageSlot, boolean>;
+  lineArt: {
+    arch: ReactNode;
+    divider: ReactNode;
+    heart: ReactNode;
+    sun: ReactNode;
+  };
 }
 
 export function HomeExperience({
-  hasMobileHero,
   availableImages,
+  lineArt,
 }: HomeExperienceProps) {
   useReveal();
 
@@ -98,8 +110,7 @@ export function HomeExperience({
   const closeEnquiry = useCallback(() => setEnquiryOpen(false), []);
   const closeDetail = useCallback(() => setDetailEvent(null), []);
   const closeLightbox = useCallback(() => setActivePhoto(null), []);
-  const visibleGalleryImages = galleryImages;
-  const availableGalleryImages = galleryImages.filter(
+  const visibleGalleryImages = recentImages.filter(
     (image) => availableImages[image.imageSlot]
   );
 
@@ -108,15 +119,7 @@ export function HomeExperience({
     events[0];
   const enquiryEvent = events.find((event) => event.key === eventType) ?? events[0];
   const photo = activePhoto === null ? null : visibleGalleryImages[activePhoto];
-  const introImages = (["weddings", "birthdays", "functions"] as const)
-    .map((category) =>
-      visibleGalleryImages.find((image) => image.category === category)
-    )
-    .filter((image) => image !== undefined);
   const aboutImage = imageSlots.about;
-  const birthdayImage = availableGalleryImages.find(
-    (image) => image.category === "birthdays"
-  );
 
   useEffect(() => {
     if (activePhoto === null) return;
@@ -167,16 +170,17 @@ export function HomeExperience({
 
   return (
     <>
-      <section
-        className="home-hero relative isolate flex min-h-[100dvh] flex-col justify-between overflow-hidden bg-ink text-bg"
+      <Section
+        tone="ink"
+        className="home-hero relative isolate flex min-h-[100dvh] flex-col justify-between overflow-hidden text-bg"
         aria-labelledby="home-heading"
       >
         {availableImages.hero ? (
           <picture className="absolute inset-0 -z-20 block">
-            {hasMobileHero && (
+            {availableImages.heroMobile && (
               <source
                 media="(max-width: 767px)"
-                srcSet={imageSlots.hero.mobileSrc}
+                srcSet={imageSlots.heroMobile.src}
                 type="image/webp"
               />
             )}
@@ -194,9 +198,23 @@ export function HomeExperience({
             />
           </picture>
         ) : (
-          <div className="absolute inset-0 -z-20 bg-brand-soft" aria-hidden="true" />
+          <div className="home-hero-fallback absolute inset-0 -z-20" aria-hidden="true">
+            {lineArt.arch}
+          </div>
         )}
         <div className="home-hero-overlay absolute inset-0 -z-10" aria-hidden="true" />
+        <div className="hero-sticker" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <defs>
+              <path id="hero-sticker-circle" d="M50 50m-35 0a35 35 0 1 1 70 0a35 35 0 1 1-70 0" />
+            </defs>
+            <text>
+              <textPath href="#hero-sticker-circle">
+                Plan your event · Plan your event ·
+              </textPath>
+            </text>
+          </svg>
+        </div>
 
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pb-10 lg:px-10">
           <div className="max-w-4xl py-10 sm:py-14">
@@ -278,16 +296,17 @@ export function HomeExperience({
               </label>
               <Button
                 type="submit"
-                className="home-enquiry-submit hover:bg-brand hover:text-ink"
+                className="home-enquiry-submit hover:bg-lime hover:text-ink"
               >
                 Plan it
               </Button>
             </form>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="white"
         className="home-statement-section relative px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-label="Planning approach"
       >
@@ -297,33 +316,24 @@ export function HomeExperience({
             data-reveal="up"
           >
             We take care of planning,{" "}
-            <span className="inline-flex -translate-y-1 align-middle">
-              {availableGalleryImages.slice(0, 1).map((image) => (
-                <span
-                  key={image.src}
-                  className="relative -ml-2 inline-block h-9 w-9 overflow-hidden rounded-full border-2 border-bg first:ml-0 sm:h-12 sm:w-12"
-                  aria-hidden="true"
-                >
-                  <PlaceholderImage
-                    src={image.src}
-                    alt=""
-                    width={image.width}
-                    height={image.height}
-                    available={availableImages[image.imageSlot]}
-                    focalPoint={image.focalPoint}
-                    sizes="48px"
-                    className="h-full w-full object-cover"
-                  />
-                </span>
-              ))}
-            </span>{" "}
             decor, lighting, flowers, music and coordination, so you can be fully
             present for the moments that matter.
           </p>
+          <div className="mt-8">{lineArt.divider}</div>
         </div>
-      </section>
+        <div
+          className="lime-marquee"
+          role="img"
+          aria-label="Weddings, Birthdays, Functions"
+        >
+          <div className="lime-marquee-track" aria-hidden="true">
+            Weddings · Birthdays · Functions · Weddings · Birthdays · Functions ·
+          </div>
+        </div>
+      </Section>
 
-      <section
+      <Section
+        tone="soft"
         className="home-intro-section overflow-hidden px-5 py-12 sm:px-8 sm:py-20 lg:px-10"
         aria-label="Event planning services"
       >
@@ -347,92 +357,107 @@ export function HomeExperience({
                 data-reveal={index === 1 ? "right" : index === 2 ? "left" : "up"}
                 data-delay={index + 1}
               >
-                <PlaceholderImage
-                  src={image.src}
-                  alt={image.alt}
-                  width={image.width}
-                  height={image.height}
-                  available={availableImages[image.imageSlot]}
-                  focalPoint={image.focalPoint}
-                  sizes="(min-width: 1024px) 33vw, 60vw"
-                  className="h-full w-full object-cover"
-                />
-                <Pill className="absolute bottom-3 left-3 border-bg/70 bg-surface/95 text-ink">
+                {availableImages[image.imageSlot] ? (
+                  <PlaceholderImage
+                    src={image.src}
+                    alt={image.alt}
+                    width={image.width}
+                    height={image.height}
+                    available
+                    focalPoint={image.focalPoint}
+                    sizes="(min-width: 1024px) 33vw, 60vw"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="event-card-fallback h-full">
+                    {lineArt.arch}
+                  </div>
+                )}
+                <Pill className="absolute bottom-3 left-3 border-transparent bg-lime text-ink">
                   {captions[image.category]}
                 </Pill>
               </article>
             );
           })}
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="white"
         className="home-events-section px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="event-types-heading"
       >
-        <div className="mx-auto max-w-7xl">
-        <div className="mb-8 max-w-3xl" data-reveal="up">
-          <h2
-            id="event-types-heading"
-            className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
-          >
-            Weddings, birthdays and functions.
-          </h2>
-        </div>
-        <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
-          {events.map((event) => {
-            const image = visibleGalleryImages.find(
-              (candidate) => candidate.category === event.category
-            );
-            if (!image) return null;
-
-            return (
-            <Card
-              key={event.key}
-              className="w-[86%] shrink-0 snap-center sm:w-auto"
-            >
-              <button
-                type="button"
-                onClick={() => openDetail(event.key)}
-                className="group block w-full text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
-                aria-label={`More about ${event.title}`}
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8 max-w-3xl" data-reveal="up">
+              <h2
+                id="event-types-heading"
+                className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
               >
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  <PlaceholderImage
-                    src={image.src}
-                    alt={image.alt}
-                    width={image.width}
-                    height={image.height}
-                    available={availableImages[image.imageSlot]}
-                    focalPoint={image.focalPoint}
-                    sizes="(min-width: 1024px) 33vw, 86vw"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                  />
-                </div>
-                <span className="flex min-h-14 items-center justify-between gap-4 px-5 text-2xl font-semibold text-ink">
-                  {event.title}
-                  <svg
-                    aria-hidden="true"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
+                Weddings, birthdays and{" "}
+                <span className="lime-highlight">functions.</span>
+              </h2>
+            </div>
+            <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+              {events.map((event) => {
+                const image = homeEventImages.find(
+                  (candidate) => candidate.category === event.category
+                );
+                if (!image) return null;
+
+                return (
+                  <Card
+                    key={event.key}
+                    className="event-card w-[86%] shrink-0 snap-center sm:w-auto"
                   >
-                    <path d="M5 12h14m-6-6 6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </Card>
-            );
-          })}
-        </div>
-        </div>
-      </section>
+                    <button
+                      type="button"
+                      onClick={() => openDetail(event.key)}
+                      className="group block w-full text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                      aria-label={`More about ${event.title}`}
+                    >
+                      <div className="relative aspect-[4/5] overflow-hidden">
+                        {availableImages[image.imageSlot] ? (
+                          <PlaceholderImage
+                            src={image.src}
+                            alt={image.alt}
+                            width={image.width}
+                            height={image.height}
+                            available
+                            focalPoint={image.focalPoint}
+                            sizes="(min-width: 1024px) 33vw, 86vw"
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <div className="event-card-fallback">
+                            {lineArt.arch}
+                          </div>
+                        )}
+                      </div>
+                      <span className="flex min-h-14 items-center justify-between gap-4 px-5 text-2xl font-semibold text-ink">
+                        {event.title}
+                        <svg
+                          aria-hidden="true"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        >
+                          <path d="M5 12h14m-6-6 6 6-6 6" />
+                        </svg>
+                      </span>
+                    </button>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+      </Section>
 
       {visibleGalleryImages.length > 0 && (
-        <section
+        <Section
+          tone="soft"
           className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
           aria-labelledby="recent-work-heading"
         >
@@ -442,7 +467,7 @@ export function HomeExperience({
               className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
               data-reveal="up"
             >
-              Our Work
+              Our <span className="lime-highlight">Work</span>
             </h2>
             <Link
               href="/gallery"
@@ -476,17 +501,22 @@ export function HomeExperience({
                   sizes="(min-width: 1024px) 33vw, 50vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
-                <span className="absolute inset-x-0 bottom-0 bg-ink/75 px-4 py-3 text-left text-sm leading-snug text-bg sm:text-base">
-                  {image.alt}
-                </span>
+                <Pill className="absolute bottom-3 left-3 border-transparent bg-lime text-ink">
+                  {image.category === "weddings"
+                    ? "Weddings"
+                    : image.category === "birthdays"
+                      ? "Birthdays"
+                      : "Functions"}
+                </Pill>
               </button>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
-      <section
-        className="bg-ink px-5 py-16 text-bg sm:px-8 sm:py-24 lg:px-10"
+      <Section
+        tone="red"
+        className="home-services-section px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="services-heading"
       >
         <div className="mx-auto max-w-7xl">
@@ -496,11 +526,11 @@ export function HomeExperience({
             data-reveal="up"
           >
             What We{" "}
-            <span className="underline decoration-lime decoration-4 underline-offset-8">
+            <span className="lime-highlight">
               Handle
             </span>
           </h2>
-          <div className="border-t border-bg/25">
+          <div className="border-t border-ink">
             {services.map((service) => {
               const expanded = expandedServices.includes(service.title);
               const panelId = `service-${service.title
@@ -510,7 +540,7 @@ export function HomeExperience({
               return (
                 <article
                   key={service.title}
-                  className="border-b border-bg/25"
+                  className="border-b border-ink"
                   data-reveal="up"
                 >
                   <h3>
@@ -519,7 +549,7 @@ export function HomeExperience({
                       aria-expanded={expanded}
                       aria-controls={panelId}
                       onClick={() => toggleService(service.title)}
-                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-semibold text-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-2xl"
+                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-bold text-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-2xl"
                     >
                       {service.title}
                       <span aria-hidden="true" className="text-2xl font-normal">
@@ -535,7 +565,7 @@ export function HomeExperience({
                       expanded ? "is-expanded" : ""
                     }`}
                   >
-                    <p className="max-w-2xl pb-5 text-base leading-relaxed text-bg/80">
+                    <p className="max-w-2xl pb-5 text-base leading-relaxed text-ink">
                       {service.description}
                     </p>
                   </div>
@@ -544,74 +574,61 @@ export function HomeExperience({
             })}
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="white"
         className="home-about-section px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="about-heading"
       >
         <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-        {aboutImage && (
-          <div className="relative">
-            <div
-              className="relative aspect-[3/2] overflow-hidden rounded-[26px]"
-              data-reveal="left"
-            >
-            <PlaceholderImage
-              src={aboutImage.src}
-              alt={aboutImage.alt}
-              width={aboutImage.width}
-              height={aboutImage.height}
-              available={availableImages.about}
-              sizes="(min-width: 1024px) 45vw, 100vw"
-              className="h-full w-full object-cover"
-            />
-            </div>
-            {birthdayImage && (
-              <div
-                className="absolute -bottom-3 -right-3 z-10 hidden h-28 w-20 overflow-hidden rounded-2xl border-4 border-bg sm:block"
-                aria-hidden="true"
-              >
-                <Image
-                  src={birthdayImage.src}
-                  alt=""
-                  width={birthdayImage.width}
-                  height={birthdayImage.height}
-                  sizes="80px"
-                  style={{
-                    objectPosition: `${birthdayImage.focalPoint?.x ?? 50}% ${birthdayImage.focalPoint?.y ?? 50}%`,
-                  }}
-                  className="h-full w-full object-cover"
-                />
+          <div
+            className="relative aspect-[3/2] overflow-hidden rounded-[26px]"
+            data-reveal="left"
+          >
+            {availableImages.about ? (
+              <PlaceholderImage
+                src={aboutImage.src}
+                alt={aboutImage.alt}
+                width={aboutImage.width}
+                height={aboutImage.height}
+                available
+                focalPoint={aboutImage.focalPoint}
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="event-card-fallback h-full">
+                {lineArt.arch}
+                <span>About Shadi Sutra</span>
               </div>
             )}
           </div>
-        )}
-        <div data-reveal="right">
-          <h2
-            id="about-heading"
-            className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
-          >
-            About Shadi Sutra
-          </h2>
-          <div className="mt-5 max-w-xl space-y-4 text-base leading-relaxed text-ink-muted sm:text-lg">
-            <p>
-              Shadi Sutra is an event management company for weddings, birthday
-              parties and family functions.
-            </p>
-            <p>
-              We take care of planning, decor, lighting, flowers, music and
-              coordination.
-            </p>
-            <p>
-              You can be fully present for the moments that matter.
-            </p>
+          <div data-reveal="right">
+            <h2
+              id="about-heading"
+              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+            >
+              About <span className="lime-highlight">Shadi Sutra</span>
+            </h2>
+            <div className="mt-5 max-w-xl space-y-4 text-base leading-relaxed text-ink-muted sm:text-lg">
+              <p>
+                Shadi Sutra is an event management company for weddings, birthday
+                parties and family functions.
+              </p>
+              <p>
+                We take care of planning, decor, lighting, flowers, music and
+                coordination.
+              </p>
+              <p>You can be fully present for the moments that matter.</p>
+            </div>
+            <div className="mt-6">{lineArt.sun}</div>
           </div>
         </div>
-        </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="ink"
         id="home-contact"
         className="home-contact-section relative px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="contact-heading"
@@ -619,17 +636,18 @@ export function HomeExperience({
         <div className="mx-auto max-w-4xl lg:pr-32">
           <h2
             id="contact-heading"
-            className="mb-6 text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+            className="mb-6 text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-bg"
           >
             Let&apos;s plan your celebration
           </h2>
+          <div className="home-contact-art">{lineArt.heart}</div>
           <div className="mb-7 flex flex-wrap gap-3">
             {hasSiteValue(site.whatsapp) && (
               <a
                 href={siteLinks.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-brand hover:text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-lime px-5 py-3 text-base font-semibold text-ink transition-colors hover:bg-brand focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 WhatsApp
               </a>
@@ -637,18 +655,18 @@ export function HomeExperience({
             {hasSiteValue(site.phone) && (
               <a
                 href={siteLinks.phoneUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong px-5 py-3 text-base font-semibold text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-bg/70 px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 Call
               </a>
             )}
           </div>
           <ContactForm key={eventType} initialService={eventType} />
-          <p className="mt-6 text-base leading-relaxed text-ink-muted">
+          <p className="mt-6 text-base leading-relaxed text-bg">
             You can be fully present for the moments that matter.
           </p>
         </div>
-      </section>
+      </Section>
 
       <Sheet
         open={enquiryOpen}

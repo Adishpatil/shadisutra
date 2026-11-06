@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
 import { Sheet } from "@/components/ui/Dialog";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -136,18 +136,10 @@ export function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className={`flex min-h-11 items-center gap-2 rounded-xl font-heading text-xl font-bold tracking-tight focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-bg ${
-            transparentOverHero ? "bg-bg px-2 text-ink" : "text-ink"
-          }`}
+          className="flex min-h-11 items-center gap-2 rounded-xl font-heading text-xl font-bold tracking-tight focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           aria-label={`${site.name} – Home`}
         >
-          <Image
-            src="/brand/logo.png"
-            alt={site.name}
-            width={112}
-            height={74}
-            className="h-11 w-[66px] object-contain sm:h-12 sm:w-[72px]"
-          />
+          <BrandLogo dark={transparentOverHero} />
         </Link>
 
         {/* Desktop nav */}
@@ -165,11 +157,11 @@ export function Navbar() {
                 className={`inline-flex min-h-11 items-center rounded-radius-md px-4 py-2 text-base font-medium transition-colors ${
                   transparentOverHero
                     ? isActive
-                      ? "text-bg underline decoration-bg decoration-2 underline-offset-8"
-                      : "text-bg hover:bg-bg/10"
+                      ? "text-bg underline decoration-lime decoration-2 underline-offset-8"
+                      : "text-bg hover:bg-bg/10 hover:underline hover:decoration-lime underline-offset-8"
                     : isActive
-                      ? "bg-ink/5 text-ink"
-                      : "text-ink-muted hover:text-ink hover:bg-ink/5"
+                      ? "bg-ink/5 text-ink underline decoration-lime decoration-2 underline-offset-8"
+                      : "text-ink-muted hover:text-ink hover:bg-ink/5 hover:underline hover:decoration-lime underline-offset-8"
                 }`}
                 aria-current={isActive ? "page" : undefined}
               >
@@ -181,7 +173,11 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setEnquiryOpen(true)}
-            className="ml-4 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-2 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className={`ml-4 inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2 text-base font-semibold transition-colors focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+              transparentOverHero
+                ? "bg-lime text-ink hover:bg-brand"
+                : "bg-ink text-bg hover:bg-brand hover:text-ink"
+            }`}
           >
             Plan Your Event
           </button>
@@ -255,13 +251,7 @@ export function Navbar() {
                 className="inline-flex min-h-11 items-center"
                 aria-label={`${site.name} - Home`}
               >
-                <Image
-                  src="/brand/logo.png"
-                  alt={site.name}
-                  width={112}
-                  height={74}
-                  className="h-11 w-[66px] object-contain"
-                />
+                <BrandLogo />
               </Link>
               <button
                 type="button"

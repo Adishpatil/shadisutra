@@ -1,10 +1,10 @@
 [
   {
-    "src": "/images/gallery/weddings/weddings-3.webp",
+    "src": "/images/gallery/weddings/weddings-2.webp",
     "category": "weddings",
-    "alt": "Hanging floral arrangements and brass vessels beneath a tree at an outdoor celebration",
-    "width": 591,
-    "height": 1280,
+    "alt": "Wedding venue decorations",
+    "width": 1280,
+    "height": 597,
     "featured": true
   },
   {
@@ -16,15 +16,15 @@
     "featured": true
   },
   {
-    "src": "/images/gallery/weddings/weddings-6.webp",
-    "category": "weddings",
-    "alt": "Outdoor ceremony stage beneath a tree, framed by white drapes and floral arrangements",
-    "width": 1280,
-    "height": 591,
+    "src": "/images/gallery/birthdays/birthdays-2.webp",
+    "category": "birthdays",
+    "alt": "Birthday celebration decor",
+    "width": 591,
+    "height": 1280,
     "featured": true
   },
   {
-    "src": "/images/gallery/birthdays/birthdays-4+.webp",
+    "src": "/images/gallery/birthdays/birthdays-4.webp",
     "category": "birthdays",
     "alt": "Peach roses and greenery beside a banquet walkway lined with warm string lights",
     "width": 597,
@@ -45,6 +45,14 @@
     "alt": "Layered arched entryway with chandeliers and patterned carpet",
     "width": 591,
     "height": 1280,
+    "featured": true
+  },
+  {
+    "src": "/images/gallery/functions/functions-4.webp",
+    "category": "functions",
+    "alt": "Function tables arranged inside an event venue",
+    "width": 1280,
+    "height": 597,
     "featured": true
   }
 ]

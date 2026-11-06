@@ -1,5 +1,7 @@
 "use client";
 
+import { Section } from "@/components/ui/Section";
+
 export default function GlobalError({
   reset,
 }: {
@@ -9,26 +11,18 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body>
-        <main
-          style={{
-            minHeight: "100dvh",
-            display: "grid",
-            placeContent: "center",
-            padding: "2rem",
-            textAlign: "center",
-            fontFamily: "system-ui, sans-serif",
-            color: "#16120E",
-          }}
-        >
-          <h1>Something went wrong</h1>
-          <p>We could not complete this request. Please try again.</p>
-          <button
-            type="button"
-            onClick={reset}
-            style={{ minHeight: 44, padding: "0.5rem 1rem" }}
+        <main>
+          <Section
+            tone="soft"
+            className="global-error-page"
+            aria-labelledby="global-error-heading"
           >
-            Try again
-          </button>
+            <h1 id="global-error-heading">Something went wrong</h1>
+            <p>We could not complete this request. Please try again.</p>
+            <button type="button" onClick={reset}>
+              Try again
+            </button>
+          </Section>
         </main>
       </body>
     </html>

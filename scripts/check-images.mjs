@@ -18,14 +18,42 @@ for (const line of registry.split(/\r?\n/)) {
     });
   }
 }
-const missing = slots.filter(({ path: source }) =>
+const missingSlots = slots.filter(({ path: source }) =>
   !existsSync(path.join(projectRoot, "public", source.replace(/^\/+/, "")))
 );
 
-if (missing.length === 0) {
+const graphicsPath = path.join(projectRoot, "src", "data", "graphics.ts");
+const graphicsRegistry = readFileSync(graphicsPath, "utf8");
+const graphics = [];
+let currentGraphic = "";
+for (const line of graphicsRegistry.split(/\r?\n/)) {
+  const graphic = line.match(/^  (?:"([^"]+)"|([A-Za-z0-9_-]+)): \{$/);
+  if (graphic) currentGraphic = graphic[1] ?? graphic[2];
+  const source = line.match(/\bpath:\s*"([^"]+)"/);
+  if (source) graphics.push({ name: currentGraphic, path: source[1] });
+}
+const missingGraphics = graphics.filter(({ path: source }) =>
+  !existsSync(path.join(projectRoot, "public", source.replace(/^\/+/, "")))
+);
+
+if (missingSlots.length === 0) {
   console.log(`All ${slots.length} image slot files exist.`);
 } else {
-  console.log("Missing image slot files:");
-  for (const slot of missing) console.log(`- ${slot.name}: ${slot.path}`);
+  console.log(`Missing image slot files (${missingSlots.length}/${slots.length}):`);
+  for (const slot of missingSlots) console.log(`- ${slot.name}: ${slot.path}`);
+}
+
+if (missingGraphics.length === 0) {
+  console.log(`All ${graphics.length} line-art asset files exist.`);
+} else {
+  console.log(
+    `Missing line-art asset files (${missingGraphics.length}/${graphics.length}):`
+  );
+  for (const graphic of missingGraphics) {
+    console.log(`- ${graphic.name}: ${graphic.path}`);
+  }
+}
+
+if (missingSlots.length > 0 || missingGraphics.length > 0) {
   process.exitCode = 1;
 }

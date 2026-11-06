@@ -6,6 +6,7 @@ import { getPublicSharedEvent } from "@/lib/events/public-share";
 import { formatDate, formatDateTimeKolkata, formatTime12Hour } from "@/lib/date-time";
 import { CardFrame } from "@/components/ui/CardFrame";
 import { LinkGateway } from "@/components/ui/LinkGateway";
+import { Section } from "@/components/ui/Section";
 import { GuestSchedule } from "@/components/sections/GuestSchedule";
 import { SharedEventActions } from "@/components/sections/SharedEventActions";
 
@@ -32,7 +33,7 @@ function InvalidLink() {
             Visit Shadi Sutra
           </Link>
         </div>
-        <section className="bg-brand px-4 pb-12 sm:px-8 sm:pb-16">
+        <Section tone="red" className="px-4 pb-12 sm:px-8 sm:pb-16">
           <div className="invitation-card-shell mx-auto max-w-xl">
             <article className="ticket-card invitation-card">
               <CardFrame className="min-h-72 px-6 pb-8 pt-24 text-center sm:px-12">
@@ -46,7 +47,7 @@ function InvalidLink() {
               </CardFrame>
             </article>
           </div>
-        </section>
+        </Section>
         <LinkGateway />
       </main>
     </>
@@ -87,7 +88,7 @@ export default async function SharedEventPage({
           </Link>
         </header>
 
-        <section className="invitation-stage bg-brand px-4 pb-10 sm:px-6 sm:pb-14">
+        <Section tone="red" className="invitation-stage px-4 pb-10 sm:px-6 sm:pb-14">
           <div className="invitation-card-shell mx-auto w-full max-w-3xl">
             <article className="ticket-card invitation-card">
               <CardFrame className="min-h-80 px-5 pb-10 pt-28 text-center sm:min-h-96 sm:px-16 sm:pt-32">
@@ -106,7 +107,7 @@ export default async function SharedEventPage({
               </CardFrame>
             </article>
           </div>
-        </section>
+        </Section>
 
         <div className="mx-auto w-full max-w-4xl space-y-10 px-4 py-10 sm:px-6 sm:py-14">
           <GuestSchedule

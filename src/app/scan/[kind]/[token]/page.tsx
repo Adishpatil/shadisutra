@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { hasSiteValue, site, siteLinks } from "@/config/site";
 import { LinkGateway } from "@/components/ui/LinkGateway";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Section } from "@/components/ui/Section";
 
 export const metadata: Metadata = {
   title: `Event link | ${site.name}`,
@@ -25,18 +26,13 @@ export default async function ScanLandingPage({
   const eventLabel = kind === "client" ? "Continue to private client link" : "Continue to event details";
 
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-bg px-5 py-10">
-      <section className="w-full max-w-lg rounded-[28px] border border-border bg-surface p-6 shadow-[var(--shadow-md)] sm:p-10">
-        <div className="mb-8 inline-flex rounded-2xl bg-bg p-3">
-          <Image
-            src="/brand/logo.png"
-            alt={site.name}
-            width={172}
-            height={58}
-            className="h-12 w-auto object-contain"
-            priority
-          />
-        </div>
+    <main className="min-h-[100dvh]">
+      <Section
+        tone="red"
+        className="flex min-h-[70dvh] items-center justify-center px-5 py-10"
+      >
+      <article className="w-full max-w-lg rounded-[28px] border border-border bg-surface p-6 shadow-[var(--shadow-md)] sm:p-10">
+        <div className="mb-8"><BrandLogo /></div>
         <p className="text-sm font-medium text-ink-muted">
           {kind === "client" ? "Private client link" : "Guest event link"}
         </p>
@@ -87,7 +83,8 @@ export default async function ScanLandingPage({
             )}
           </div>
         )}
-      </section>
+      </article>
+      </Section>
       <LinkGateway />
     </main>
   );

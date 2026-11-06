@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const footerLinks = [
   { href: "/about", label: "About" },
@@ -30,16 +30,10 @@ export function Footer() {
           <div className="min-w-0">
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center rounded-2xl bg-bg p-2.5"
+              className="inline-flex min-h-11 items-center rounded-2xl"
               aria-label={`${site.name} home`}
             >
-              <Image
-                src="/brand/logo.png"
-                alt=""
-                width={112}
-                height={74}
-                className="h-12 w-[72px] object-contain"
-              />
+              <BrandLogo dark />
             </Link>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm leading-relaxed text-bg/80">
               {hasSiteValue(site.phone) && (

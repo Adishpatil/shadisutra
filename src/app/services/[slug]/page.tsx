@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { existsSync } from "node:fs";
-import { cwd } from "node:process";
-import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMetadata } from "@/config/seo";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
+import { LineArt } from "@/components/ui/LineArt";
+import { Section } from "@/components/ui/Section";
 import { PlanEventSheet } from "@/components/sections/PlanEventSheet";
+import { getImageAvailability } from "@/data/image-availability";
 import { imageSlots, type ImageSlot } from "@/data/images";
 
 interface ServiceDetail {
@@ -27,7 +27,7 @@ const serviceData: Record<string, ServiceDetail> = {
     metadataTitle: "Wedding Planning & Decor | Shadi Sutra",
     description:
       "Your wedding, planned and styled from the first ceremony to the last dance.",
-    imageSlot: "galleryWedding3",
+    imageSlot: "serviceWedding",
     included: [
       "Planning and day-by-day timeline",
       "Stage, mandap and venue decor",
@@ -44,7 +44,7 @@ const serviceData: Record<string, ServiceDetail> = {
     metadataTitle: "Birthday Party Planning | Shadi Sutra",
     description:
       "Birthday celebrations with a theme your family will love, from first birthdays to milestone years.",
-    imageSlot: "galleryBirthday5",
+    imageSlot: "serviceBirthday",
     included: [
       "Themed decor",
       "Lighting and setup",
@@ -95,86 +95,113 @@ export default async function ServiceDetailPage({
 }) {
   const { slug } = await params;
   const service = serviceData[slug];
-
   if (!service) notFound();
+
   const image = imageSlots[service.imageSlot];
+  const available = getImageAvailability()[service.imageSlot];
 
   return (
     <div className="page-shell">
-      <nav
-        aria-label="Breadcrumb"
-        className="mx-auto max-w-7xl px-5 pb-2 pt-28 sm:px-8 lg:px-10"
+      <Section
+        tone="soft"
+        className="px-5 pb-16 pt-28 sm:px-8 sm:pb-20 lg:px-10"
+        aria-label={`${service.categoryName} service`}
       >
-        <ol className="flex items-center space-x-2 text-sm text-ink-muted">
-          <li>
-            <Link
-              href="/"
-              className="inline-flex min-h-11 items-center hover:text-ink transition-colors"
-            >
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link
-              href="/services"
-              className="inline-flex min-h-11 items-center hover:text-ink transition-colors"
-            >
-              Services
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li className="text-ink font-semibold" aria-current="page">
-            {service.categoryName}
-          </li>
-        </ol>
-      </nav>
-
-      <section className="mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-8 sm:pb-24 lg:px-10">
-        <h1 className="max-w-[16ch] break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">
-          {service.pageTitle}
-        </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-          {service.description}
-        </p>
-        <div className="mt-10 grid items-start gap-10 lg:grid-cols-12 lg:gap-14">
-          <div className="relative overflow-hidden rounded-[24px] lg:sticky lg:top-28 lg:col-span-6">
-            <PlaceholderImage
-              src={image.src}
-              alt={image.alt}
-              width={1200}
-              height={1500}
-              available={imageExists(image.src)}
-              focalPoint={image.focalPoint}
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="aspect-[4/5] w-full object-cover"
-            />
+        <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl">
+          <ol className="flex flex-wrap items-center gap-2 text-sm text-ink-muted">
+            <li>
+              <Link href="/" className="inline-flex min-h-11 items-center hover:text-ink">
+                Home
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li>
+              <Link
+                href="/services"
+                className="inline-flex min-h-11 items-center hover:text-ink"
+              >
+                Services
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li className="font-semibold text-ink" aria-current="page">
+              {service.categoryName}
+            </li>
+          </ol>
+        </nav>
+        <div className="mx-auto mt-5 grid max-w-7xl items-start gap-8 lg:grid-cols-12 lg:gap-14">
+          <div className="service-detail-photo relative overflow-hidden rounded-[24px] bg-brand-soft lg:sticky lg:top-28 lg:col-span-6">
+            {available ? (
+              <PlaceholderImage
+                src={image.src}
+                alt={image.alt}
+                width={image.width}
+                height={image.height}
+                available
+                focalPoint={image.focalPoint}
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="aspect-[4/5] w-full object-cover"
+              />
+            ) : (
+              <div className="service-photo-fallback aspect-[4/5]">
+                <LineArt id="arch" tone="brand" />
+                <span>{service.categoryName}</span>
+              </div>
+            )}
           </div>
           <div className="lg:col-span-5 lg:col-start-8">
-            {service.included.length > 0 && (
-              <>
-                <h2 className="text-[clamp(2rem,4vw,3rem)] font-semibold leading-tight tracking-[-0.035em] text-ink">
-                  What is included
-                </h2>
-                <ul className="mt-5 divide-y divide-border border-y border-border">
-                  {service.included.map((item) => (
-                    <li key={item} className="py-4 text-base leading-relaxed text-ink-muted">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <div className="mt-8">
+            <h1 className="break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">
+              <span className="lime-highlight">{service.pageTitle}</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
+              {service.description}
+            </p>
+            <div className="mt-7">
               <PlanEventSheet initialService={service.eventType} />
             </div>
           </div>
         </div>
-      </section>
+      </Section>
+
+      {service.included.length > 0 && (
+        <Section
+          tone="red"
+          className="px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
+          aria-labelledby="included-heading"
+        >
+          <div className="mx-auto max-w-7xl">
+            <h2
+              id="included-heading"
+              className="max-w-3xl text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-tight text-bg"
+            >
+              What is included
+            </h2>
+            <ul className="mt-8 grid max-w-5xl gap-x-12 sm:grid-cols-2">
+              {service.included.map((item) => (
+                <li
+                  key={item}
+                  className="border-t border-bg py-4 text-lg leading-relaxed text-ink marker:text-lime"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Section>
+      )}
+
+      <Section
+        tone="ink"
+        className="px-5 py-16 sm:px-8 sm:py-20 lg:px-10"
+        aria-label="Plan your event"
+      >
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight text-bg">
+            <span className="lime-highlight">{service.categoryName}</span>
+          </h2>
+          <PlanEventSheet initialService={service.eventType} variant="lime" />
+        </div>
+      </Section>
     </div>
   );
-}
-
-function imageExists(source: string) {
-  return existsSync(path.join(cwd(), "public", source.replace(/^\//, "")));
 }

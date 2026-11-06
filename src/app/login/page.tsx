@@ -5,6 +5,8 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { site } from "@/config/site";
 import { loginAction, verifyMfaAction, type LoginActionResult } from "./actions";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Section } from "@/components/ui/Section";
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState<LoginActionResult | null, FormData>(
@@ -37,7 +39,11 @@ export default function LoginPage() {
     <a href="#main-content" className="skip-to-content">
       Skip to content
     </a>
-    <main id="main-content" className="flex min-h-[100dvh] items-center justify-center bg-bg px-5 py-24 sm:px-8">
+    <main id="main-content">
+      <Section
+        tone="ink"
+        className="relative flex min-h-[100dvh] items-center justify-center px-5 py-24 sm:px-8"
+      >
       <div className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-10">
         {/* Brand header */}
         <div className="text-center mb-8">
@@ -45,7 +51,10 @@ export default function LoginPage() {
             href="/"
             className="inline-flex min-h-11 items-center font-heading text-2xl font-semibold tracking-tight text-ink"
           >
-            {site.name}
+            <span className="flex items-center gap-3">
+              <BrandLogo />
+              {site.name}
+            </span>
           </Link>
           <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold text-ink">
             {state?.requiresEnrollment
@@ -199,6 +208,7 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+      </Section>
     </main>
     </>
   );

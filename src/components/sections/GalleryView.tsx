@@ -70,7 +70,11 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap gap-2" aria-label="Filter photos">
+      <div
+        className="mb-8 flex flex-wrap gap-2"
+        role="group"
+        aria-label="Filter photos"
+      >
         {categories.map((category) => {
           const active = activeCategory === category.value;
           return (
@@ -83,7 +87,7 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
               }}
               className={`inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-base font-medium transition-colors focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                 active
-                  ? "border-ink bg-ink text-bg"
+                  ? "border-lime bg-lime text-ink"
                   : "border-border-strong bg-surface text-ink hover:border-ink"
               }`}
               aria-pressed={active}
@@ -120,6 +124,16 @@ export function GalleryView({ initialImages, availableImages }: GalleryViewProps
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
+                <span
+                  aria-hidden="true"
+                  className="absolute bottom-3 left-3 inline-flex min-h-8 items-center rounded-full bg-lime px-3 py-1 text-sm font-semibold text-ink"
+                >
+                  {image.category === "weddings"
+                    ? "Weddings"
+                    : image.category === "birthdays"
+                      ? "Birthdays"
+                      : "Functions"}
+                </span>
               </div>
               <span className="block px-4 py-3 text-base leading-snug text-ink">
                 {image.alt}
