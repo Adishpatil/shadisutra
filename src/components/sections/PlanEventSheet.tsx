@@ -7,15 +7,20 @@ import { Sheet } from "@/components/ui/Dialog";
 
 interface PlanEventSheetProps {
   initialService: string;
+  variant?: "primary" | "secondary" | "brand" | "lime";
 }
 
-export function PlanEventSheet({ initialService }: PlanEventSheetProps) {
+export function PlanEventSheet({
+  initialService,
+  variant = "primary",
+}: PlanEventSheetProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button
         type="button"
+        variant={variant}
         onClick={() => setOpen(true)}
       >
         Plan this event

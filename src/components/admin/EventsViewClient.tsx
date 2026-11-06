@@ -92,7 +92,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm font-semibold text-accent">
+        <p className="text-sm font-semibold text-brand-strong">
           Planning &amp; staging
         </p>
         <h1 className="mt-1 text-3xl font-heading font-bold text-ink">
@@ -115,7 +115,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search events or venues"
-          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
         />
       </label>
 
@@ -152,12 +152,12 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
             <Card key={event.id} className="space-y-4 p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-accent">
+                  <p className="text-sm font-semibold text-brand-strong">
                     {event.type}
                   </p>
                   <Link
                     href={eventHref(event.id)}
-                    className="mt-1 block break-words text-xl font-heading font-bold text-ink focus-visible:outline-2 focus-visible:outline-accent"
+                    className="mt-1 block break-words text-xl font-heading font-bold text-ink focus-visible:outline-3 focus-visible:outline-ink"
                   >
                     {event.name}
                   </Link>
@@ -202,7 +202,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                 </select>
                 <Link
                   href={eventHref(event.id)}
-                  className="inline-flex min-h-11 items-center justify-center rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink"
+                  className="inline-flex min-h-11 items-center justify-center rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg"
                 >
                   Open event
                 </Link>
@@ -248,7 +248,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
               return (
                 <tr key={event.id}>
                   <td className="p-4 font-semibold text-ink">
-                    <Link href={eventHref(event.id)} className="hover:text-accent">
+                    <Link href={eventHref(event.id)} className="hover:text-brand-strong">
                       {event.name}
                     </Link>
                   </td>
@@ -282,7 +282,7 @@ export function EventsViewClient({ initialEvents }: EventsViewClientProps) {
                   <td className="p-4">
                     <Link
                       href={eventHref(event.id)}
-                      className="inline-flex min-h-11 items-center rounded-radius-md px-4 font-semibold text-accent hover:bg-accent-light"
+                      className="inline-flex min-h-11 items-center rounded-radius-md px-4 font-semibold text-brand-strong hover:bg-brand hover:text-ink"
                     >
                       Open
                     </Link>

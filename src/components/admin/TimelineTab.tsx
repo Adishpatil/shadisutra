@@ -82,7 +82,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
       {/* Header and Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-surface p-4 rounded-radius-lg border border-border">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-brand-strong">
             Master Itinerary &amp; Cues
           </span>
           <h3 className="font-heading font-bold text-base text-ink mt-0.5">
@@ -113,7 +113,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
               setEditingEntry(null);
               setShowAddModal(true);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-radius-md bg-brand-strong text-bg hover:bg-brand hover:text-ink transition-colors min-h-[44px]"
           >
             <span>+ Add Timeline Entry</span>
           </button>
@@ -126,19 +126,19 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
           No timeline entries found for this ceremony. Tap &quot;+ Add Timeline Entry&quot; to schedule moments.
         </div>
       ) : (
-        <div className="relative border-l-2 border-accent/40 ml-4 sm:ml-6 space-y-6 py-2">
+        <div className="relative border-l-2 border-brand-strong/40 ml-4 sm:ml-6 space-y-6 py-2">
           {filtered.map((item) => {
             const linkedFunction = functions.find((f) => f.id === item.function_id);
 
             return (
               <div key={item.id} className="relative pl-6 sm:pl-8 group">
                 {/* Timeline node marker */}
-                <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-accent border-2 border-bg ring-4 ring-accent/15 group-hover:scale-125 transition-transform" />
+                <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-brand-strong border-2 border-bg ring-4 ring-ink/15 group-hover:scale-125 transition-transform" />
 
-                <div className="bg-surface border border-border rounded-radius-lg p-5 shadow-[var(--shadow-sm)] hover:border-accent/40 transition-all space-y-2">
+                <div className="bg-surface border border-border rounded-radius-lg p-5 shadow-[var(--shadow-sm)] hover:border-brand-strong/40 transition-all space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-radius-sm">
+                      <span className="font-mono text-xs font-bold text-brand-strong bg-brand-strong/10 px-2 py-0.5 rounded-radius-sm">
                         {formatDateTimeKolkata(item.starts_at)}
                       </span>
                       {linkedFunction && (
@@ -155,7 +155,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                           setEditingEntry(item);
                           setShowAddModal(true);
                         }}
-                        className="min-h-[44px] px-3 text-sm font-semibold text-accent hover:underline"
+                        className="min-h-[44px] px-3 text-sm font-semibold text-brand-strong hover:underline"
                       >
                         Edit
                       </button>
@@ -221,7 +221,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                 <select
                   name="function_id"
                   defaultValue={editingEntry?.function_id ?? ""}
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 >
                   <option value="">General Event Entry</option>
                   {functions.map((f) => (
@@ -250,7 +250,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                   required
                   defaultValue={editingEntry?.title ?? ""}
                   placeholder="e.g. Groom Baraat Arrival & Rose Petal Shower"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -263,7 +263,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                   rows={2}
                   defaultValue={editingEntry?.notes ?? ""}
                   placeholder="e.g. Cue Dhol troupe, test wireless mic for pandit ji..."
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[88px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[88px]"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export function TimelineTab({ eventId, eventDate, functions, initialTimeline }: 
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   {editingEntry ? "Save Changes" : "Save Entry"}
                 </button>

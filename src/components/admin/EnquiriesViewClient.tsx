@@ -20,7 +20,7 @@ export function EnquiriesViewClient({ enquiries }: { enquiries: AdminEnquiry[] }
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-base font-semibold uppercase tracking-wider text-accent">
+        <p className="text-base font-semibold uppercase tracking-wider text-brand-strong">
           Incoming leads
         </p>
         <h1 className="mt-1 text-3xl font-heading font-bold text-ink">Enquiries</h1>
@@ -36,7 +36,7 @@ export function EnquiriesViewClient({ enquiries }: { enquiries: AdminEnquiry[] }
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search name, phone, type or message"
-          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="min-h-11 w-full rounded-radius-md border border-border bg-surface px-4 text-base text-ink placeholder:text-ink-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
         />
       </label>
 
@@ -79,7 +79,7 @@ export function EnquiriesViewClient({ enquiries }: { enquiries: AdminEnquiry[] }
               <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
                 <a
                   href={`tel:${enquiry.phone}`}
-                  className="inline-flex min-h-11 items-center justify-center rounded-radius-md border border-border px-3 text-base font-semibold text-ink hover:border-accent hover:text-accent"
+                  className="inline-flex min-h-11 items-center justify-center rounded-radius-md border border-border px-3 text-base font-semibold text-ink hover:border-brand-strong hover:text-brand-strong"
                 >
                   Call
                 </a>

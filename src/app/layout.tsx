@@ -29,7 +29,7 @@ const fraunces = Fraunces({
 });
 
 const siteUrl = process.env.SITE_URL?.trim();
-const socialImage = getCanonicalUrl("/brand/logo.webp") ?? "/brand/logo.webp";
+const socialImage = getCanonicalUrl("/brand/logo.png") ?? "/brand/logo.png";
 
 export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
@@ -68,13 +68,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: site.accentColor,
+  themeColor: site.brandColor,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   await connection();
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const businessJsonLd = localBusinessJsonLd();
+  const currentYear = new Date().getFullYear();
 
   return (
     <html
@@ -92,7 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <SiteShell>{children}</SiteShell>
+        <SiteShell currentYear={currentYear}>{children}</SiteShell>
       </body>
     </html>
   );

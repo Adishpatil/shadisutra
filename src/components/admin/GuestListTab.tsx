@@ -290,7 +290,7 @@ export function GuestListTab({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, phone, or table…"
-            className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+            className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
           />
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1" aria-label="Filter guests by RSVP">
             {[
@@ -342,7 +342,7 @@ export function GuestListTab({
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="guest-add-fixed inline-flex items-center gap-1.5 px-4 py-2 text-base font-semibold rounded-radius-md bg-accent text-accent-ink hover:bg-accent-hover transition-colors min-h-[44px]"
+            className="guest-add-fixed inline-flex items-center gap-1.5 px-4 py-2 text-base font-semibold rounded-radius-md bg-brand-strong text-bg hover:bg-brand hover:text-ink transition-colors min-h-[44px]"
           >
             <span>+ Add guest</span>
           </button>
@@ -373,9 +373,9 @@ export function GuestListTab({
             ) : (
               filteredGuests.map((g) => {
                 const rsvpBadge = {
-                  yes: "bg-success-light text-success border-success/30",
-                  pending: "bg-warning-light text-warning border-warning/30",
-                  no: "bg-danger-light text-danger border-danger/30",
+                  yes: "bg-success-light text-success border-success",
+                  pending: "bg-warning-light text-warning border-warning",
+                  no: "bg-danger-light text-danger border-danger",
                 }[g.rsvp];
 
                 return (
@@ -383,7 +383,7 @@ export function GuestListTab({
                     <td className="py-3.5 px-4 font-semibold text-ink">
                       {g.name}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-accent">
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-brand-strong">
                       {g.party_size}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-ink-muted">
@@ -409,7 +409,7 @@ export function GuestListTab({
                           setEditingGuest(g);
                           setShowAddModal(true);
                         }}
-                        className="mr-3 min-h-[44px] px-2 text-accent hover:underline font-semibold"
+                        className="mr-3 min-h-[44px] px-2 text-brand-strong hover:underline font-semibold"
                       >
                         Edit
                       </button>
@@ -438,9 +438,9 @@ export function GuestListTab({
         ) : (
           filteredGuests.map((g) => {
             const rsvpBadge = {
-              yes: "bg-success-light text-success border-success/30",
-              pending: "bg-warning-light text-warning border-warning/30",
-              no: "bg-danger-light text-danger border-danger/30",
+              yes: "bg-success-light text-success border-success",
+              pending: "bg-warning-light text-warning border-warning",
+              no: "bg-danger-light text-danger border-danger",
             }[g.rsvp];
 
             return (
@@ -451,7 +451,7 @@ export function GuestListTab({
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h4 className="font-heading font-bold text-sm text-ink">{g.name}</h4>
-                    <span className="text-xs text-accent font-semibold">
+                    <span className="text-xs text-brand-strong font-semibold">
                       Party of {g.party_size}
                     </span>
                   </div>
@@ -493,7 +493,7 @@ export function GuestListTab({
                       setEditingGuest(g);
                       setShowAddModal(true);
                     }}
-                    className="mr-2 min-h-[44px] px-3 text-xs text-accent hover:underline font-semibold"
+                    className="mr-2 min-h-[44px] px-3 text-xs text-brand-strong hover:underline font-semibold"
                   >
                     Edit Guest
                   </button>
@@ -532,7 +532,7 @@ export function GuestListTab({
                   required
                   defaultValue={editingGuest?.name ?? ""}
                   placeholder="e.g. Vikram & Sunita Malhotra"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -548,7 +548,7 @@ export function GuestListTab({
                     max="50"
                     defaultValue={editingGuest?.party_size ?? 1}
                     required
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
 
@@ -559,7 +559,7 @@ export function GuestListTab({
                   <select
                     name="rsvp"
                     defaultValue={editingGuest?.rsvp ?? "pending"}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   >
                     <option value="pending">Pending</option>
                     <option value="yes">Attending (Yes)</option>
@@ -579,7 +579,7 @@ export function GuestListTab({
                     inputMode="tel"
                     defaultValue={editingGuest?.phone ?? ""}
                     placeholder="98XXXXXXXX"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
 
@@ -591,7 +591,7 @@ export function GuestListTab({
                     name="table_no"
                     defaultValue={editingGuest?.table_no ?? ""}
                     placeholder="e.g. Table 4"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
               </div>
@@ -604,7 +604,7 @@ export function GuestListTab({
                   name="notes"
                   defaultValue={editingGuest?.notes ?? ""}
                   placeholder="e.g. Jain meal, Bride's side"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -618,7 +618,7 @@ export function GuestListTab({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   {editingGuest ? "Save Changes" : "Save Guest"}
                 </button>
@@ -660,14 +660,14 @@ export function GuestListTab({
             </p>
 
             {/* Template download link */}
-            <div className="p-3 bg-accent/10 border border-accent/20 rounded-radius-md flex items-center justify-between gap-2 text-xs">
+            <div className="p-3 bg-brand-strong/10 border border-brand-strong/20 rounded-radius-md flex items-center justify-between gap-2 text-xs">
               <span className="text-ink">
                 Need the standard spreadsheet format?
               </span>
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
-                className="font-bold text-accent hover:underline whitespace-nowrap"
+                className="font-bold text-brand-strong hover:underline whitespace-nowrap"
               >
                 Download template
               </button>
@@ -680,13 +680,13 @@ export function GuestListTab({
                 type="file"
                 accept=".xlsx,.csv"
                 onChange={handleFileChange}
-                className="block w-full min-h-[44px] text-base text-ink file:mr-4 file:min-h-[44px] file:py-2.5 file:px-4 file:rounded-radius-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-ink hover:file:bg-accent-hover"
+                className="block w-full min-h-[44px] text-base text-ink file:mr-4 file:min-h-[44px] file:py-2.5 file:px-4 file:rounded-radius-md file:border-0 file:text-sm file:font-semibold file:bg-brand-strong file:text-bg hover:file:bg-brand hover:file:text-ink"
               />
             </div>
 
             {/* Errors breakdown */}
             {importErrors.length > 0 && (
-              <div className="p-3 bg-danger-light border border-danger/30 rounded-radius-md text-xs text-danger space-y-1">
+              <div className="p-3 bg-danger-light border border-danger rounded-radius-md text-xs text-danger space-y-1">
                 <p className="font-bold">Found {importErrors.length} row validation error(s):</p>
                 <ul className="list-disc list-inside max-h-24 overflow-y-auto">
                   {importErrors.map((err, i) => (
@@ -718,7 +718,7 @@ export function GuestListTab({
                       {importPreview.slice(0, 10).map((r, i) => (
                         <tr key={i}>
                           <td className="p-2 font-medium text-ink">{r.name}</td>
-                          <td className="p-2 text-accent font-bold">{r.party_size}</td>
+                          <td className="p-2 text-brand-strong font-bold">{r.party_size}</td>
                           <td className="p-2 capitalize">{r.rsvp}</td>
                           <td className="p-2 text-ink-muted">{r.table_no || "—"}</td>
                         </tr>
@@ -746,7 +746,7 @@ export function GuestListTab({
                 type="button"
                 disabled={importPreview.length === 0 || importing}
                 onClick={handleConfirmImport}
-                className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-xs font-semibold hover:bg-accent-hover disabled:opacity-50 min-h-[44px]"
+                className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-xs font-semibold hover:bg-brand hover:text-ink disabled:opacity-50 min-h-[44px]"
               >
                 {importing ? "Importing..." : `Confirm Import (${importPreview.length} Guests)`}
               </button>

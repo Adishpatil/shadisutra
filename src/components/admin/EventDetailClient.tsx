@@ -400,18 +400,18 @@ export function EventDetailClient({
       <div className="rounded-radius-lg bg-surface p-4 shadow-[var(--shadow-sm)] sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs text-ink-muted">
           <div className="flex items-center gap-2">
-            <Link href="/admin/events" className="hover:text-accent font-medium transition-colors">
+            <Link href="/admin/events" className="hover:text-brand-strong font-medium transition-colors">
               ← Events
             </Link>
             <span className="text-border">/</span>
-            <span className="capitalize font-semibold text-accent">{eventData.type}</span>
+            <span className="capitalize font-semibold text-brand-strong">{eventData.type}</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setShowEditEventModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-border text-sm font-medium text-ink hover:border-accent hover:text-accent transition-colors min-h-[44px]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-border text-sm font-medium text-ink hover:border-brand-strong hover:text-brand-strong transition-colors min-h-[44px]"
             >
               <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -421,7 +421,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={handleDeleteEvent}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-danger/40 text-sm font-medium text-danger hover:bg-danger-light transition-colors min-h-[44px]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-radius-md border border-danger text-sm font-medium text-danger hover:bg-danger-light transition-colors min-h-[44px]"
             >
               Delete Event
             </button>
@@ -431,20 +431,20 @@ export function EventDetailClient({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2 text-base text-ink-muted">
-              <span className="rounded-radius-full bg-accent-light px-3 py-1 font-semibold capitalize text-accent">
+              <span className="rounded-radius-full bg-brand-soft px-3 py-1 font-semibold capitalize text-brand-strong">
                 {eventData.type}
               </span>
               <Badge variant={status === "planning" ? "warning" : status === "finalized" ? "success" : status === "cancelled" ? "danger" : "neutral"}>
                 {status}
               </Badge>
               <span className="inline-flex items-center gap-1">
-                <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-3.5 h-3.5 text-brand-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 {formatDate(eventData.date)}
               </span>
               <span className="inline-flex items-center gap-1 truncate">
-                <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-3.5 h-3.5 text-brand-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -463,7 +463,7 @@ export function EventDetailClient({
                     Phone:{" "}
                     <a
                       href={`tel:${eventData.client_phone}`}
-                      className="underline underline-offset-2 hover:text-accent"
+                      className="underline underline-offset-2 hover:text-brand-strong"
                     >
                       {eventData.client_phone}
                     </a>
@@ -478,7 +478,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={() => setShowShareSheet(true)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink"
+              className="inline-flex min-h-11 items-center gap-2 rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg"
               title="Manage event share link"
             >
               <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,7 +495,7 @@ export function EventDetailClient({
                 id="event-detail-status"
                 value={status}
                 onChange={(e) => handleStatusChange(e.target.value as AdminEventSummary['status'])}
-                className="text-base font-semibold px-3 py-2 rounded-radius-md border border-border bg-bg text-ink focus:ring-1 focus:ring-accent min-h-[44px]"
+                className="text-base font-semibold px-3 py-2 rounded-radius-md border border-border bg-bg text-ink focus:ring-1 focus:ring-ink min-h-[44px]"
               >
                 <option value="planning">Status: Planning</option>
                 <option value="finalized">Status: Finalized</option>
@@ -559,7 +559,7 @@ export function EventDetailClient({
           <button
             type="button"
             onClick={() => setActiveTab("plan")}
-            className="col-span-2 min-h-11 rounded-radius-md bg-accent px-4 text-base font-semibold text-accent-ink sm:col-span-4"
+            className="col-span-2 min-h-11 rounded-radius-md bg-brand-strong px-4 text-base font-semibold text-bg sm:col-span-4"
           >
             Open event plan
           </button>
@@ -580,7 +580,7 @@ export function EventDetailClient({
                 id="filter-function-items"
                 value={selectedFunctionId}
                 onChange={(e) => setSelectedFunctionId(e.target.value)}
-                className="text-xs px-3 py-1.5 rounded-radius-md border border-border bg-surface text-ink focus:ring-1 focus:ring-accent min-h-[36px]"
+                className="text-xs px-3 py-1.5 rounded-radius-md border border-border bg-surface text-ink focus:ring-1 focus:ring-ink min-h-[36px]"
               >
                 <option value="all">All Sub-Events ({functions.length})</option>
                 {functions.map((f) => (
@@ -594,7 +594,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={() => setShowAddItem(true)}
-              className="inline-flex items-center justify-center px-4 py-2 bg-accent text-accent-ink rounded-radius-md font-semibold text-sm hover:bg-accent-hover transition-colors shadow-[var(--shadow-sm)] min-h-[44px]"
+              className="inline-flex items-center justify-center px-4 py-2 bg-brand-strong text-bg rounded-radius-md font-semibold text-sm hover:bg-brand hover:text-ink transition-colors shadow-[var(--shadow-sm)] min-h-[44px]"
             >
               + Add Item
             </button>
@@ -614,7 +614,7 @@ export function EventDetailClient({
               >
                 <div className="flex items-center justify-between px-1 py-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent" />
+                    <span className="w-2 h-2 rounded-full bg-brand-strong" />
                     <h3 className="font-heading font-bold text-base text-ink capitalize">
                       {cat}
                     </h3>
@@ -631,8 +631,8 @@ export function EventDetailClient({
                   {catItems.map((item, idx) => {
                     const statusBadgeClass = {
                       not_started: "bg-ink-muted/10 text-ink-muted border-border",
-                      in_progress: "bg-warning-light text-warning border-warning/30",
-                      done: "bg-success-light text-success border-success/30",
+                      in_progress: "bg-warning-light text-warning border-warning",
+                      done: "bg-success-light text-success border-success",
                     }[item.status];
 
                     const statusLabel = {
@@ -653,7 +653,7 @@ export function EventDetailClient({
                           <div className="flex flex-wrap items-center gap-3 text-base text-ink-muted">
                             {item.vendor && (
                               <span className="inline-flex items-center gap-1 font-medium text-ink">
-                                <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="w-3.5 h-3.5 text-brand-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                                 {item.vendor}
@@ -684,7 +684,7 @@ export function EventDetailClient({
                           <button
                             type="button"
                             onClick={() => setEditingItem({ item, functionId: item.parentFunctionId })}
-                            className="min-h-[44px] min-w-[44px] p-2 rounded-radius-sm border border-border text-ink-muted hover:text-accent hover:border-accent transition-colors"
+                            className="min-h-[44px] min-w-[44px] p-2 rounded-radius-sm border border-border text-ink-muted hover:text-brand-strong hover:border-brand-strong transition-colors"
                             title="Edit Item"
                           >
                             <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -717,7 +717,7 @@ export function EventDetailClient({
               <button
                 type="button"
                 onClick={() => setShowAddItem(true)}
-                className="px-4 py-2 bg-accent text-accent-ink text-xs font-semibold rounded-radius-md hover:bg-accent-hover transition-colors"
+                className="px-4 py-2 bg-brand-strong text-bg text-xs font-semibold rounded-radius-md hover:bg-brand hover:text-ink transition-colors"
               >
                 + Add First Item
               </button>
@@ -747,7 +747,7 @@ export function EventDetailClient({
             <button
               type="button"
               onClick={() => setShowAddFunction(true)}
-              className="inline-flex items-center justify-center px-4 py-2 bg-accent text-accent-ink text-sm font-semibold rounded-radius-md hover:bg-accent-hover transition-colors min-h-[44px]"
+              className="inline-flex items-center justify-center px-4 py-2 bg-brand-strong text-bg text-sm font-semibold rounded-radius-md hover:bg-brand hover:text-ink transition-colors min-h-[44px]"
             >
               + Add Sub-Function
             </button>
@@ -757,19 +757,19 @@ export function EventDetailClient({
             {functions.map((func) => (
               <div
                 key={func.id}
-                className="bg-surface p-5 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between space-y-3 hover:border-accent/40 transition-colors"
+                className="bg-surface p-5 rounded-radius-lg border border-border shadow-[var(--shadow-sm)] flex flex-col justify-between space-y-3 hover:border-brand-strong/40 transition-colors"
               >
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-heading font-bold text-base text-ink">
                       {func.name}
                     </h3>
-                    <span className="text-xs font-mono text-accent font-semibold px-2 py-0.5 rounded-radius-sm bg-accent/10 border border-accent/20">
+                    <span className="text-xs font-mono text-brand-strong font-semibold px-2 py-0.5 rounded-radius-sm bg-brand-strong/10 border border-brand-strong/20">
                       {func.start_time ? formatTime12Hour(func.start_time) : "TBD"}
                     </span>
                   </div>
                   <p className="text-xs text-ink-muted flex items-center gap-1.5">
-                    <svg aria-hidden="true" className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="w-3.5 h-3.5 text-brand-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     {func.date}
@@ -785,14 +785,14 @@ export function EventDetailClient({
                   <button
                     type="button"
                     onClick={() => setEditingFunction(func)}
-                    className="px-2.5 py-1 text-ink-muted hover:text-accent font-medium rounded-radius-sm border border-border hover:border-accent transition-colors"
+                    className="px-2.5 py-1 text-ink-muted hover:text-brand-strong font-medium rounded-radius-sm border border-border hover:border-brand-strong transition-colors"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteFunction(func.id)}
-                    className="px-2.5 py-1 text-danger hover:bg-danger-light font-medium rounded-radius-sm border border-danger/30 transition-colors"
+                    className="px-2.5 py-1 text-danger hover:bg-danger-light font-medium rounded-radius-sm border border-danger transition-colors"
                   >
                     Delete
                   </button>
@@ -807,7 +807,7 @@ export function EventDetailClient({
               <button
                 type="button"
                 onClick={() => setShowAddFunction(true)}
-                className="px-4 py-2 bg-accent text-accent-ink text-xs font-semibold rounded-radius-md hover:bg-accent-hover transition-colors"
+                className="px-4 py-2 bg-brand-strong text-bg text-xs font-semibold rounded-radius-md hover:bg-brand hover:text-ink transition-colors"
               >
                 + Create Sub-Function
               </button>
@@ -899,7 +899,7 @@ export function EventDetailClient({
                   name="name"
                   defaultValue={eventData.name}
                   required
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -911,7 +911,7 @@ export function EventDetailClient({
                   <select
                     name="type"
                     defaultValue={eventData.type}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   >
                     <option value="wedding">Wedding</option>
                     <option value="birthday">Birthday</option>
@@ -927,7 +927,7 @@ export function EventDetailClient({
                     name="date"
                     defaultValue={eventData.date}
                     required
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
               </div>
@@ -941,7 +941,7 @@ export function EventDetailClient({
                   name="venue"
                   defaultValue={eventData.venue}
                   required
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -955,7 +955,7 @@ export function EventDetailClient({
                     name="client_name"
                     autoComplete="name"
                     defaultValue={eventData.client_name ?? ""}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
                 <div>
@@ -968,7 +968,7 @@ export function EventDetailClient({
                     autoComplete="tel"
                     inputMode="tel"
                     defaultValue={eventData.client_phone ?? ""}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
               </div>
@@ -983,7 +983,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Changes
                 </button>
@@ -1020,7 +1020,7 @@ export function EventDetailClient({
                   name="name"
                   required
                   placeholder="e.g. Sangeet & Cocktail Night"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1034,7 +1034,7 @@ export function EventDetailClient({
                     name="date"
                     defaultValue={eventData.date}
                     required
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
                 <div>
@@ -1053,7 +1053,7 @@ export function EventDetailClient({
                   name="notes"
                   rows={2}
                   placeholder="e.g. Dress code, location, setup timing..."
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1067,7 +1067,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Function
                 </button>
@@ -1104,7 +1104,7 @@ export function EventDetailClient({
                   name="name"
                   defaultValue={editingFunction.name}
                   required
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1118,7 +1118,7 @@ export function EventDetailClient({
                     name="date"
                     defaultValue={editingFunction.date}
                     required
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
                 <div>
@@ -1138,7 +1138,7 @@ export function EventDetailClient({
                   name="notes"
                   rows={2}
                   defaultValue={editingFunction.notes || ""}
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1152,7 +1152,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Changes
                 </button>
@@ -1187,7 +1187,7 @@ export function EventDetailClient({
                 <select
                   value={addItemTargetFunctionId}
                   onChange={(e) => setAddItemTargetFunctionId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 >
                   {functions.map((f) => (
                     <option key={f.id} value={f.id}>
@@ -1205,7 +1205,7 @@ export function EventDetailClient({
                   <select
                     name="category"
                     defaultValue="decor"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   >
                     <option value="lighting">Lighting</option>
                     <option value="flowers">Flowers</option>
@@ -1222,7 +1222,7 @@ export function EventDetailClient({
                   <select
                     name="status"
                     defaultValue="not_started"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   >
                     <option value="not_started">Not Started</option>
                     <option value="in_progress">In Progress</option>
@@ -1240,7 +1240,7 @@ export function EventDetailClient({
                   name="title"
                   required
                   placeholder="e.g. Moving heads & cold pyros"
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1253,7 +1253,7 @@ export function EventDetailClient({
                     type="text"
                     name="vendor"
                     placeholder="e.g. Lumina FX"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
 
@@ -1268,7 +1268,7 @@ export function EventDetailClient({
                     max="9999999999.99"
                     step="0.01"
                     placeholder="e.g. 50000.00"
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
               </div>
@@ -1281,7 +1281,7 @@ export function EventDetailClient({
                   name="notes"
                   rows={2}
                   placeholder="Contract notes, arrival timing, power requirements..."
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1295,7 +1295,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Item
                 </button>
@@ -1331,7 +1331,7 @@ export function EventDetailClient({
                   <select
                     name="category"
                     defaultValue={editingItem.item.category}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   >
                     <option value="lighting">Lighting</option>
                     <option value="flowers">Flowers</option>
@@ -1348,7 +1348,7 @@ export function EventDetailClient({
                   <select
                     name="status"
                     defaultValue={editingItem.item.status}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   >
                     <option value="not_started">Not Started</option>
                     <option value="in_progress">In Progress</option>
@@ -1366,7 +1366,7 @@ export function EventDetailClient({
                   name="title"
                   defaultValue={editingItem.item.title}
                   required
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1379,7 +1379,7 @@ export function EventDetailClient({
                     type="text"
                     name="vendor"
                     defaultValue={editingItem.item.vendor || ""}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
 
@@ -1394,7 +1394,7 @@ export function EventDetailClient({
                     max="9999999999.99"
                     step="0.01"
                     defaultValue={editingItem.item.cost}
-                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                    className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                   />
                 </div>
               </div>
@@ -1407,7 +1407,7 @@ export function EventDetailClient({
                   name="notes"
                   rows={2}
                   defaultValue={editingItem.item.notes || ""}
-                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-accent min-h-[44px]"
+                  className="w-full px-3 py-2 rounded-radius-md border border-border bg-bg text-ink text-base focus:ring-1 focus:ring-ink min-h-[44px]"
                 />
               </div>
 
@@ -1421,7 +1421,7 @@ export function EventDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-accent text-accent-ink rounded-radius-md text-sm font-semibold hover:bg-accent-hover min-h-[44px]"
+                  className="px-5 py-2 bg-brand-strong text-bg rounded-radius-md text-sm font-semibold hover:bg-brand hover:text-ink min-h-[44px]"
                 >
                   Save Changes
                 </button>

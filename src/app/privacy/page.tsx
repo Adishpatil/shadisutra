@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/config/seo";
 import { site } from "@/config/site";
+import { Section } from "@/components/ui/Section";
 
 export const metadata: Metadata = pageMetadata(
   "Privacy",
@@ -10,19 +11,27 @@ export const metadata: Metadata = pageMetadata(
 
 export default function PrivacyPage() {
   return (
-    <article className="mx-auto max-w-[70ch] px-5 pb-20 pt-32 sm:px-8">
-      <p className="mb-5 text-base text-ink-muted">
-        Draft for client review
-      </p>
-      <h1 className="break-words text-[clamp(2.75rem,7vw,5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">Privacy</h1>
-      <div className="mt-8 space-y-8 text-base leading-8 text-ink-muted">
+    <div>
+      <Section
+        tone="soft"
+        className="px-5 pb-8 pt-32 sm:px-8"
+        aria-labelledby="privacy-title"
+      >
+        <div className="mx-auto max-w-[70ch]">
+          <p className="mb-5 text-base text-ink-muted">Draft for client review</p>
+          <h1 id="privacy-title" className="break-words text-[clamp(2.75rem,7vw,5rem)] font-semibold leading-[0.98] tracking-[-0.045em]">Privacy</h1>
+        </div>
+      </Section>
+      <Section tone="white" className="px-5 pb-20 pt-8 sm:px-8">
+      <article className="mx-auto max-w-[70ch]">
+      <div className="space-y-8 text-base leading-8 text-ink-muted">
         <p>
           This draft explains how {site.name} handles information submitted
           through this website and information shown on private event pages. It
           must be reviewed and approved before publication.
         </p>
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold text-ink">What we collect</h2>
+          <h2 className="text-2xl font-semibold">What we collect</h2>
           <p>
             The contact form asks for your name, phone number, event type,
             preferred date, and message. If you plan an event with us, our
@@ -39,7 +48,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold text-ink">Use and providers</h2>
+          <h2 className="text-2xl font-semibold">Use and providers</h2>
           <p>
             We use submitted information to respond to enquiries and organize
             events. The application stores its database and files with Supabase.
@@ -49,7 +58,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold text-ink">Retention</h2>
+          <h2 className="text-2xl font-semibold">Retention</h2>
           <p>
             Enquiries and event records remain in the system until an
             administrator deletes them; the application does not currently
@@ -62,7 +71,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold text-ink">Your requests</h2>
+          <h2 className="text-2xl font-semibold">Your requests</h2>
           <p>
             To ask about, correct, or request deletion of information, use the
             contact form and describe your privacy request. The client should
@@ -70,6 +79,8 @@ export default function PrivacyPage() {
           </p>
         </section>
       </div>
-    </article>
+      </article>
+      </Section>
+    </div>
   );
 }

@@ -1,20 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import galleryImages from "@/data/gallery.json";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
-import { imageSlots, type ImageSlot } from "@/data/images";
+import {
+  homeEventImages,
+  imageSlots,
+  introImages,
+  recentImages,
+  type GalleryCategory,
+  type ImageSlot,
+} from "@/data/images";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { Button, Card, Pill } from "@/components/ui/Button";
 import { Dialog, Sheet } from "@/components/ui/Dialog";
+import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { Select, type SelectOption } from "@/components/ui/Select";
-import { useReveal } from "@/components/ui/useReveal";
+import { Section } from "@/components/ui/Section";
 
 type EventType = "wedding" | "birthday" | "function";
-type GalleryCategory = "weddings" | "birthdays" | "functions";
 
 const eventOptions: readonly SelectOption[] = [
   { value: "wedding", label: "Wedding" },
@@ -74,18 +80,17 @@ const services = [
 ] as const;
 
 interface HomeExperienceProps {
-  hasMobileHero: boolean;
   availableImages: Record<ImageSlot, boolean>;
-  availableGalleryPhotos: string[];
+  lineArt: {
+    arch: ReactNode;
+    heart: ReactNode;
+  };
 }
 
 export function HomeExperience({
-  hasMobileHero,
   availableImages,
-  availableGalleryPhotos,
+  lineArt,
 }: HomeExperienceProps) {
-  useReveal();
-
   const [eventType, setEventType] = useState<EventType>("wedding");
   const [eventDate, setEventDate] = useState("");
   const [venue, setVenue] = useState("");
@@ -100,8 +105,8 @@ export function HomeExperience({
   const closeEnquiry = useCallback(() => setEnquiryOpen(false), []);
   const closeDetail = useCallback(() => setDetailEvent(null), []);
   const closeLightbox = useCallback(() => setActivePhoto(null), []);
-  const visibleGalleryImages = galleryImages.filter((image) =>
-    availableGalleryPhotos.includes(image.src)
+  const visibleGalleryImages = recentImages.filter(
+    (image) => availableImages[image.imageSlot]
   );
 
   const selectedEvent =
@@ -109,20 +114,7 @@ export function HomeExperience({
     events[0];
   const enquiryEvent = events.find((event) => event.key === eventType) ?? events[0];
   const photo = activePhoto === null ? null : visibleGalleryImages[activePhoto];
-  const introImages = (["weddings", "birthdays", "functions"] as const)
-    .map((category) =>
-      visibleGalleryImages.find((image) => image.category === category)
-    )
-    .filter((image) => image !== undefined);
-  const aboutImage = visibleGalleryImages.find(
-    (image) => image.category === "weddings"
-  );
-  const birthdayImage = visibleGalleryImages.find(
-    (image) => image.category === "birthdays"
-  );
-  const functionImage = visibleGalleryImages.find(
-    (image) => image.category === "functions"
-  );
+  const aboutImage = imageSlots.about;
 
   useEffect(() => {
     if (activePhoto === null) return;
@@ -173,16 +165,17 @@ export function HomeExperience({
 
   return (
     <>
-      <section
-        className="home-hero relative isolate flex min-h-[100dvh] flex-col justify-between overflow-hidden bg-ink text-bg"
+      <Section
+        tone="ink"
+        className="home-hero relative isolate flex min-h-[100dvh] flex-col justify-between overflow-hidden text-bg"
         aria-labelledby="home-heading"
       >
         {availableImages.hero ? (
           <picture className="absolute inset-0 -z-20 block">
-            {hasMobileHero && (
+            {availableImages.heroMobile && (
               <source
                 media="(max-width: 767px)"
-                srcSet={imageSlots.hero.mobileSrc}
+                srcSet={imageSlots.heroMobile.src}
                 type="image/webp"
               />
             )}
@@ -193,15 +186,32 @@ export function HomeExperience({
               height={imageSlots.hero.height}
               priority
               sizes="100vw"
-              className="absolute inset-0 h-full w-full object-cover object-[50%_48%]"
+              style={{
+                objectPosition: `${imageSlots.hero.focalPoint.x}% ${imageSlots.hero.focalPoint.y}%`,
+              }}
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </picture>
         ) : (
-          <div className="absolute inset-0 -z-20 bg-border/50" aria-hidden="true" />
+          <div className="home-hero-fallback absolute inset-0 -z-20" aria-hidden="true">
+            {lineArt.arch}
+          </div>
         )}
         <div className="home-hero-overlay absolute inset-0 -z-10" aria-hidden="true" />
+        <div className="hero-sticker" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <defs>
+              <path id="hero-sticker-circle" d="M50 50m-35 0a35 35 0 1 1 70 0a35 35 0 1 1-70 0" />
+            </defs>
+            <text>
+              <textPath href="#hero-sticker-circle">
+                Plan your event · Plan your event ·
+              </textPath>
+            </text>
+          </svg>
+        </div>
 
-        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pb-10 lg:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pb-10 lg:px-10">
           <div className="max-w-4xl py-10 sm:py-14">
             <h1
               id="home-heading"
@@ -219,7 +229,12 @@ export function HomeExperience({
 
           <div className="home-hero-actions">
             <div className="home-mobile-actions">
-              <Button type="button" className="w-full" onClick={() => setEnquiryOpen(true)}>
+              <Button
+                type="button"
+                variant="lime"
+                className="w-full"
+                onClick={() => setEnquiryOpen(true)}
+              >
                 Plan your event
               </Button>
               {hasSiteValue(site.whatsapp) && (
@@ -227,7 +242,7 @@ export function HomeExperience({
                   href={siteLinks.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-bg/75 px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-bg/75 px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-bg"
                 >
                   WhatsApp
                 </a>
@@ -274,64 +289,70 @@ export function HomeExperience({
                   autoComplete="address-level2"
                 />
               </label>
-              <Button type="submit" className="home-enquiry-submit">
+              <Button
+                type="submit"
+                className="home-enquiry-submit hover:bg-lime hover:text-ink"
+              >
                 Plan it
               </Button>
             </form>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="white"
         className="home-statement-section relative px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-label="Planning approach"
       >
         <div className="mx-auto max-w-7xl lg:pr-44">
           <p
-            className="max-w-5xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-ink"
+            className="max-w-5xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.08] tracking-[-0.035em]"
             data-reveal="up"
           >
             We take care of planning,{" "}
-            <span className="inline-flex -translate-y-1 align-middle">
-              {visibleGalleryImages.slice(0, 3).map((image) => (
-                <span
-                  key={image.src}
-                  className="relative -ml-2 inline-block h-9 w-9 overflow-hidden rounded-full border-2 border-bg first:ml-0 sm:h-12 sm:w-12"
-                  aria-hidden="true"
-                >
-                  <Image
-                    src={image.src}
-                    alt=""
-                    width={image.width}
-                    height={image.height}
-                    sizes="48px"
-                    className="h-full w-full object-cover"
-                  />
-                </span>
-              ))}
-            </span>{" "}
             decor, lighting, flowers, music and coordination, so you can be fully
             present for the moments that matter.
           </p>
         </div>
-        {aboutImage && (
-          <div
-            className="home-floating-photo absolute right-8 top-1/2 hidden h-28 w-20 -translate-y-1/2 overflow-hidden rounded-2xl lg:block"
-            aria-hidden="true"
-          >
-            <Image
-              src={aboutImage.src}
-              alt=""
-              width={aboutImage.width}
-              height={aboutImage.height}
-              sizes="80px"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        )}
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="lime"
+        accent={false}
+        className="home-services-band"
+        aria-label="Services"
+      >
+        <nav className="home-services-links" aria-label="Services">
+          {[
+            { href: "/services/weddings", label: "Weddings" },
+            { href: "/services/birthdays", label: "Birthdays" },
+            { href: "/services/functions", label: "Functions" },
+          ].map((service) => (
+            <Link
+              key={service.href}
+              href={service.href}
+              className="home-services-link"
+            >
+              {service.label}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 12h15m-6-6 6 6-6 6" />
+              </svg>
+            </Link>
+          ))}
+        </nav>
+      </Section>
+
+      <Section
+        tone="soft"
         className="home-intro-section overflow-hidden px-5 py-12 sm:px-8 sm:py-20 lg:px-10"
         aria-label="Event planning services"
       >
@@ -355,102 +376,121 @@ export function HomeExperience({
                 data-reveal={index === 1 ? "right" : index === 2 ? "left" : "up"}
                 data-delay={index + 1}
               >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  width={image.width}
-                  height={image.height}
-                  sizes="(min-width: 1024px) 33vw, 60vw"
-                  className="h-full w-full object-cover"
-                />
-                <Pill className="absolute bottom-3 left-3 border-bg/70 bg-surface/95 text-ink">
+                {availableImages[image.imageSlot] ? (
+                  <PlaceholderImage
+                    src={image.src}
+                    alt={image.alt}
+                    width={image.width}
+                    height={image.height}
+                    available
+                    focalPoint={image.focalPoint}
+                    sizes="(min-width: 1024px) 33vw, 60vw"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="event-card-fallback h-full">
+                    {lineArt.arch}
+                  </div>
+                )}
+                <Pill className="absolute bottom-3 left-3 border-transparent bg-lime text-ink">
                   {captions[image.category]}
                 </Pill>
               </article>
             );
           })}
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="white"
         className="home-events-section px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="event-types-heading"
       >
-        <div className="mx-auto max-w-7xl">
-        <div className="mb-8 max-w-3xl" data-reveal="up">
-          <h2
-            id="event-types-heading"
-            className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
-          >
-            Weddings, birthdays and functions.
-          </h2>
-        </div>
-        <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
-          {events.map((event) => {
-            const image = visibleGalleryImages.find(
-              (candidate) => candidate.category === event.category
-            );
-            if (!image) return null;
-
-            return (
-            <Card
-              key={event.key}
-              className="w-[86%] shrink-0 snap-center sm:w-auto"
-            >
-              <button
-                type="button"
-                onClick={() => openDetail(event.key)}
-                className="group block w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                aria-label={`More about ${event.title}`}
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8 max-w-3xl" data-reveal="up">
+              <h2
+                id="event-types-heading"
+                className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
               >
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    width={image.width}
-                    height={image.height}
-                    sizes="(min-width: 1024px) 33vw, 86vw"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                  />
-                </div>
-                <span className="flex min-h-14 items-center justify-between gap-4 px-5 text-2xl font-semibold text-ink">
-                  {event.title}
-                  <svg
-                    aria-hidden="true"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
+                Weddings, birthdays and{" "}
+                <span className="lime-highlight">functions.</span>
+              </h2>
+            </div>
+            <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+              {events.map((event) => {
+                const image = homeEventImages.find(
+                  (candidate) => candidate.category === event.category
+                );
+                if (!image) return null;
+
+                return (
+                  <Card
+                    key={event.key}
+                    className="event-card w-[86%] shrink-0 snap-center sm:w-auto"
                   >
-                    <path d="M5 12h14m-6-6 6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </Card>
-            );
-          })}
-        </div>
-        </div>
-      </section>
+                    <button
+                      type="button"
+                      onClick={() => openDetail(event.key)}
+                      className="group block w-full text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                      aria-label={`More about ${event.title}`}
+                    >
+                      <div className="relative aspect-[4/5] overflow-hidden">
+                        {availableImages[image.imageSlot] ? (
+                          <PlaceholderImage
+                            src={image.src}
+                            alt={image.alt}
+                            width={image.width}
+                            height={image.height}
+                            available
+                            focalPoint={image.focalPoint}
+                            sizes="(min-width: 1024px) 33vw, 86vw"
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <div className="event-card-fallback">
+                            {lineArt.arch}
+                          </div>
+                        )}
+                      </div>
+                      <span className="flex min-h-14 items-center justify-between gap-4 px-5 text-2xl font-semibold text-ink">
+                        {event.title}
+                        <svg
+                          aria-hidden="true"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        >
+                          <path d="M5 12h14m-6-6 6 6-6 6" />
+                        </svg>
+                      </span>
+                    </button>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+      </Section>
 
       {visibleGalleryImages.length > 0 && (
-        <section
+        <Section
+          tone="soft"
           className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
           aria-labelledby="recent-work-heading"
         >
           <div className="mb-8 flex items-end justify-between gap-5">
             <h2
               id="recent-work-heading"
-              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
               data-reveal="up"
             >
-              Our Work
+              Our <span className="lime-highlight">Work</span>
             </h2>
             <Link
               href="/gallery"
-              className="inline-flex min-h-11 shrink-0 items-center text-base font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex min-h-11 shrink-0 items-center text-base font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               See all
             </Link>
@@ -461,7 +501,7 @@ export function HomeExperience({
                 key={image.src}
                 type="button"
                 onClick={() => setActivePhoto(index)}
-                className={`group relative block min-w-0 overflow-hidden rounded-[24px] border border-border bg-border/50 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`group relative block min-w-0 overflow-hidden rounded-[24px] border border-border bg-border/50 text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                   index === 0 || index === 5
                     ? "col-span-2 aspect-[16/10] sm:col-span-2"
                     : "aspect-[4/5]"
@@ -470,25 +510,32 @@ export function HomeExperience({
                 data-reveal={index % 2 === 0 ? "left" : "right"}
                 data-delay={(index % 3) + 1}
               >
-                <Image
+                <PlaceholderImage
                   src={image.src}
                   alt={image.alt}
                   width={image.width}
                   height={image.height}
+                  available={availableImages[image.imageSlot]}
+                  focalPoint={image.focalPoint}
                   sizes="(min-width: 1024px) 33vw, 50vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
-                <span className="absolute inset-x-0 bottom-0 bg-ink/75 px-4 py-3 text-left text-sm leading-snug text-bg sm:text-base">
-                  {image.alt}
-                </span>
+                <Pill className="absolute bottom-3 left-3 border-transparent bg-lime text-ink">
+                  {image.category === "weddings"
+                    ? "Weddings"
+                    : image.category === "birthdays"
+                      ? "Birthdays"
+                      : "Functions"}
+                </Pill>
               </button>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
-      <section
-        className="bg-ink px-5 py-16 text-bg sm:px-8 sm:py-24 lg:px-10"
+      <Section
+        tone="red"
+        className="home-services-section px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="services-heading"
       >
         <div className="mx-auto max-w-7xl">
@@ -497,9 +544,12 @@ export function HomeExperience({
             className="mb-8 max-w-2xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-bg"
             data-reveal="up"
           >
-            What We Handle
+            What We{" "}
+            <span className="lime-highlight">
+              Handle
+            </span>
           </h2>
-          <div className="border-t border-bg/25">
+          <div className="border-t border-ink">
             {services.map((service) => {
               const expanded = expandedServices.includes(service.title);
               const panelId = `service-${service.title
@@ -509,7 +559,7 @@ export function HomeExperience({
               return (
                 <article
                   key={service.title}
-                  className="border-b border-bg/25"
+                  className="border-b border-ink"
                   data-reveal="up"
                 >
                   <h3>
@@ -518,7 +568,7 @@ export function HomeExperience({
                       aria-expanded={expanded}
                       aria-controls={panelId}
                       onClick={() => toggleService(service.title)}
-                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-semibold text-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-2xl"
+                      className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-xl font-bold text-bg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-2xl"
                     >
                       {service.title}
                       <span aria-hidden="true" className="text-2xl font-normal">
@@ -534,7 +584,7 @@ export function HomeExperience({
                       expanded ? "is-expanded" : ""
                     }`}
                   >
-                    <p className="max-w-2xl pb-5 text-base leading-relaxed text-bg/80">
+                    <p className="max-w-2xl pb-5 text-base leading-relaxed text-ink">
                       {service.description}
                     </p>
                   </div>
@@ -543,78 +593,69 @@ export function HomeExperience({
             })}
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="white"
         className="home-about-section px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="about-heading"
       >
         <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-        {aboutImage && (
-          <div className="relative">
-            <div
-              className="relative aspect-[3/2] overflow-hidden rounded-[26px]"
-              data-reveal="left"
-            >
-            <Image
-              src={aboutImage.src}
-              alt={aboutImage.alt}
-              width={aboutImage.width}
-              height={aboutImage.height}
-              sizes="(min-width: 1024px) 45vw, 100vw"
-              className="h-full w-full object-cover"
-            />
-            </div>
-            {birthdayImage && (
-              <div
-                className="home-floating-photo absolute -bottom-3 -right-3 z-10 hidden h-28 w-20 overflow-hidden rounded-2xl border-4 border-bg sm:block"
-                aria-hidden="true"
-              >
-                <Image
-                  src={birthdayImage.src}
-                  alt=""
-                  width={birthdayImage.width}
-                  height={birthdayImage.height}
-                  sizes="80px"
-                  className="h-full w-full object-cover"
-                />
+          <div
+            className="relative aspect-[3/2] overflow-hidden rounded-[26px]"
+            data-reveal="left"
+          >
+            {availableImages.about ? (
+              <PlaceholderImage
+                src={aboutImage.src}
+                alt={aboutImage.alt}
+                width={aboutImage.width}
+                height={aboutImage.height}
+                available
+                focalPoint={aboutImage.focalPoint}
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="event-card-fallback h-full">
+                {lineArt.arch}
+                <span>About Shadi Sutra</span>
               </div>
             )}
           </div>
-        )}
-        <div data-reveal="right">
-          <h2
-            id="about-heading"
-            className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
-          >
-            About Shadi Sutra
-          </h2>
-          <div className="mt-5 max-w-xl space-y-4 text-base leading-relaxed text-ink-muted sm:text-lg">
-            <p>
-              Shadi Sutra is an event management company for weddings, birthday
-              parties and family functions.
-            </p>
-            <p>
-              We take care of planning, decor, lighting, flowers, music and
-              coordination.
-            </p>
-            <p>
-              You can be fully present for the moments that matter.
-            </p>
+          <div data-reveal="right">
+            <h2
+              id="about-heading"
+              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
+            >
+              About <span className="lime-highlight">Shadi Sutra</span>
+            </h2>
+            <div className="mt-5 max-w-xl space-y-4 text-base leading-relaxed text-ink-muted sm:text-lg">
+              <p>
+                Shadi Sutra is an event management company for weddings, birthday
+                parties and family functions.
+              </p>
+              <p>
+                We take care of planning, decor, lighting, flowers, music and
+                coordination.
+              </p>
+              <p>You can be fully present for the moments that matter.</p>
+            </div>
           </div>
         </div>
-        </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
+        tone="ink"
         id="home-contact"
         className="home-contact-section relative px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="contact-heading"
       >
-        <div className="mx-auto max-w-4xl lg:pr-32">
+        <div className="home-contact-art">{lineArt.heart}</div>
+        <div className="relative z-10 mx-auto max-w-4xl lg:pr-32">
           <h2
             id="contact-heading"
-            className="mb-6 text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+            className="mb-6 text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
           >
             Let&apos;s plan your celebration
           </h2>
@@ -624,7 +665,7 @@ export function HomeExperience({
                 href={siteLinks.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-bg px-5 py-3 text-base font-semibold text-wine transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-lime px-5 py-3 text-base font-semibold text-ink transition-colors hover:bg-brand focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 WhatsApp
               </a>
@@ -632,33 +673,18 @@ export function HomeExperience({
             {hasSiteValue(site.phone) && (
               <a
                 href={siteLinks.phoneUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-bg/70 px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-bg/70 px-5 py-3 text-base font-semibold text-bg transition-colors hover:bg-bg/10 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 Call
               </a>
             )}
           </div>
           <ContactForm key={eventType} initialService={eventType} />
-          <p className="mt-6 text-base leading-relaxed text-ink-muted">
+          <p className="mt-6 text-base leading-relaxed text-bg">
             You can be fully present for the moments that matter.
           </p>
         </div>
-        {functionImage && (
-          <div
-            className="home-floating-photo absolute bottom-12 right-8 hidden h-36 w-24 overflow-hidden rounded-2xl opacity-70 lg:block"
-            aria-hidden="true"
-          >
-            <Image
-              src={functionImage.src}
-              alt=""
-              width={functionImage.width}
-              height={functionImage.height}
-              sizes="96px"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        )}
-      </section>
+      </Section>
 
       <Sheet
         open={enquiryOpen}
@@ -697,7 +723,7 @@ export function HomeExperience({
           <Link
             href={buildContactHref(eventType, eventDate, venue)}
             onClick={closeEnquiry}
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Continue to enquiry form
           </Link>
@@ -742,11 +768,13 @@ export function HomeExperience({
             }}
           >
             <div className="relative flex min-h-[min(60dvh,34rem)] items-center justify-center overflow-hidden rounded-2xl bg-ink">
-              <Image
+              <PlaceholderImage
                 src={photo.src}
                 alt={photo.alt}
                 width={photo.width}
                 height={photo.height}
+                available={availableImages[photo.imageSlot]}
+                focalPoint={photo.focalPoint}
                 sizes="(min-width: 1024px) 80vw, 100vw"
                 className="max-h-[65dvh] w-full object-contain"
               />
@@ -755,7 +783,7 @@ export function HomeExperience({
                   <button
                     type="button"
                     onClick={() => changePhoto(-1)}
-                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Previous photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -765,7 +793,7 @@ export function HomeExperience({
                   <button
                     type="button"
                     onClick={() => changePhoto(1)}
-                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     aria-label="Next photo"
                   >
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

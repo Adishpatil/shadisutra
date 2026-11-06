@@ -5,9 +5,17 @@ import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { StickyContactButtons } from "@/components/layout/StickyContactButtons";
+import { useReveal } from "@/components/ui/useReveal";
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
+export function SiteShell({
+  children,
+  currentYear,
+}: {
+  children: React.ReactNode;
+  currentYear: number;
+}) {
   const pathname = usePathname();
+  useReveal(pathname);
   useEffect(() => {
     let previousFocus: HTMLElement | null = null;
     let activeDialog: HTMLElement | null = null;
@@ -98,7 +106,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         <StickyContactButtons />
       </main>
 
-      <Footer />
+      <Footer currentYear={currentYear} />
     </>
   );
 }

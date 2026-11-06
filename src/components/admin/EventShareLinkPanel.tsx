@@ -197,11 +197,11 @@ export function EventShareLinkPanel({
             required
             value={expirationDate}
             onChange={(event) => setExpirationDate(event.target.value)}
-            className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+            className="min-h-11 w-full rounded-radius-md border border-border bg-bg px-3 text-base text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
           />
         </div>
         <TimePicker name="expiryTime" label="Expiry time (IST)" defaultValue="23:59" />
-        <button type="submit" disabled={pending || !expirationDate} className="min-h-11 rounded-radius-md bg-accent px-5 py-2.5 text-base font-semibold text-accent-ink hover:bg-accent-hover disabled:opacity-50">
+        <button type="submit" disabled={pending || !expirationDate} className="min-h-11 rounded-radius-md bg-brand-strong px-5 py-2.5 text-base font-semibold text-bg hover:bg-brand hover:text-ink disabled:opacity-50">
           {pending ? "Saving..." : shareLink?.token ? "Regenerate Guest link" : "Generate Guest link"}
         </button>
       </form>
@@ -262,7 +262,7 @@ export function EventShareLinkPanel({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
+                className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-brand-strong"
               >
                 Copy Guest link
               </button>
@@ -270,7 +270,7 @@ export function EventShareLinkPanel({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
+                className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-brand-strong"
               >
                 Open link
               </a>
@@ -278,7 +278,7 @@ export function EventShareLinkPanel({
                 <a
                   href={qrCode}
                   download={`event-${eventId}-guest-qr.png`}
-                  className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-accent"
+                  className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-brand-strong"
                 >
                   Download Guest QR PNG
                 </a>
@@ -287,7 +287,7 @@ export function EventShareLinkPanel({
                 type="button"
                 onClick={handleRevoke}
                 disabled={pending}
-                className="min-h-11 rounded-full border border-danger/40 px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
+                className="min-h-11 rounded-full border border-danger px-4 text-sm font-semibold text-danger hover:bg-danger-light disabled:opacity-50"
               >
                 Revoke Guest link
               </button>
@@ -310,7 +310,7 @@ export function EventShareLinkPanel({
         </div>
       )}
       {qrUsesLocalOrigin && (
-        <p role="alert" className="rounded-xl border border-warning/30 bg-warning-light p-3 text-sm text-warning">
+        <p role="alert" className="rounded-xl border border-warning bg-warning-light p-3 text-sm text-warning">
           This QR uses a local address and won&apos;t open on another device. Set the public site URL in deployment settings, then reload this page.
         </p>
       )}

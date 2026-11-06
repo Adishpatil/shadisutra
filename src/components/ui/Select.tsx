@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import type { CSSProperties, KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 
 export interface SelectOption {
   label: string;
@@ -37,26 +38,72 @@ export function Select({
   const controlId = id ?? generatedId;
   const listId = `${controlId}-options`;
   const rootRef = useRef<HTMLDivElement>(null);
+  const controlRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [open, setOpen] = useState(false);
+  const [popupStyle, setPopupStyle] = useState<CSSProperties | null>(null);
   const [activeIndex, setActiveIndex] = useState(() =>
     Math.max(0, options.findIndex((option) => option.value === value))
   );
   const selected = options.find((option) => option.value === value);
+  const close = useCallback(() => {
+    setOpen(false);
+    setPopupStyle(null);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
       if (
         event.target instanceof Node &&
-        !rootRef.current?.contains(event.target)
+        !rootRef.current?.contains(event.target) &&
+        !popupRef.current?.contains(event.target)
       ) {
-        setOpen(false);
+        close();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
+  }, [close, open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const positionPopup = () => {
+      const control = controlRef.current;
+      if (!control) return;
+      const rect = control.getBoundingClientRect();
+      const gap = 8;
+      const maxHeight = 288;
+      const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap);
+      const spaceAbove = Math.max(0, rect.top - gap);
+      const openAbove = spaceBelow < Math.min(maxHeight, options.length * 44 + 12) &&
+        spaceAbove > spaceBelow;
+      const availableHeight = Math.min(maxHeight, openAbove ? spaceAbove : spaceBelow);
+      const width = Math.min(rect.width, window.innerWidth - 16);
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+
+      setPopupStyle({
+        position: "fixed",
+        left,
+        top: openAbove
+          ? Math.max(8, rect.top - gap - availableHeight)
+          : rect.bottom + gap,
+        width,
+        maxHeight: availableHeight,
+        zIndex: 110,
+      });
+    };
+
+    positionPopup();
+    window.addEventListener("resize", positionPopup);
+    window.addEventListener("scroll", positionPopup, true);
+    return () => {
+      window.removeEventListener("resize", positionPopup);
+      window.removeEventListener("scroll", positionPopup, true);
+    };
+  }, [open, options.length]);
 
   useEffect(() => {
     if (open) optionRefs.current[activeIndex]?.focus();
@@ -67,7 +114,7 @@ export function Select({
     if (!option) return;
     onChange(option.value);
     setActiveIndex(index);
-    setOpen(false);
+    close();
     rootRef.current?.querySelector("button")?.focus();
   };
 
@@ -76,13 +123,16 @@ export function Select({
       event.preventDefault();
       setActiveIndex(Math.max(0, options.findIndex((item) => item.value === value)));
       setOpen(true);
+    } else if (event.key === "Escape" && open) {
+      event.preventDefault();
+      close();
     }
   };
 
   const onOptionKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
-      setOpen(false);
+      close();
       rootRef.current?.querySelector("button")?.focus();
     } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
@@ -95,7 +145,17 @@ export function Select({
       event.preventDefault();
       choose(activeIndex);
     } else if (event.key === "Tab") {
-      setOpen(false);
+      event.preventDefault();
+      close();
+      const control = controlRef.current;
+      if (!control) return;
+      const focusable = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.getClientRects().length > 0);
+      const currentIndex = focusable.indexOf(control);
+      focusable[currentIndex + (event.shiftKey ? -1 : 1)]?.focus();
     }
   };
 
@@ -111,6 +171,7 @@ export function Select({
       )}
       {name && <input type="hidden" name={name} value={value} />}
       <button
+        ref={controlRef}
         id={controlId}
         type="button"
         role="combobox"
@@ -120,12 +181,18 @@ export function Select({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
+        aria-activedescendant={
+          open && options[activeIndex]
+            ? `${listId}-${options[activeIndex].value}`
+            : undefined
+        }
         onClick={() => {
           setActiveIndex(Math.max(0, options.findIndex((item) => item.value === value)));
-          setOpen((state) => !state);
+          if (open) close();
+          else setOpen(true);
         }}
         onKeyDown={onControlKeyDown}
-        className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border bg-surface px-4 py-2.5 text-left text-base text-ink shadow-[var(--shadow-sm)] transition-colors hover:border-ink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border bg-surface px-4 py-2.5 text-left text-base text-ink shadow-[var(--shadow-sm)] transition-colors hover:border-ink focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink ${
           invalid ? "border-danger" : "border-border-strong"
         }`}
       >
@@ -141,36 +208,41 @@ export function Select({
           <path d="m4 7 6 6 6-6" />
         </svg>
       </button>
-      {open && (
-        <div
-          id={listId}
-          role="listbox"
-          aria-label={label ?? ariaLabel}
-          onKeyDown={onOptionKeyDown}
-          className="select-popup absolute inset-x-0 top-[calc(100%+0.5rem)] z-[80] max-h-[min(18rem,calc(100dvh-8rem))] overflow-y-auto rounded-xl border border-border bg-surface p-1.5 text-ink shadow-[var(--shadow-lg)]"
-        >
-          {options.map((option, index) => (
-            <div
-              key={option.value}
-              ref={(element) => {
-                optionRefs.current[index] = element;
-              }}
-              role="option"
-              aria-selected={value === option.value}
-              tabIndex={-1}
-              onClick={() => choose(index)}
-              className="flex min-h-11 cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-base text-ink outline-none hover:bg-bg focus-visible:bg-bg"
-            >
-              {option.label}
-              {value === option.value && (
-                <span aria-hidden="true" className="text-sm text-ink-muted">
-                  Selected
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {open && popupStyle && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={popupRef}
+            id={listId}
+            role="listbox"
+            aria-label={label ?? ariaLabel}
+            onKeyDown={onOptionKeyDown}
+            style={popupStyle}
+            className="select-popup overflow-y-auto rounded-xl border border-border-strong bg-surface p-1.5 text-ink shadow-[var(--shadow-lg)]"
+          >
+            {options.map((option, index) => (
+              <div
+                key={option.value}
+                id={`${listId}-${option.value}`}
+                ref={(element) => {
+                  optionRefs.current[index] = element;
+                }}
+                role="option"
+                aria-selected={value === option.value}
+                tabIndex={-1}
+                onClick={() => choose(index)}
+                className="flex min-h-11 cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-base text-ink outline-none hover:bg-brand-soft focus-visible:bg-brand-soft"
+              >
+                {option.label}
+                {value === option.value && (
+                  <span aria-hidden="true" className="text-sm text-ink-muted">
+                    Selected
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

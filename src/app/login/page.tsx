@@ -5,6 +5,8 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { site } from "@/config/site";
 import { loginAction, verifyMfaAction, type LoginActionResult } from "./actions";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Section } from "@/components/ui/Section";
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState<LoginActionResult | null, FormData>(
@@ -37,17 +39,24 @@ export default function LoginPage() {
     <a href="#main-content" className="skip-to-content">
       Skip to content
     </a>
-    <main id="main-content" className="flex min-h-[100dvh] items-center justify-center bg-bg px-5 py-24 sm:px-8">
-      <div className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-10">
+    <main id="main-content">
+      <Section
+        tone="ink"
+        className="relative flex min-h-[100dvh] items-center justify-center px-5 py-24 sm:px-8"
+      >
+      <div data-tone-override="white" className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-10">
         {/* Brand header */}
         <div className="text-center mb-8">
           <Link
             href="/"
             className="inline-flex min-h-11 items-center font-heading text-2xl font-semibold tracking-tight text-ink"
           >
-            {site.name}
+            <span className="flex items-center gap-3">
+              <BrandLogo />
+              {site.name}
+            </span>
           </Link>
-          <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold text-ink">
+          <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold">
             {state?.requiresEnrollment
               ? "Set up authenticator"
               : state?.requiresMfa
@@ -68,7 +77,7 @@ export default function LoginPage() {
           <div
             role="alert"
             id="login-error"
-            className="mb-6 p-4 rounded-radius-md bg-danger-light border border-danger/30 text-danger text-sm font-medium"
+            className="mb-6 p-4 rounded-radius-md bg-danger-light border border-danger text-danger text-sm font-medium"
           >
             {mfaError || state?.error}
           </div>
@@ -108,14 +117,14 @@ export default function LoginPage() {
                 aria-describedby={mfaError || state?.error ? "login-error" : undefined}
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
-                className="w-full text-center tracking-widest text-xl font-mono px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full text-center tracking-widest text-xl font-mono px-4 py-3 rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
               />
             </div>
 
             <button
               type="submit"
               disabled={mfaPending || mfaCode.length !== 6}
-              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50"
             >
               {mfaPending
                 ? "Verifying..."
@@ -147,7 +156,7 @@ export default function LoginPage() {
                 autoComplete="username"
                 placeholder="Administrator username"
                 aria-describedby={state?.error ? "login-error" : undefined}
-                className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink focus:outline-none focus:ring-[3px] focus:ring-ink"
               />
             </div>
 
@@ -168,7 +177,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   placeholder="••••••••••••"
                   aria-describedby={state?.error ? "login-error" : undefined}
-                  className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-4 py-3 text-base rounded-radius-md border border-border bg-bg text-ink pr-14 focus:outline-none focus:ring-[3px] focus:ring-ink"
                 />
                 <button
                   type="button"
@@ -185,7 +194,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+              className="w-full mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 py-3.5 font-semibold text-bg transition-colors hover:bg-ink/85 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50"
             >
               {isPending ? "Signing in..." : "Sign In"}
             </button>
@@ -199,6 +208,7 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+      </Section>
     </main>
     </>
   );
