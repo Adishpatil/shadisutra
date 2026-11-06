@@ -4,6 +4,7 @@ export const graphics = {
     alt: "",
     size: "large",
     rotation: "-12deg",
+    fallback: true,
   },
   couple: {
     path: "/images/graphics/couple.svg",
@@ -22,6 +23,7 @@ export const graphics = {
     alt: "",
     size: "medium",
     rotation: "0deg",
+    fallback: true,
   },
   doves: {
     path: "/images/graphics/doves.svg",

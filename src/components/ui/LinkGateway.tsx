@@ -11,7 +11,7 @@ export function LinkGateway() {
       className="link-gateway px-5 py-12 text-bg sm:px-8 sm:py-16"
     >
       <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-        <BrandLogo dark />
+        <BrandLogo />
         <h2
           id="shadi-sutra-gateway"
           className="mt-6 font-display-serif text-2xl font-medium italic text-bg sm:text-3xl"

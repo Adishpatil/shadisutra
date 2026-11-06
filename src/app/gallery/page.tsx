@@ -26,7 +26,7 @@ export default function GalleryPage() {
         <div className="mx-auto max-w-7xl">
           <h1
             id="gallery-heading"
-            className="break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink"
+            className="break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em]"
           >
             <span className="lime-highlight">Our Work</span>
           </h1>

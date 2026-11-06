@@ -35,9 +35,12 @@ function InvalidLink() {
         </div>
         <Section tone="red" className="px-4 pb-12 sm:px-8 sm:pb-16">
           <div className="invitation-card-shell mx-auto max-w-xl">
-            <article className="ticket-card invitation-card">
+            <article
+              data-tone-override="white"
+              className="ticket-card invitation-card"
+            >
               <CardFrame className="min-h-72 px-6 pb-8 pt-24 text-center sm:px-12">
-                <h1 className="font-heading text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+                <h1 className="font-heading text-3xl font-semibold leading-tight sm:text-4xl">
                   This invitation is unavailable
                 </h1>
                 <p className="mt-4 text-base leading-relaxed text-ink-muted">
@@ -90,12 +93,15 @@ export default async function SharedEventPage({
 
         <Section tone="red" className="invitation-stage px-4 pb-10 sm:px-6 sm:pb-14">
           <div className="invitation-card-shell mx-auto w-full max-w-3xl">
-            <article className="ticket-card invitation-card">
+            <article
+              data-tone-override="white"
+              className="ticket-card invitation-card"
+            >
               <CardFrame className="min-h-80 px-5 pb-10 pt-28 text-center sm:min-h-96 sm:px-16 sm:pt-32">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-strong">
                   Event invitation
                 </p>
-                <h1 className="mt-3 break-words font-heading text-[clamp(2.5rem,9vw,5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink">
+                <h1 className="mt-3 break-words font-heading text-[clamp(2.5rem,9vw,5rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
                   {event.name}
                 </h1>
                 <div className="mt-5 space-y-1 font-display-serif text-base italic leading-relaxed text-ink-muted sm:text-lg">

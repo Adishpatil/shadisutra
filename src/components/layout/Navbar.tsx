@@ -139,7 +139,7 @@ export function Navbar() {
           className="flex min-h-11 items-center gap-2 rounded-xl font-heading text-xl font-bold tracking-tight focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink"
           aria-label={`${site.name} – Home`}
         >
-          <BrandLogo dark={transparentOverHero} />
+          <BrandLogo badge={!transparentOverHero} />
         </Link>
 
         {/* Desktop nav */}

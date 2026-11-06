@@ -44,7 +44,7 @@ export default function LoginPage() {
         tone="ink"
         className="relative flex min-h-[100dvh] items-center justify-center px-5 py-24 sm:px-8"
       >
-      <div className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-10">
+      <div data-tone-override="white" className="w-full max-w-md rounded-[24px] border border-border bg-surface p-6 shadow-[var(--shadow-sm)] sm:p-10">
         {/* Brand header */}
         <div className="text-center mb-8">
           <Link
@@ -56,7 +56,7 @@ export default function LoginPage() {
               {site.name}
             </span>
           </Link>
-          <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold text-ink">
+          <h1 className="mt-3 text-xl sm:text-2xl font-heading font-semibold">
             {state?.requiresEnrollment
               ? "Set up authenticator"
               : state?.requiresMfa

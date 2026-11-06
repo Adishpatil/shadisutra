@@ -9,7 +9,7 @@ export default function NotFound() {
         className="mx-auto flex min-h-[70dvh] max-w-7xl flex-col items-start justify-center px-5 py-16 sm:px-8"
         aria-labelledby="not-found-heading"
       >
-        <h1 id="not-found-heading" className="text-[clamp(2.5rem,7vw,4.5rem)] font-semibold leading-tight tracking-[-0.04em] text-ink">
+        <h1 id="not-found-heading" className="text-[clamp(2.5rem,7vw,4.5rem)] font-semibold leading-tight tracking-[-0.04em]">
           Page not found
         </h1>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-muted">

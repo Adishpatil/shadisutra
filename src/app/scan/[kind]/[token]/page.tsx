@@ -31,12 +31,15 @@ export default async function ScanLandingPage({
         tone="red"
         className="flex min-h-[70dvh] items-center justify-center px-5 py-10"
       >
-      <article className="w-full max-w-lg rounded-[28px] border border-border bg-surface p-6 shadow-[var(--shadow-md)] sm:p-10">
+      <article
+        data-tone-override="white"
+        className="w-full max-w-lg rounded-[28px] border border-border bg-surface p-6 shadow-[var(--shadow-md)] sm:p-10"
+      >
         <div className="mb-8"><BrandLogo /></div>
         <p className="text-sm font-medium text-ink-muted">
           {kind === "client" ? "Private client link" : "Guest event link"}
         </p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+        <h1 className="mt-2 font-heading text-3xl font-semibold leading-tight sm:text-4xl">
           {isValid ? "Your event link is ready" : "This link is not available"}
         </h1>
         <p className="mt-3 text-base leading-relaxed text-ink-muted">

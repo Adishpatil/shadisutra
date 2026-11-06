@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { site, siteLinks, hasSiteValue } from "@/config/site";
 import { pageMetadata } from "@/config/seo";
 import { ContactForm } from "@/components/sections/ContactForm";
-import { LineArt } from "@/components/ui/LineArt";
 import { Section } from "@/components/ui/Section";
 
 export const metadata: Metadata = pageMetadata(
@@ -28,7 +27,7 @@ export default async function ContactPage({
         <div className="mx-auto max-w-7xl">
           <h1
             id="contact-heading"
-            className="max-w-[16ch] break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink"
+            className="max-w-[16ch] break-words text-[clamp(2.75rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em]"
           >
             Let&apos;s plan your <span className="lime-highlight">celebration</span>
           </h1>
@@ -43,8 +42,7 @@ export default async function ContactPage({
         className="relative overflow-hidden px-5 py-12 sm:px-8 sm:py-16 lg:px-10"
         aria-label="Contact details and enquiry form"
       >
-        <LineArt id="heart-line" tone="white" className="contact-line-art" />
-        <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="relative z-10 mx-auto grid max-w-7xl gap-10 lg:grid-cols-12 lg:gap-14">
         <div className="space-y-5 lg:col-span-5">
           {hasSiteValue(site.whatsapp) && (
             <a
@@ -90,7 +88,7 @@ export default async function ContactPage({
           )}
         </div>
         <div className="lg:col-span-7">
-          <h2 className="mb-5 text-2xl font-semibold text-bg">Send an enquiry</h2>
+          <h2 className="mb-5 text-2xl font-semibold">Send an enquiry</h2>
           <ContactForm initialService={service || "wedding"} />
         </div>
         </div>

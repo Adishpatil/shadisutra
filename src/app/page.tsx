@@ -15,9 +15,7 @@ export default function HomePage() {
       availableImages={getImageAvailability()}
       lineArt={{
         arch: <LineArt id="arch" tone="brand" />,
-        divider: <LineArt id="divider-line" tone="brand" />,
         heart: <LineArt id="heart-line" tone="lime" />,
-        sun: <LineArt id="sun-lines" tone="brand" size="small" />,
       }}
     />
   );

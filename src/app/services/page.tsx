@@ -75,11 +75,10 @@ export default function ServicesPage() {
         className="relative overflow-hidden px-5 pb-14 pt-32 sm:px-8 sm:pb-20 lg:px-10"
         aria-labelledby="services-heading"
       >
-        <LineArt id="rings" tone="brand" className="services-rings-art" />
         <div className="mx-auto max-w-7xl">
           <h1
             id="services-heading"
-            className="max-w-[12ch] break-words text-[clamp(3rem,9vw,7rem)] font-semibold leading-[0.92] tracking-[-0.045em] text-ink"
+            className="max-w-[12ch] break-words text-[clamp(3rem,9vw,7rem)] font-semibold leading-[0.92] tracking-[-0.045em]"
           >
             <span className="lime-highlight">Services</span>
           </h1>
@@ -105,19 +104,13 @@ export default function ServicesPage() {
               <div className="lg:col-span-3">
                 <h2
                   id={`service-${service.slug}-heading`}
-                  className={`text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight ${
-                    onDark ? "text-bg" : "text-ink"
-                  }`}
+                  className="text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight"
                 >
                   {service.title}
                 </h2>
               </div>
               <div className="lg:col-span-5">
-                <p
-                  className={`max-w-xl text-base leading-relaxed sm:text-lg ${
-                    service.tone === "ink" ? "text-bg" : "text-ink"
-                  }`}
-                >
+                <p className="max-w-xl text-base leading-relaxed sm:text-lg">
                   {service.description}
                 </p>
                 {service.highlights.length > 0 && (
@@ -140,9 +133,9 @@ export default function ServicesPage() {
                     </summary>
                     <ul
                       className={`list-disc space-y-2 pb-4 pl-5 text-base leading-relaxed ${
-                        service.tone === "ink" ? "text-bg marker:text-lime" :
-                        service.tone === "red" ? "text-ink marker:text-lime" :
-                        "text-ink marker:text-brand-strong"
+                        service.tone === "red" || service.tone === "ink"
+                          ? "marker:text-lime"
+                          : "marker:text-brand-strong"
                       }`}
                     >
                       {service.highlights.map((item) => (

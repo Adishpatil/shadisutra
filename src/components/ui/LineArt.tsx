@@ -1,5 +1,6 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
+"use client";
+
+import { useEffect, useState } from "react";
 import type { GraphicId } from "@/data/graphics";
 import { graphics } from "@/data/graphics";
 
@@ -19,9 +20,19 @@ export function LineArt({
   className = "",
 }: LineArtProps) {
   const graphic = graphics[id];
-  const present = existsSync(
-    path.join(process.cwd(), "public", graphic.path.replace(/^\/+/, ""))
-  );
+  const [present, setPresent] = useState(false);
+
+  useEffect(() => {
+    const image = new window.Image();
+    image.onload = () => setPresent(true);
+    image.onerror = () => setPresent(false);
+    image.src = graphic.path;
+
+    return () => {
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, [graphic.path]);
 
   if (!present && !("fallback" in graphic && graphic.fallback)) return null;
 
@@ -58,6 +69,18 @@ export function LineArt({
       fill="none"
       focusable="false"
     >
+      {id === "rings" && (
+        <>
+          <circle cx="92" cy="120" r="52" />
+          <circle cx="148" cy="120" r="52" />
+        </>
+      )}
+      {id === "monogram-frame" && (
+        <>
+          <circle cx="120" cy="120" r="96" />
+          <circle cx="120" cy="120" r="82" />
+        </>
+      )}
       {id === "arch" && (
         <>
           <path d="M22 220V130a98 98 0 0 1 196 0v90" />

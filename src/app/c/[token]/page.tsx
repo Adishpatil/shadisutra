@@ -45,12 +45,15 @@ function ClientGate({ token, pinRequired, invalid }: { token: string; pinRequire
         </header>
         <Section tone="red" className="px-4 pb-12 sm:px-8 sm:pb-16">
           <div className="invitation-card-shell mx-auto max-w-xl">
-            <article className="ticket-card invitation-card">
+            <article
+              data-tone-override="white"
+              className="ticket-card invitation-card"
+            >
               <CardFrame className="min-h-72 px-6 pb-8 pt-24 text-center sm:px-12">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-strong">
                   Private client invitation
                 </p>
-                <h1 className="mt-2 font-heading text-3xl font-semibold text-ink sm:text-4xl">
+                <h1 className="mt-2 font-heading text-3xl font-semibold sm:text-4xl">
                   Your event details
                 </h1>
                 <p className="mt-4 text-base leading-relaxed text-ink-muted">
@@ -65,6 +68,7 @@ function ClientGate({ token, pinRequired, invalid }: { token: string; pinRequire
             <form
               method="post"
               action={`/api/c/${token}/session`}
+              data-tone-override="white"
               className="mx-auto mt-5 w-full max-w-xl rounded-2xl border border-border bg-surface p-5 sm:p-6"
             >
               {invalid && (
@@ -144,12 +148,15 @@ export default async function ClientEventPage({
       </header>
       <Section tone="red" className="invitation-stage px-4 pb-10 sm:px-6 sm:pb-14">
         <div className="invitation-card-shell mx-auto w-full max-w-3xl">
-          <article className="ticket-card invitation-card">
+          <article
+            data-tone-override="white"
+            className="ticket-card invitation-card"
+          >
             <CardFrame className="min-h-80 px-5 pb-10 pt-28 text-center sm:min-h-96 sm:px-16 sm:pt-32">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-strong">
                 Private client event
               </p>
-              <h1 className="mt-3 break-words font-heading text-[clamp(2.5rem,9vw,5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink">
+              <h1 className="mt-3 break-words font-heading text-[clamp(2.5rem,9vw,5rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
                 {view.event.name}
               </h1>
               <div className="mt-5 space-y-1 font-display-serif text-base italic leading-relaxed text-ink-muted sm:text-lg">

@@ -19,7 +19,6 @@ import { Dialog, Sheet } from "@/components/ui/Dialog";
 import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { Section } from "@/components/ui/Section";
-import { useReveal } from "@/components/ui/useReveal";
 
 type EventType = "wedding" | "birthday" | "function";
 
@@ -84,9 +83,7 @@ interface HomeExperienceProps {
   availableImages: Record<ImageSlot, boolean>;
   lineArt: {
     arch: ReactNode;
-    divider: ReactNode;
     heart: ReactNode;
-    sun: ReactNode;
   };
 }
 
@@ -94,8 +91,6 @@ export function HomeExperience({
   availableImages,
   lineArt,
 }: HomeExperienceProps) {
-  useReveal();
-
   const [eventType, setEventType] = useState<EventType>("wedding");
   const [eventDate, setEventDate] = useState("");
   const [venue, setVenue] = useState("");
@@ -216,7 +211,7 @@ export function HomeExperience({
           </svg>
         </div>
 
-        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pb-10 lg:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pb-10 lg:px-10">
           <div className="max-w-4xl py-10 sm:py-14">
             <h1
               id="home-heading"
@@ -312,24 +307,48 @@ export function HomeExperience({
       >
         <div className="mx-auto max-w-7xl lg:pr-44">
           <p
-            className="max-w-5xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-ink"
+            className="max-w-5xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.08] tracking-[-0.035em]"
             data-reveal="up"
           >
             We take care of planning,{" "}
             decor, lighting, flowers, music and coordination, so you can be fully
             present for the moments that matter.
           </p>
-          <div className="mt-8">{lineArt.divider}</div>
         </div>
-        <div
-          className="lime-marquee"
-          role="img"
-          aria-label="Weddings, Birthdays, Functions"
-        >
-          <div className="lime-marquee-track" aria-hidden="true">
-            Weddings · Birthdays · Functions · Weddings · Birthdays · Functions ·
-          </div>
-        </div>
+      </Section>
+
+      <Section
+        tone="lime"
+        accent={false}
+        className="home-services-band"
+        aria-label="Services"
+      >
+        <nav className="home-services-links" aria-label="Services">
+          {[
+            { href: "/services/weddings", label: "Weddings" },
+            { href: "/services/birthdays", label: "Birthdays" },
+            { href: "/services/functions", label: "Functions" },
+          ].map((service) => (
+            <Link
+              key={service.href}
+              href={service.href}
+              className="home-services-link"
+            >
+              {service.label}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 12h15m-6-6 6 6-6 6" />
+              </svg>
+            </Link>
+          ))}
+        </nav>
       </Section>
 
       <Section
@@ -391,7 +410,7 @@ export function HomeExperience({
             <div className="mb-8 max-w-3xl" data-reveal="up">
               <h2
                 id="event-types-heading"
-                className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+                className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
               >
                 Weddings, birthdays and{" "}
                 <span className="lime-highlight">functions.</span>
@@ -464,7 +483,7 @@ export function HomeExperience({
           <div className="mb-8 flex items-end justify-between gap-5">
             <h2
               id="recent-work-heading"
-              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
               data-reveal="up"
             >
               Our <span className="lime-highlight">Work</span>
@@ -607,7 +626,7 @@ export function HomeExperience({
           <div data-reveal="right">
             <h2
               id="about-heading"
-              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-ink"
+              className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
             >
               About <span className="lime-highlight">Shadi Sutra</span>
             </h2>
@@ -622,7 +641,6 @@ export function HomeExperience({
               </p>
               <p>You can be fully present for the moments that matter.</p>
             </div>
-            <div className="mt-6">{lineArt.sun}</div>
           </div>
         </div>
       </Section>
@@ -633,14 +651,14 @@ export function HomeExperience({
         className="home-contact-section relative px-5 py-16 sm:px-8 sm:py-24 lg:px-10"
         aria-labelledby="contact-heading"
       >
-        <div className="mx-auto max-w-4xl lg:pr-32">
+        <div className="home-contact-art">{lineArt.heart}</div>
+        <div className="relative z-10 mx-auto max-w-4xl lg:pr-32">
           <h2
             id="contact-heading"
-            className="mb-6 text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em] text-bg"
+            className="mb-6 text-[clamp(2rem,5vw,4rem)] font-semibold leading-tight tracking-[-0.04em]"
           >
             Let&apos;s plan your celebration
           </h2>
-          <div className="home-contact-art">{lineArt.heart}</div>
           <div className="mb-7 flex flex-wrap gap-3">
             {hasSiteValue(site.whatsapp) && (
               <a

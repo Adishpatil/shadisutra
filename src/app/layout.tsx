@@ -75,6 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   await connection();
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const businessJsonLd = localBusinessJsonLd();
+  const currentYear = new Date().getFullYear();
 
   return (
     <html
@@ -92,7 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <SiteShell>{children}</SiteShell>
+        <SiteShell currentYear={currentYear}>{children}</SiteShell>
       </body>
     </html>
   );
